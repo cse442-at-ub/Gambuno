@@ -15,8 +15,8 @@
   left: 50%;
   transform: translate(-50%, -50%);
   flex-shrink: 0;
-  width: 843.041px;
-  height: 535.899px;
+  width: 700px;
+  height: 400px;
   transform: rotate(0 deg);
 }
 .NextGen_14_4 {
@@ -27,11 +27,11 @@
   box-sizing: border-box;
   flex-shrink: 0; 
   position: absolute;
-  top: 17%;
+  top: 13%;
   left: 52%;
   transform: translate(-50%, -50%);
   font-family: Inter;
-  font-size: 80px;
+  font-size: 70px;
   font-style: italic;
   font-weight: 600;
   line-height: normal;
@@ -49,7 +49,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: Inter;
-  font-size: 310px;
+  font-size: 250px;
   font-style: italic;
   font-weight: 600;
   line-height: normal;

@@ -3,7 +3,7 @@ import styles from '../styles/MainMenu.module.css';
 import { useNavigate } from 'react-router-dom';
 
 
-export default function MainMenu() {
+function MainMenu() {
     const navigate = useNavigate();
 
     const goToPlayPage = () => {
@@ -58,3 +58,5 @@ export default function MainMenu() {
     </div>
   );
 }
+
+export default MainMenu;

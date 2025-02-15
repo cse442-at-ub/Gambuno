@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      "target": "es5",                    // Target ES5 for maximum browser compatibility
+      "lib": ["dom", "es2015"],           // Include necessary libraries
+      "jsx": "react-jsx",                 // Use React JSX Transform
+      "moduleResolution": "node",         // Resolve modules like Node
+      "allowJs": true,                    // Allow JavaScript files to be processed
+      "checkJs": true,                    // Enable type-checking for JavaScript files
+      "esModuleInterop": true,            // Enable interoperability for importing modules
+      "skipLibCheck": true,               // Skip type checking of declaration files for speed
+      "forceConsistentCasingInFileNames": true,
+      "outDir": "./dist"                  // Specify output directory for compiled files
+    },
+
+    "include": [
+      "src/**/*"                          // Include all files in the 'src' folder
+    ],
+    "exclude": [
+      "node_modules"                      // Exclude node_modules
+    ]
+}
+  

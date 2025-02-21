@@ -1,0 +1,74 @@
+.cardDesign {
+    display: flex;
+    aspect-ratio: 209/321;
+    border: 5px solid white;
+    border-radius: 10px;
+    width: 209px;
+    height: 321px;
+    overflow: hidden;
+    position: relative;
+}
+
+.upper{
+    font-size: 65px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.lower{
+    overflow: hidden;
+    font-size: 65px;
+    bottom: 0;
+    position: absolute;
+    margin-left: 80%;
+    margin-right: 6%;
+    display: block;
+
+}
+
+.center{
+    overflow: hidden;
+    font-size: 175px;
+    bottom: 18%;
+    right: 20%;
+    position: absolute;
+    margin-left: 80%;
+    margin-right: 6%;
+    display: block;
+
+}
+.upperSpec{
+    font-size: 65px;
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.lowerSpec{
+    overflow: hidden;
+    font-size: 65px;
+    bottom: 0;
+    position: absolute;
+    margin-left: 63%;
+    margin-right: 6%;
+    display: block;
+
+}
+
+.centerSpec{
+    overflow: hidden;
+    font-size: 150px;
+    bottom: 22%;
+    right: 10%;
+    position: absolute;
+    margin-left: 80%;
+    margin-right: 6%;
+    display: block;
+}
+
+.layout{
+    display: flex;
+}
+
+
+
+

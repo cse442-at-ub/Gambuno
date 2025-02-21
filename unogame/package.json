@@ -8,8 +8,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5",
     "react-scripts": "5.0.1",
-    "web-vitals": "^4.2.4",
-    "homepage": "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/unogame/public_html/myapp                     "
+    "web-vitals": "^4.2.4"
   },
 
   "scripts": {

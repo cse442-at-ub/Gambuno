@@ -59,6 +59,7 @@ export default function TempPath() {
                 <Card color="green" num = "8"id = "none"/>
                 <Card color="green" num = "9"id = "none"/>
                 <Card color="green" num = "+2"id = "special"/>
+                <Card color= "tan" num = "3" id ="none" />
             </div>
    
         </div>

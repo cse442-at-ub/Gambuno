@@ -1,0 +1,271 @@
+/* FriendList.css */
+.friend-list-container {
+  position: fixed;
+  top: 80px; /* Increased from 20px to move down below username */
+  right: 20px;
+  z-index: 1000;
+}
+
+.friend-list-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.friend-list-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.friend-list-button svg {
+  transition: transform 0.2s;
+}
+
+.friend-list-button:hover svg {
+  transform: scale(1.1);
+}
+
+
+  .friend-list-popup {
+    position: absolute;
+    right: 0;
+    top: 50px;
+    width: 300px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .friend-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+  }
+  
+  .search-bar {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .search-bar input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .friends-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .friend-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ddd;
+    margin-right: 10px;
+  }
+  
+  .friend-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .friend-name {
+    font-weight: 500;
+  }
+  
+  .friend-status {
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  .friend-status.online {
+    color: #4CAF50;
+  }
+  
+  .friend-status.in-game {
+    color: #2196F3;
+  }
+  
+  .friend-status.offline {
+    color: #666;
+  }
+
+
+
+
+
+.friend-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.add-friend-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+
+.add-friend-icon:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.add-friend-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 300px;
+  padding: 20px;
+  border-radius: 8px;
+  color: white;
+  z-index: 2;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.popup-header h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.add-friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-friend-form input {
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.send-request-button {
+  background: white;
+  color: #1789FC;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  justify-content: space-between;
+}
+
+.join-button {
+  background: #1789FC;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: opacity 0.2s;
+  margin-left: auto; /* Pushes button to right */
+  margin-right: 10px;
+}
+
+.join-button:hover {/* Alternative Grid version */
+  .friend-item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .join-button {
+    grid-column: 3; /* Fixed position in third column */
+  }
+  opacity: 0.9;
+}
+
+.friend-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+/* Add these styles at the bottom */
+.join-button {
+  background: #1789FC;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: auto; /* Pushes button to right */
+  transition: opacity 0.2s;
+}
+
+.join-button:hover {
+  opacity: 0.9;
+}
+
+/* Modify existing friend-item */
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  gap: 15px;
+}

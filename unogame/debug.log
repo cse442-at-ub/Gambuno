@@ -1,2 +1,5 @@
-[0222/131522.324:ERROR:crashpad_client_win.cc(810)] not connected
-[0222/131522.857:ERROR:crashpad_client_win.cc(810)] not connected
+
+[0225/162755.213:ERROR:crashpad_client_win.cc(810)] not connected
+[0225/162755.623:ERROR:crashpad_client_win.cc(810)] not connected
+[0226/105014.154:ERROR:crashpad_client_win.cc(810)] not connected
+[0226/105014.409:ERROR:crashpad_client_win.cc(810)] not connected

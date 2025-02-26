@@ -4,7 +4,6 @@ import React, { useState } from "react"
 import { X } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card } from "./ui/card"
-
 const Tutorial = () => {
     const [currentScreenId, setCurrentScreenId] = useState("intro")
     const [currentBranch, setCurrentBranch] = useState("intro")
@@ -26,7 +25,7 @@ const Tutorial = () => {
                         Game's Setup
                     </Button>
                     <Button
-                        className="w-full py-8 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]"                        onClick={() => {
+                        className="w-full py-8 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]" onClick={() => {
                             setCurrentBranch("howToPlay")
                             setCurrentScreenId("howToPlay")
                         }}

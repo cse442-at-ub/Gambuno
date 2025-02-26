@@ -21,8 +21,8 @@
   border: 8px solid #ffffff;
   border-radius: 60px;
   flex-shrink: 0;
-  width: 600px;
-  height: 200px;
+  width: 400px;
+  height: 120px;
   position: absolute;
   top: 30%;
   left: 20%;
@@ -30,18 +30,16 @@
 }
 .JoinGame_283_142 {
   color: #fffffb;
-  -webkit-text-stroke-width: 4px;
   -webkit-text-stroke-color: #000000ab;
   box-sizing: border-box;
   font-family: Inter;
-  font-size: 90px;
+  font-size: 50px;
   font-style: italic;
   font-weight: 900;
   line-height: normal;
-  
   position: absolute;
-  top: 32%;
-  left: 22%;
+  top: 33%;
+  left: 24%;
 }
 .HostButton_73_27 {
   box-sizing: border-box;
@@ -49,8 +47,8 @@
   border: 8px solid #ffffff;
   border-radius: 60px;
   flex-shrink: 0;
-  width: 600px;
-  height: 200px;
+  width: 400px;
+  height: 120px;
   box-shadow: 0 4px 4px #00000040;
   position: absolute;
   top: 30%;
@@ -65,30 +63,30 @@
 }
 .HostGame_283_144 {
   color: #fffffb;
-  -webkit-text-stroke-width: 4px;
-  -webkit-text-stroke-color: #000000ab;
   box-sizing: border-box;
   font-family: Inter;
-  font-size: 90px;
+  font-size: 50px;
   font-style: italic;
   font-weight: 900;
   line-height: normal;
   display: inline-block;
   position: absolute;
-  top: 32%;
-  left: 62%;
+  justify-content: center;
+  top: 33%;
+  left: 64%;
 }
 .SelectGameType_283_146 {
   color: #eb0000d1;
-  -webkit-text-stroke-width: 10px;
+  -webkit-text-stroke-width: 5px;
   -webkit-text-stroke-color: #000000c9;
   box-sizing: border-box;
   flex-shrink: 0;
   font-family: Inter;
   position: absolute;
-  top: 7%;
-  left: 18%;
-  font-size: 200px;
+  top: 10%;
+  left: 23%;
+  justify-content: center;
+  font-size: 100px;
   font-style: italic;
   font-weight: 600;
   line-height: normal;

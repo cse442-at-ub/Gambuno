@@ -17,19 +17,19 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 
 if (isset($data['username']) && isset($data['password'])) {
-    $username = $conn->real_escape_string($data['username']);
-    $password = $conn->real_escape_string($data['password']);
-
-    $sql = "INSERT INTO users (username, hashed_password) VALUES ('$username', '$password')";
-    
-    if ($conn->query($sql) === TRUE) {
-        echo json_encode(["status" => "success", "message" => "User created successfully"]);
-    } 
-    else {
-        echo "User creation failed";
-    }
-} 
-
+    registerHandler($data['username'], $data['password']);
+//    $username = $conn->real_escape_string($data['username']);
+//    $password = $conn->real_escape_string($data['password']);
+//
+//    $sql = "INSERT INTO users (username, hashed_password) VALUES ('$username', '$password')";
+//
+//    if ($conn->query($sql) === TRUE) {
+//        echo json_encode(["status" => "success", "message" => "User created successfully"]);
+//    }
+//    else {
+//        echo "User creation failed";
+//    }
+}
 else {
     echo json_encode(["status" => "error", "message" => "check"]);
 }

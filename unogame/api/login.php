@@ -4,6 +4,8 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST");
 header("Content-Type: application/json");
 
+
+
 $host = "localhost"; 
 $user = "kurianva"; 
 $pass = "50554678"; 

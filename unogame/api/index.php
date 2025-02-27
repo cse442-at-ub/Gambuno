@@ -13,6 +13,10 @@ $conn = new mysqli($host, $user, $pass, $dbname);
 
 $data = json_decode(file_get_contents("php://input"), true);
 
+function getCred(){
+    return [$data['username'], $data['password']]; 
+}
+
 if (isset($data['username']) && isset($data['password'])) {
     $username = $conn->real_escape_string($data['username']);
     $password = $conn->real_escape_string($data['password']);
@@ -27,6 +31,8 @@ if (isset($data['username']) && isset($data['password'])) {
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid input"]);
 }
+
+
 
 $conn->close();
 ?>

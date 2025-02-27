@@ -11,7 +11,7 @@ function MainMenu() {
     }
 
     const goToCard = () => {
-      navigate("/card");
+      navigate("/main");
     
   };
 

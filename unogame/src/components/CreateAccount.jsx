@@ -25,7 +25,7 @@ const CreateAccount = () => {
         setError("");
         e.preventDefault();
         
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/auth.php",
       {
         method: 'POST',
         headers: {

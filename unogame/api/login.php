@@ -29,7 +29,7 @@ if ($stmt->num_rows > 0) {
     echo "Login successful";
 } 
 else {
-    echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
+    echo "Unable to login";
 }
 
 // Close connections

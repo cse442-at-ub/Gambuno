@@ -1,16 +1,10 @@
 <?php
-
 $excludeChars = [
-    '"', "'", '*', '+', ',', '.', '/',
-    ':', ';', '<', '>', '?', '[', '\\', ']',
-    '`', '{', '|', '}', '~',
-    ' ', "\n", "\t", "\r", "\f", "\v"
+    '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
 ];
-
 $includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
 
-function validatePassword($password)
-{
+function validatePassword($password) {
     global $excludeChars, $includeChars;
 
     // Check if password length is at least 8 characters
@@ -31,18 +25,22 @@ function validatePassword($password)
         if (in_array($char, $excludeChars)) {
             return false;
         }
+
         // Check for uppercase letters
         if (ctype_upper($char)) {
             $containsUpper = true;
         }
+
         // Check for lowercase letters
         if (ctype_lower($char)) {
             $containsLower = true;
         }
+
         // Check for numbers
         if (ctype_digit($char)) {
             $containsNumber = true;
         }
+
         // Check for special characters
         if (in_array($char, $includeChars)) {
             $containsSpecial = true;
@@ -54,45 +52,38 @@ function validatePassword($password)
 }
 
 
-
 function registerHandler($username, $password) {
-// Validate the password
-if (validate_password($password)) {
+    // Validate the password
+    if (validatePassword($password)) {
+        $salt = bin2hex(random_bytes(16));// gen salt
+        $hashedPassword = password_hash($password . $salt, PASSWORD_BCRYPT);
+        $authToken = bin2hex(random_bytes(16));/// 80 bits of entropy
+        $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
 
-    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
+        $host = "localhost"; $user = "rancesco";
+        $pass = "50485224";$dbname = "cse442_2025_spring_team_c_db";
+        $db = new mysqli($host, $user, $pass, $dbname);// set up conntection
+        if ($db->connect_error) {die("Opps something went wrong");}
+        $dbEntry = $db->prepare("INSERT INTO users (username, password, salt, auth_token) VALUES (?, ?, ?, ?)");// prepare statement putting empty values
+        $dbEntry->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);//  binds variables to for each ?
 
-    $conn = new mysqli("localhost", "rancesco", "50485224", "cse442_2025_spring_team_c_db");
-    
+        if ($dbEntry->execute()) {
+            setcookie("authToken", $authToken, time() + 86400, "/", "", true, true);// give user a cookie for authToken
 
-    // Check if the connection was successful
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
+            echo json_encode([
+                "status" => "success",
+                "message" => "User created successfully",
+                "auth_token" => $authToken  // Return the unhashed token to the client
+            ]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "User creation failed, Try again"]);
+        }
 
-    // Prepare the SQL statement
-    $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-    $stmt->bind_param("ss", $username, $hashed_password);
-
-    // Execute the statement
-    if ($stmt->execute()) {
-        echo json_encode(["status" => "success", "message" => "User created successfully"]);
+        $dbEntry->close();
+        $db->close();
     } else {
-        echo json_encode(["status" => "error", "message" => "User creation failed"]);
+        echo json_encode(["status" => "error", "message" => "Invalid password or username"]);
     }
-
-    // Close the connection
-    $stmt->close();
-    $conn->close();
-} else {
-    echo json_encode(["status" => "error", "message" => "Invalid password"]);
 }
-}
-
-
 ?>
-
-
-
-
-

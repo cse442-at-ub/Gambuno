@@ -16,10 +16,10 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 
 if (isset($data['username']) && isset($data['password'])) {
-    registerHandler($data['username'], $data['password']);
-//    $username = $conn->real_escape_string($data['username']);
-//    $password = $conn->real_escape_string($data['password']);
-//
+    $username = $conn->real_escape_string($data['username']);
+    $password = $conn->real_escape_string($data['password']);
+    registerHandler($username, $password);
+
 //    $sql = "INSERT INTO users (username, hashed_password) VALUES ('$username', '$password')";
 //
 //    if ($conn->query($sql) === TRUE) {

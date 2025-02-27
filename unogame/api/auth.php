@@ -71,7 +71,7 @@ function registerHandler($username, $password) {
         
         $db = new mysqli($host, $user, $pass, $dbname);// set up conntection
         if ($db->connect_error) {die("Opps something went wrong");}
-        $dbEntry = $db->prepare("INSERT INTO users (username, password, salt, auth_token) VALUES (?, ?, ?, ?)");// prepare statement putting empty values
+        $dbEntry = $db->prepare("INSERT INTO users (username, $hashedPassword, salt, auth_token) VALUES (?, ?, ?, ?)");// prepare statement putting empty values
         $dbEntry->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);//  binds variables to for each ?
 
         if ($dbEntry->execute()) {

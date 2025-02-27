@@ -53,7 +53,6 @@ function validatePassword($password) {
 
 
 function registerHandler($username, $password) {
-    // Validate the password
 
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
         echo json_encode(["status" => "error", "message" => "Invalid username"]);
@@ -63,7 +62,7 @@ function registerHandler($username, $password) {
     if (validatePassword($password)) {
         $salt = bin2hex(random_bytes(16));// gen salt
         $hashedPassword = password_hash($password . $salt, PASSWORD_BCRYPT);
-        $authToken = bin2hex(random_bytes(16));/// 80 bits of entropy
+        $authToken = "12345";//bin2hex(random_bytes(16));/// 80 bits of entropy
         $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
 
 

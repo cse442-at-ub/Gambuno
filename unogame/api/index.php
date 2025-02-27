@@ -13,8 +13,8 @@ $conn = new mysqli($host, $user, $pass, $dbname);
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-function getCred($pi){
-    return [$pi['username'], $pi['password']]; 
+function getCred(){
+    return [$data['username'], $data['password']]; 
 }
 
 if (isset($data['username']) && isset($data['password'])) {

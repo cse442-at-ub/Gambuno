@@ -12,18 +12,26 @@ $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
-
+$username = 
 $data = json_decode(file_get_contents("php://input"), true);
 
-function getCred($data) {
-    return [$data['username'], $data['password']];
-}
 
 if (isset($data['username']) && isset($data['password'])) {
-    list($username, $password) = getCred($data);
-    registerHandler($username, $password);
-} else {
-    echo json_encode(["status" => "error", "message" => "Invalid input"]);
+    $username = $conn->real_escape_string($data['username']);
+    $password = $conn->real_escape_string($data['password']);
+
+    $sql = "INSERT INTO users (username, hashed_password) VALUES ('$username', '$password')";
+    
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(["status" => "success", "message" => "User created successfully"]);
+    } 
+    else {
+        echo "User creation failed";
+    }
+} 
+
+else {
+    echo json_encode(["status" => "error", "message" => "check"]);
 }
 
 $conn->close();

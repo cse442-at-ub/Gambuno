@@ -23,27 +23,37 @@ const CreateAccount = () => {
         setValid({valid: false, message :"Passwords do not match"});
       }
       const result = isValidPassword(username, password);
-      if (isValidPassword(username, password)["valid"] === false) {
+      if (result["valid"] === false) {
         setValid(result);
       }
       else{
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/auth.php",
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({username, password}),
-          }  
-          );
+        
+        try{
+        
+          const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({username, password}),
+            }  
+            );
+            
+            const data = await response.json();
+
+            if (data.status === "success") {
+              navigate("/login");
+              setValid({valid: true, message:"Account Created"});
+            } 
           
-          const data = await response.json();
-          console.log(data);
-    
-          if (data.status === "User created successfully") {
-            navigate("/login");
-            setValid({valid: true, message:"Account Created"});
           }
+          catch (error) {
+            console.error("Error creating account:", error);
+            setValid({valid: false, message: "An error occurred. Please try again."});
+          }
+          
+            
       }
     }
     

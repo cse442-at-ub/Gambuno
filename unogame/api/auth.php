@@ -69,6 +69,7 @@ function registerHandler($username, $password) {
 
         $host = "localhost"; $user = "rancesco";
         $pass = "50485224";$dbname = "cse442_2025_spring_team_c_db";
+        
         $db = new mysqli($host, $user, $pass, $dbname);// set up conntection
         if ($db->connect_error) {die("Opps something went wrong");}
         $dbEntry = $db->prepare("INSERT INTO users (username, password, salt, auth_token) VALUES (?, ?, ?, ?)");// prepare statement putting empty values

@@ -12,7 +12,6 @@ $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
-$username = 
 $data = json_decode(file_get_contents("php://input"), true);
 
 

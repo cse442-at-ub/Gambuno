@@ -65,7 +65,7 @@ function pass_special(password){
 }
 
 
-function isValidPassword(username, password) {
+export function isValidPassword(username, password) {
     let errors = [];
     if (user_length(username) !== true) errors.push(user_length(username)["message"]);
     if(pass_length(password) !== true) errors.push(pass_length(password)["message"]);
@@ -75,7 +75,7 @@ function isValidPassword(username, password) {
     if(pass_number(password) !== true) errors.push(pass_number(password)["message"]);;
 
     if(user_length(username) === true && pass_length(password) === true && pass_special(password) === true && pass_upper(password) === true && pass_lower(password) === true && pass_number(password) === true) return { valid: true, message: "Password is valid." };
-    return { valid: false, message: errors.join(" \n") };
+    return { valid: false, message: errors.join("\n") };
     
 }
 

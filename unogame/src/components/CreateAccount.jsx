@@ -4,46 +4,47 @@ import UNO from '../components/Assets/uno.png';
 import home from '../components/Assets/home.svg';
 import styles from "../styles/CreateAccount.module.css";
 import { useNavigate } from 'react-router-dom';
+import { isValidPassword } from './validate_password';
 
 
 const CreateAccount = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [valid, setValid] = useState({valid: false, message: ""});   const navigate = useNavigate();
   
     const goToLogin = () => {
       navigate("/login");
     }
-    const handleSubmit = async (e) => {
-      if(password !== password2){
-        setError("Passwords do not match");
 
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if(password !== password2){
+        setValid({valid: false, message :"Passwords do not match"});
+      }
+      const result = isValidPassword(username, password);
+      if (isValidPassword(username, password)["valid"] === false) {
+        setValid(result);
       }
       else{
-        setError("");
-        e.preventDefault();
-        
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/auth.php",
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({username, password}),
-      }  
-      );
-      
-      const data = await response.json();
-      console.log(data);
-
-      if (data.status === "User created successfully") {
-        navigate("/login");
+        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/auth.php",
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({username, password}),
+          }  
+          );
+          
+          const data = await response.json();
+          console.log(data);
+    
+          if (data.status === "User created successfully") {
+            navigate("/login");
+            setValid({valid: true, message:"Account Created"});
+          }
       }
-    }
-
-      
     }
     
   return (
@@ -77,7 +78,7 @@ const CreateAccount = () => {
                 placeholder="Enter your password"
                 onChange={(e) => setPassword2(e.target.value)}
               />
-              {error && <p style={{ color: 'red' }}>{error}</p>}
+              <p style={{ color: 'red' }}>{valid.message}</p>
               <button type="submit" className="{stylesSignup_button}">
                 Sign Up
               </button>

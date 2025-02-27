@@ -14,7 +14,7 @@ $conn = new mysqli($host, $user, $pass, $dbname);
 $data = json_decode(file_get_contents("php://input"), true);
 
 function getCred($pi){
-    return [$data['username'], $data['password']]; 
+    return [$pi['username'], $pi['password']]; 
 }
 
 if (isset($data['username']) && isset($data['password'])) {

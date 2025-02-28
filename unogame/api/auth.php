@@ -1,4 +1,9 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST");
+header("Content-Type: application/json");
+
 function validatePassword($password)
 {
     $excludeChars = [
@@ -73,27 +78,50 @@ function genAuth($password){
 }
 
 
-function verifyUser($conn,$username,$password){
-    //prep
-    $sql = "SELECT * FROM users WHERE username = ?";
-    $prep = $conn->prepare($sql);
-    //bind
-    $prep->bind_param("s", $username);
-
-    $prep->execute();
-
-    $result = $prep->get_result();
+function verifyUser($conn, $username, $password) {
+    /*
+    $sql = "SELECT * FROM users WHERE username = 'kurianvadakara'";
+    $result = $conn->query($sql);
     $user = $result->fetch_assoc();
 
-    if ($user) {
-        if (password_verify($password, $user['hashed_password'])) {
-            return true;
-        }else{
-            return false;
-        }
+    if ($user && password_verify($password, $user['hashed_password'])) {
+        return true;
     }
     return false;
+
+    */
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    $sql = "SELECT * FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $stmt->store_result();
+
+    // Check if user exists
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($id, $username, $hashedPassword, $auth);
+        if ($stmt->fetch() && password_verify($password, $hashedPassword)) {
+            echo json_encode(["status" => "success", "message" => "User verified"]);
+        }
+        else {
+            echo json_encode(["status" => "error", "message" => "User not found"]);
+        }
+    } 
+    else {
+        echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
+    }
+
+    // Close connections
+    $stmt->close();
+    $conn->close();
 }
+
 
 
 

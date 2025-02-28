@@ -18,29 +18,29 @@ const LogIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("password", password);
 
-    try{
       const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/login.php",{
         method: "POST",
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({username, password})
       });
 
-      const data = await response.text();
+      const data = await response.json();
       setError(data);
 
-      if(data === "Login successful"){
+      if(data["message"] === "User verified"){
         navigate("/");
       }
 
-    }
-
+    /*
     catch(error){
-      setError("Incorrect Username or Password");
+      setError("ERROR: An error occurred. Please try again.");
     }
-};
+    */
+  
+  }
 
 return (
     <div className={styles.container}>

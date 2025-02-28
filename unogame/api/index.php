@@ -81,7 +81,6 @@ if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
     echo json_encode(["status" => "error", "message" => "Invalid username"]);
     return;
 }
-
 $salt = bin2hex(random_bytes(16));
 $hashedPassword = password_hash($data['password'] . $salt, PASSWORD_BCRYPT);
 $authToken = bin2hex(random_bytes(16)); // 80 bits of entropy

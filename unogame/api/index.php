@@ -20,32 +20,76 @@ function insertUser($data, $conn) {
     if (isset($data['username']) && isset($data['password'])) {
         $username = $data['username'];
         $password = $data['password'];
-
+        $authToken = bin2hex(random_bytes(16)); // 80 bits of entropy
+        $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
         if (!checkAuthDetails($username, $password)) {
-            echo json_encode(["status" => "error", "message" => "Invalid username or password"]); 
-            return; 
+            echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
+            return;
         }
 
         else{
-            list($hashedPassword, $salt, $auth, $hashedAuth) = genAuth($password);
-            setcookie("auth", $auth, time() + 8600, "/", true, true);
-            $sql = "INSERT INTO users (username, hashed_password, salt, auth) VALUES ('$username', '$hashedPassword', '$salt', '$hashedAuth')";
-                if ($conn->query($sql) === TRUE) {
-                    echo json_encode(["status" => "success", "message" => "User created successfully"]);
-                } 
-                else {
-                    echo "User creation failed";
-                }
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            setcookie("auth", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
+
+            $sql = "INSERT INTO users (username, hashed_password, auth) 
+                    VALUES (:?, :?, :?)";
+            $prep =  $conn->prepare($sql);
+
+            $prep->bind_param("sss", $username, $hashedPassword, $hashedAuthToken);
+
+            if ($prep->execute()) {
+                echo json_encode(["status" => "success", "message" => "User created successfully"]);
+            } else {
+                // Provide detailed error information
+                echo json_encode(["status" => "error", "message" => "User creation failed: " . $prep->error]);
+            }
+
+
+
+//            $prep->execute([
+//                ':username' => $username,
+//                ':hashedPassword' => $hashedPassword,
+//                ':hashedAuthToken' => $hashedAuthToken
+//            ]);
+//
+//            if ($prep->affected_rows > 0) {
+//                echo "User inserted successfully!";
+//            } else {
+//                echo "Error inserting user.";
+//            }
         }
+        $prep->close();
     }
-    
-    else {
+else {
         echo json_encode(["status" => "error", "message" => "check"]);
     }
-
     $conn->close();
 }
 
 insertUser($data, $conn);
 
 ?>
+
+
+
+/*
+$hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+setcookie("auth", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
+
+$sql = "INSERT INTO users (username, hashed_password, auth) VALUES ('$username', '$hashedPassword', '$hashedAuthToken')";
+
+if ($conn->query($sql) === TRUE) {
+echo json_encode(["status" => "success", "message" => "User created successfully"]);
+}
+else {
+echo "User creation failed";
+}
+}
+
+if ($conn->query($sql) === TRUE) {
+echo json_encode(["status" => "success", "message" => "User created successfully"]);
+}
+else {
+echo "User creation failed";
+}
+*/

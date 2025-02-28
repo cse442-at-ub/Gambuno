@@ -28,7 +28,7 @@ function insertUser($data, $conn) {
 
         else{
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-            setcookie("user", "JohnDoe", time() + 3600, "/", "aptitude.cse.buffalo.edu");
+            setcookie("auth", $auth, time() + 3600, "/", "cse.buffalo.edu", true, true);
 
             $sql = "INSERT INTO users (username, hashed_password, auth) VALUES ('$username', '$hashedPassword', '$hashedAuth')";
 

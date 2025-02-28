@@ -17,7 +17,7 @@ $excludeChars = [
     '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
 ];
 $includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
-
+/*
 function validatePassword($password) {
     global $excludeChars, $includeChars;
 
@@ -69,7 +69,7 @@ if (!isset($data['username']) || !isset($data['password'])) {
     echo json_encode(["status" => "error", "message" => "Username and password are required"]);
     return;
 }
-
+*/
 $username = $data['username'];
 
 if (!validatePassword($data['password'])) {

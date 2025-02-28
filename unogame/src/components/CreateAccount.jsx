@@ -21,10 +21,12 @@ const CreateAccount = () => {
       e.preventDefault();
       if(password !== password2){
         setValid({valid: false, message :"Passwords do not match"});
+        return;
       }
       const result = isValidPassword(username, password);
       if (result["valid"] === false) {
         setValid(result);
+        return;
       }
       else{
         
@@ -88,7 +90,9 @@ const CreateAccount = () => {
                 placeholder="Enter your password"
                 onChange={(e) => setPassword2(e.target.value)}
               />
-              <p style={{ color: 'red' }}>{valid.message}</p>
+              <div className="whitespace-pre-line">
+              <p className = "text-red-500 font-bold">{valid.message}</p>
+              </div>
               <button type="submit" className="{stylesSignup_button}">
                 Sign Up
               </button>

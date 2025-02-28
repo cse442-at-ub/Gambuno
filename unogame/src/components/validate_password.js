@@ -9,14 +9,14 @@ let includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
 
 function pass_length(password){
     if (password.length < 8) {
-        return { valid: false, message: "Password must be at least 8 characters long." };
+        return { valid: false, message: "Password must be at least 8 characters long. \n" };
     }
     return true;
 }
 
 function user_length(username){
     if (username.length < 8) {
-        return { valid: false, message: "Username must be at least 8 characters long." };
+        return { valid: false, message: "Username must be at least 8 characters long. \n" };
     }
     return true;
 }
@@ -27,7 +27,7 @@ function pass_upper(password){
         let char = password[i];
         if (char >= 'A' && char <= 'Z') containsUpper = true;
     }
-    if (!containsUpper) return { valid: false, message: "Password must contain at least one uppercase letter." };
+    if (!containsUpper) return { valid: false, message: "Password must contain at least one uppercase letter. \n" };
     return true;
 }
 
@@ -37,7 +37,7 @@ function pass_lower(password){
         let char = password[i];
         if (char >= 'a' && char <= 'z') containsLower = true;
     }
-    if (!containsLower) return { valid: false, message: "Password must contain at least one lowercase letter." };
+    if (!containsLower) return { valid: false, message: "Password must contain at least one lowercase letter. \n" };
     return true;
 }
 
@@ -47,7 +47,7 @@ function pass_number(password){
         let char = password[i];
         if (char >= '0' && char <= '9') containsNumber = true;
     }
-    if (!containsNumber) return { valid: false, message: "Password must contain at least one number." };
+    if (!containsNumber) return { valid: false, message: "Password must contain at least one number. \n" };
     return true;
 }
 
@@ -56,11 +56,11 @@ function pass_special(password){
     for (let i = 0; i < password.length; i++) {
         let char = password[i];
         if (excludeChars.includes(char)) {
-            return { valid: false, message: `Password contains a restricted character: ${char}` }
+            return { valid: false, message: `Password contains a restricted character: ${char} \n` }
             };
         if (includeChars.includes(char)) containsSpecial = true;
     }
-    if (!containsSpecial) return { valid: false, message: "Password must contain at least one special character."};
+    if (!containsSpecial) return { valid: false, message: "Password must contain at least one special character. \n"};
     return true;
 }
 
@@ -75,7 +75,7 @@ export function isValidPassword(username, password) {
     if(pass_number(password) !== true) errors.push(pass_number(password)["message"]);;
 
     if(user_length(username) === true && pass_length(password) === true && pass_special(password) === true && pass_upper(password) === true && pass_lower(password) === true && pass_number(password) === true) return { valid: true, message: "Password is valid." };
-    return { valid: false, message: errors.join("\n") };
+    return { valid: false, message: errors.join("")};
     
 }
 

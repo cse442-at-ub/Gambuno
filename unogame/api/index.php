@@ -3,6 +3,9 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
+require_once 'auth.php';
+
+
 $host = "localhost";
 $user = "kurianva";
 $pass = "50554678";
@@ -21,10 +24,7 @@ if (checkAuthDetails($data)) {
     return false;
 }
 
-
-
 //write your DB helpers here
-
 
 //$stmt = $conn->prepare("INSERT INTO users (username, password, salt, auth_token) VALUES (?, ?, ?, ?)");
 //$stmt->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);

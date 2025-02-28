@@ -30,7 +30,6 @@ function insertUser($data, $conn) {
             list($hashedPassword, $salt, $auth, $hashedAuth) = genAuth($password);
             setcookie("auth", $auth, time() + 8600, "/", true, true);
             $sql = "INSERT INTO users (username, hashed_password, salt, auth) VALUES ('$username', '$hashedPassword', '$salt', '$hashedAuth')";
-
                 if ($conn->query($sql) === TRUE) {
                     echo json_encode(["status" => "success", "message" => "User created successfully"]);
                 } 

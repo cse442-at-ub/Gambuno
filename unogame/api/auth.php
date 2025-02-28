@@ -66,9 +66,34 @@ function checkAuthDetails($username, $password){
 }
 
 function genAuth($password){
-    $salt = "";///bin2hex(random_bytes(16));
-    $hashedPassword = password_hash($password + $salt, PASSWORD_BCRYPT);
-    $authToken = "12345";//bin2hex(random_bytes(16)); // 80 bits of entropy
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    $authToken = bin2hex(random_bytes(16)); // 80 bits of entropy
     $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
-    return [$hashedPassword, $salt, $authToken, $hashedAuthToken];
+    return [$hashedPassword, $authToken, $hashedAuthToken];
 }
+
+
+function verifyUser($conn,$username,$password){
+    //prep
+    $sql = "SELECT * FROM users WHERE username = ?";
+    $prep = $conn->prepare($sql);
+    //bind
+    $prep->bind_param("s", $username);
+
+    $prep->execute();
+
+    $result = $prep->get_result();
+    $user = $result->fetch_assoc();
+
+    if ($user) {
+        if (password_verify($password, $user['hashed_password'])) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+    return false;
+}
+
+
+

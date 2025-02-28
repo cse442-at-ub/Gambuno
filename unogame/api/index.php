@@ -20,16 +20,17 @@ function insertUser($data, $conn) {
     if (isset($data['username']) && isset($data['password'])) {
         $username = $data['username'];
         $password = $data['password'];
-
+        $auth = "cfvgbhnj";
         if (!checkAuthDetails($username, $password)) {
             echo json_encode(["status" => "error", "message" => "Invalid username or password"]); 
             return; 
         }
 
         else{
-            list($hashedPassword, $salt, $auth, $hashedAuth) = genAuth($password);
-            setcookie("auth", $auth, time() + 8600, "/", true, true);
-            $sql = "INSERT INTO users (username, hashed_password, salt, auth) VALUES ('$username', '$hashedPassword', '$salt', '$hashedAuth')";
+            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            setcookie("user", "JohnDoe", time() + 3600, "/", "aptitude.cse.buffalo.edu");
+
+            $sql = "INSERT INTO users (username, hashed_password, auth) VALUES ('$username', '$hashedPassword', '$hashedAuth')";
 
                 if ($conn->query($sql) === TRUE) {
                     echo json_encode(["status" => "success", "message" => "User created successfully"]);

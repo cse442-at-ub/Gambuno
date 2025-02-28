@@ -16,7 +16,7 @@ function pass_length(password){
 
 function user_length(username){
     if (username.length < 8) {
-        return { valid: false, message: "Username must be at least 5 characters long." };
+        return { valid: false, message: "Username must be at least 8 characters long." };
     }
     return true;
 }

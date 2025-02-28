@@ -3,7 +3,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-
 $host = "localhost";
 $user = "kurianva";
 $pass = "50554678";
@@ -11,50 +10,8 @@ $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
-$username = 
+
 $data = json_decode(file_get_contents("php://input"), true);
-
-if(!validatePassword($data['password'])){
-    echo json_encode(["status" => "error", "message" => "Invalid password"]);
-    return;
-}
-if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
-    echo json_encode(["status" => "error", "message" => "Invalid username"]);
-    return;
-}
-
-$salt = bin2hex(random_bytes(16));
-$hashedPassword = password_hash($data['password'] . $salt, PASSWORD_BCRYPT);
-$authToken = "12345";//bin2hex(random_bytes(16));/// 80 bits of entropy
-$hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
-
-
-if (isset($data['username']) && isset($data['password'])) {
-$username = $conn->real_escape_string($data['username']);
-$password = $conn->real_escape_string($hashedPassword);
-
-$conn->prepare("INSERT INTO users (username, $hashedPassword, salt, auth_token) VALUES (?, ?, ?, ?)");
-$sql = $conn->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);
-
-if ($conn->query($sql) === TRUE) {
-echo json_encode(["status" => "success", "message" => "User created successfully"]);
-} 
-else {
-echo "User creation failed";
-}
-
-} 
-
-else {
-echo json_encode(["status" => "error", "message" => "check"]);
-}
-
-$conn->close();
-
-
-
-
-
 
 $excludeChars = [
     '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
@@ -108,3 +65,37 @@ function validatePassword($password) {
     return $containsLower && $containsNumber && $containsSpecial && $containsUpper;
 }
 
+if (!isset($data['username']) || !isset($data['password'])) {
+    echo json_encode(["status" => "error", "message" => "Username and password are required"]);
+    return;
+}
+
+$username = $data['username'];
+
+if (!validatePassword($data['password'])) {
+    echo json_encode(["status" => "error", "message" => "Invalid password"]);
+    return;
+}
+
+if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
+    echo json_encode(["status" => "error", "message" => "Invalid username"]);
+    return;
+}
+
+$salt = bin2hex(random_bytes(16));
+$hashedPassword = password_hash($data['password'] . $salt, PASSWORD_BCRYPT);
+$authToken = bin2hex(random_bytes(16)); // 80 bits of entropy
+$hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
+
+$stmt = $conn->prepare("INSERT INTO users (username, password, salt, auth_token) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);
+
+if ($stmt->execute()) {
+    echo json_encode(["status" => "success", "message" => "User created successfully"]);
+} else {
+    echo json_encode(["status" => "error", "message" => "User creation failed"]);
+}
+
+$stmt->close();
+$conn->close();
+?>

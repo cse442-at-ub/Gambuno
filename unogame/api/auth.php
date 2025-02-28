@@ -1,12 +1,11 @@
 <?php
-$excludeChars = [
-    '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
-];
-$includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
-
 function validatePassword($password)
 {
-    global $excludeChars, $includeChars;
+    $excludeChars = [
+        '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
+    ];
+    $includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
+    
 
     if (strlen($password) < 8) {
         return false;
@@ -67,9 +66,9 @@ function checkAuthDetails($username, $password){
 }
 
 function genAuth($password){
-    $salt = bin2hex(random_bytes(16));
+    $salt = "";///bin2hex(random_bytes(16));
     $hashedPassword = password_hash($password + $salt, PASSWORD_BCRYPT);
-    $authToken = "1234";//bin2hex(random_bytes(16)); // 80 bits of entropy
+    $authToken = "12345";//bin2hex(random_bytes(16)); // 80 bits of entropy
     $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
     return [$hashedPassword, $salt, $authToken, $hashedAuthToken];
 }

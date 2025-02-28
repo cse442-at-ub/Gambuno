@@ -43,7 +43,7 @@ const CreateAccount = () => {
             const data = await response.json();
 
             if (data.status === "success") {
-              navigate("/login");
+              navigate("/");
               setValid({valid: true, message:"Account Created"});
             } 
           

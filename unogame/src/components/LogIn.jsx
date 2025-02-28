@@ -17,8 +17,13 @@ const LogIn = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (username === "" || password === "") {
+      setError("ERROR: Please enter a username and password.");
+      return;
+    }
 
+    e.preventDefault();
+    try{
       const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/login.php",{
         method: "POST",
         headers: {
@@ -32,13 +37,16 @@ const LogIn = () => {
 
       if(data["message"] === "User verified"){
         navigate("/");
+        setError("Welcome Back!");
       }
-
-    /*
+      else{
+        setError("ERROR: Invalid username or password.");
+      }
+    }
     catch(error){
       setError("ERROR: An error occurred. Please try again.");
     }
-    */
+
   
   }
 

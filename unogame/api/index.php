@@ -11,7 +11,6 @@ $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
-$username = 
 $data = json_decode(file_get_contents("php://input"), true);
 
 if(!validatePassword($data['password'])){
@@ -30,20 +29,20 @@ $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
 
 
 if (isset($data['username']) && isset($data['password'])) {
-$username = $conn->real_escape_string($data['username']);
-$password = $conn->real_escape_string($hashedPassword);
+    $username = $conn->real_escape_string($data['username']);
+    $password = $conn->real_escape_string($hashedPassword);
 
-$conn->prepare("INSERT INTO users (username, $hashedPassword, salt, auth_token) VALUES (?, ?, ?, ?)");
-$sql = $conn->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);
+    $conn->prepare("INSERT INTO users (username, $hashedPassword, salt, auth_token) VALUES (?, ?, ?, ?)");
+    $sql = $conn->bind_param("ssss", $username, $hashedPassword, $salt, $hashedAuthToken);
 
-if ($conn->query($sql) === TRUE) {
-echo json_encode(["status" => "success", "message" => "User created successfully"]);
-} 
-else {
-echo "User creation failed";
-}
+    if ($conn->query($sql) === TRUE) {
+        echo json_encode(["status" => "success", "message" => "User created successfully"]);
+    }
+    else {
+        echo "User creation failed";
+    }   
 
-} 
+}  
 
 else {
 echo json_encode(["status" => "error", "message" => "check"]);

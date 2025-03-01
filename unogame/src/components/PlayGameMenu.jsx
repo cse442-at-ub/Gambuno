@@ -30,7 +30,7 @@ export default function PlayGameMenu() {
       {/* Buttons Container */}
       <div className={styles.ButtonContainer}>
         <div className={styles.JoinButton}>
-          <span className={styles.ButtonText}>Join Game</span>
+          <span className={styles.ButtonText} onClick={() => navigate('/singleGame')}>Join Game</span>
         </div>
         <div className={styles.HostButton}>
           <span className={styles.ButtonText}>Host Game</span>

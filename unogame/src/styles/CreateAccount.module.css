@@ -2,8 +2,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    max-width: 700px;
+  
+    background: linear-gradient(
+      180deg,
+      rgb(254, 128, 8) 0%,
+      rgba(203, 142, 12, 0.96) 100%
+    );
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 0;
   }
   
   .CA_box {
@@ -32,20 +44,21 @@
     flex-direction: column;
     gap: 15px;
     margin-top: 20px;
-    padding-top: 15px;
+    padding-top: 10px;
   }
   
   .CA_form label {
     font-size: 16px;
     font-weight: 400;
     text-align: left;
+    padding-left: 14px;
   }
   
   .CA_form input {
-    width: 550px;
-    height: 40px;
+    width: 500px;
+    height: 50px;
     padding: 10px;
-    border-radius: 25px;
+    border-radius: 15px;
     border: 1px solid #ccc;
     font-size: 12px;
     align-self:center;
@@ -74,7 +87,7 @@
   .create_account {
     font-weight: bold;
     text-decoration: underline;
-    color: #000;
+    color: #000000;
   }
   
   .background_elements {

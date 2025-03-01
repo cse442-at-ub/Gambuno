@@ -1,10 +1,24 @@
 .container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 604px;
-  height: 723px;
-  max-width: 500px;
+  margin: 0;
+    background: linear-gradient(
+      180deg,
+      rgb(254, 128, 8) 0%,
+      rgba(203, 142, 12, 0.96) 100%
+    );
+    font-family: "Inter", Helvetica ;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0px;
+    line-height: 140%;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    
 }
 
 .login_box {

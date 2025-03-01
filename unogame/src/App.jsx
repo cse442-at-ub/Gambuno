@@ -9,37 +9,24 @@ import LogIn from './components/LogIn';
 import CreateAccount from './components/CreateAccount'; 
 import FriendList from './components/FriendList/FriendList';
 
-
-
-
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Main Menu with Friend List */}
-        <Route 
-          path="/" 
-          element={
-            <div className="main-menu-container">
-              <MainMenu />
-              <FriendList /> {/* Add FriendList here */}
-            </div>
-          } 
-        />
-        
         {/* Other routes without Friend List */}
         <Route path="/play" element={<PlayGame />} />
         <Route path="/card" element={<TempPath />} />
         <Route path="/tutorial" element={<Tutorial />} />
         <Route path="/login" element={<LogIn />} />
         <Route path="/create-account" element={<CreateAccount />} />
+
+        <Route path="/" element={<MainMenu />} />
+        <Route path="/play" element={<PlayGame />} />
+
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
-
-
 

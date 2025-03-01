@@ -8,6 +8,7 @@ function MainMenu() {
 
     const goToPlayPage = () => {
       navigate("/play");
+
     }
 
     const goToCard = () => {
@@ -20,10 +21,17 @@ function MainMenu() {
   
 };
 
+    };
+
+
   return (
     <div className={styles.MainMenu_1_2}>
       <div className={styles.Ellipse_2_76_55}></div><span className={styles.NextGen_14_4}>NEXT GEN </span><span className={styles.Uno_76_50}>UNO </span>
+
       <div className={styles.Button_76_52}><svg width="220" height="100" viewBox="0 0 356 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <div className={styles.Button_76_52}><svg width="356" height="124" viewBox="0 0 356 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+
           <g filter="url(#filter0_d_76_52)">
             <rect width="355.27" height="124" rx="60" fill="#F42C04" fillOpacity="0.95" />
             <rect x="2.5" y="2.5" width="350.27" height="119" rx="57.5" stroke="#FFB30F" stroke-opacity="0.5" strokeWidth="5" />
@@ -42,7 +50,11 @@ function MainMenu() {
           </defs>
         </svg>
       </div>
+
       <div className={styles.PlayButton_80_77}><svg width="220" height="100" viewBox="0 0 356 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <div className={styles.PlayButton_80_77}><svg width="356" height="124" viewBox="0 0 356 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+
         
 
           <g filter="url(#filter0_d_80_77)">
@@ -63,8 +75,13 @@ function MainMenu() {
           </defs>
         </svg>
       </div>
+
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17} onClick={goToCard}>Credits</button></span>
       <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79}>Settings</span>
+
+      <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}>Credits</span>
+      <div className={styles.LoginButton_14_8}></div><span className={styles.LogIn_26_10}>Log In</span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79}>Settings</span>
+
     </div>
   );
 }

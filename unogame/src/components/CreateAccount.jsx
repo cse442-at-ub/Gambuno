@@ -93,7 +93,7 @@ const CreateAccount = () => {
               <div className="whitespace-pre-line">
               <p className = "text-red-500 font-bold">{valid.message}</p>
               </div>
-              <button type="submit" className="{stylesSignup_button}">
+              <button type="submit" className={styles.Signup_button}>
                 Sign Up
               </button>
 
@@ -112,7 +112,7 @@ const CreateAccount = () => {
             <img className={styles.background_uno} alt="Uno" src={UNO} />
           </div>
     
-          <img className={styles.home_icon} alt="Home" src={home} />
+          <button onClick={() => navigate('/')}><img className={styles.home_icon} alt="Home" src={home}/></button>
         </div>
     
   );

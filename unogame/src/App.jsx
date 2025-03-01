@@ -5,7 +5,8 @@ import PlayGame from './components/PlayGameMenu';
 import TempPath from './components/TempPath';
 import Tutorial from "./components/Tutorial";
 import LogIn from './components/LogIn';
-import CreateAccount from './components/CreateAccount'; 
+import CreateAccount from './components/CreateAccount';
+import SingleGame from './components/SingleGame';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/tutorial" element={<Tutorial />} />
         <Route path="/login" element={<LogIn />} />
         <Route path="/create-account" element={<CreateAccount />} />
+        <Route path="/singleGame" element={<SingleGame />} />
       </Routes>
     </Router>
   );

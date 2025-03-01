@@ -98,7 +98,7 @@ return (
         <img className={styles.background_uno} alt="Uno" src={UNO} />
       </div>
 
-      <img className={styles.home_icon} alt="Home" src={home} />
+      <button onClick={() => navigate('/')}><img className={styles.home_icon} alt="Home" src={home} /></button>
     </div>
   )
 

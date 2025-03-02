@@ -90,7 +90,7 @@ import { useNavigate } from 'react-router-dom';
 
   return (
     <div className= "game-container">
-      <h1>UNO Game</h1>
+      <h1 className = "title">UNO GAME</h1>
 
       {gameOver ? (
         <>
@@ -101,10 +101,10 @@ import { useNavigate } from 'react-router-dom';
         </>
       ): (
         <>
-          <h2>Current Card:</h2>
+          <h2 className= "indicator">Current Card:</h2>
           <div className={`played-card card ${currentColor}`}>{playedPile[0]}</div>
 
-          <h3>Your Cards:</h3>
+          <h3 className= "indicator">Your Cards:</h3>
           <div className="player-cards">
             {player1Deck.map((card, index) => (
               <button

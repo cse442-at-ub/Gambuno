@@ -73,6 +73,7 @@
   border-radius: 50px;
   cursor: pointer;
   transition: 0.3s;
+  border-width: 3px ;
 }
 
 .game-over {
@@ -88,4 +89,18 @@
   border-radius: 50px;
   cursor: pointer;
   transition: 0.3s;
+}
+
+.title{
+font-size: 50px;
+font-style: italic;
+  font-weight: 800;
+  color: #ebe7e7;
+  -webkit-text-stroke: 16px black;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 7px rgba(0, 0, 0, 0.5);
+}
+
+.indicator{
+  font-size: 30px;
 }

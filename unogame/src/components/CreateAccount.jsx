@@ -1,10 +1,15 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import NEXTGen from '../components/Assets/next-gen.png';
 import UNO from '../components/Assets/uno.png';
 import home from '../components/Assets/home.svg';
 import styles from "../styles/CreateAccount.module.css";
 import { useNavigate } from 'react-router-dom';
 import { isValidPassword } from './validate_password';
+import NEXTGEN from "./Assets/next-genM.png"
+import UNO1 from "./Assets/unoM.png"
+import tutorialCircle from "./Assets/tutorial-circle.svg"
+import "./LogInM.css"
+import { LogIn } from 'lucide-react';
 
 
 const CreateAccount = () => {
@@ -58,6 +63,60 @@ const CreateAccount = () => {
             
       }
     }
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 768);
+      };
+  
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+  if (isMobile){
+    return(
+      <div className="p-log-in-screen">
+        <div className="container">
+        <div className="login-card">
+          <h1 className="logo">NEXT GEN UNO</h1>
+          
+          <div className="input-group">
+            <label htmlFor="username">Username</label>
+            <input type="text" id="username" name="username" />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Create Password</label>
+            <input type="text" id="password" name="password" />
+          </div>
+          <div className="input-group">
+            <label htmlFor="password">Confirm Password</label>
+            <input type="text" id="password" name="password" />
+          </div>
+
+          <button className="login-button">Sign up</button>
+        
+          <span className = "new-acct"><p>
+          Already have an account?{" "}
+          <button onClick={LogIn} className="create-account">
+            Log In
+          </button>
+          </p>
+          </span>
+        </div>
+
+        <div className="logo-group" onClick={() => navigate('/')}>
+          <div className="logo-container">
+            <div className= "logo-background"/>
+            <img className="next-gen-logo" src={NEXTGEN} alt="Next GEN" />
+            <img className="uno-logo" src={UNO1} alt="Uno" />
+          </div>
+        </div>
+        </div>
+      </div>
+    )
+  }
     
   return (
      <div className= {styles.container2}>

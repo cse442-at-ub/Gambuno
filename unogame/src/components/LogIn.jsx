@@ -96,7 +96,7 @@ const LogIn = () => {
           </span>
         </div>
 
-        <div className="logo-group">
+        <div className="logo-group" onClick={() => navigate('/')}>
           <div className="logo-container">
             <div className= "logo-background"/>
             <img className="next-gen-logo" src={NEXTGEN} alt="Next GEN" />

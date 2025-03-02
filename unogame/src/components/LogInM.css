@@ -107,21 +107,21 @@
     background-color: rgba(217,217,217,0.15);
     border: 5px solid rgba(0,0,0,0.84);
     border-radius: 50%;
-    width: 79px;
-    height: 58px;
+    width: 120px;
+    height: 75px;
     position: absolute;
 }
 .next-gen-logo{
     position: absolute;
-    top: 12px;
-    left: 20px;
-    width: 41px;
+    top: 7px;
+    left: 10px;
+    width: 60px;
 }
 .uno-logo{
     position: absolute;
-    top: 19px;
-    left: 8px;
-    width: 66px;
+    top: 20px;
+    left: 5px;
+    width: 70px;
 }
 .help-icon{
     position: absolute;

@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect} from 'react';
 import styles from '../styles/LogIn.module.css';
 import NEXTGen from '../components/Assets/next-gen.png';
 import UNO from '../components/Assets/uno.png';
 import home from '../components/Assets/home.svg';
 import { useNavigate } from 'react-router-dom';
+import { Divide } from 'lucide-react';
+import NEXTGEN from "./Assets/next-genM.png"
+import UNO1 from "./Assets/unoM.png"
+import tutorialCircle from "./Assets/tutorial-circle.svg"
+import "./LogInM.css"
+
   
 
 const LogIn = () => {
@@ -48,6 +54,62 @@ const LogIn = () => {
     }
 
   
+  }
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 768);
+      };
+  
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+  if (isMobile){
+    return(
+      <div className="p-log-in-screen">
+        <div className="container">
+        <div className="login-card">
+          <h1 className="logo">NEXT GEN UNO</h1>
+          
+          <div className="input-group">
+            <label htmlFor="username">Username</label>
+            <input type="text" id="username" name="username" />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <input type="text" id="password" name="password" />
+          </div>
+
+          <div className="forgot-password">Forgot Password?</div>
+          <button className="login-button">Log In</button>
+        
+          <span className = "new-acct"><p>
+          Don't have an account?{" "}
+          <button onClick={goToCreateAccount} className="create-account">
+            Create Account
+          </button>
+          </p>
+          </span>
+        </div>
+
+        <div className="logo-group">
+          <div className="logo-container">
+            <div className= "logo-background"/>
+            <img className="next-gen-logo" src={NEXTGEN} alt="Next GEN" />
+            <img className="uno-logo" src={UNO1} alt="Uno" />
+          </div>
+        </div>
+        <img 
+        className= "help-icon"
+        src= {tutorialCircle}
+        alt="Help tutorial circle" />
+        </div>
+      </div>
+    )
   }
 
 return (

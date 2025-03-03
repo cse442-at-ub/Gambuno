@@ -105,6 +105,16 @@
   left: 6%;
   transform: translate(-50%, -50%);
 }
+
+.HelpTutorialCircle_154_45 {
+  flex-shrink: 0;
+  width: 65px;
+  height: 66px;
+  position: fixed;
+  top: 94%;
+  left: 94%;
+
+}
 .LoginButton_14_8 {
   background: #000000c9;
   border-radius: 60px;

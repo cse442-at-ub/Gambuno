@@ -17,6 +17,10 @@ const CreateAccount = () => {
       navigate("/login");
     }
 
+    const goToMain = () => {
+      navigate("/");
+    }
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       if(password !== password2){
@@ -112,7 +116,9 @@ const CreateAccount = () => {
             <img className={styles.background_uno} alt="Uno" src={UNO} />
           </div>
     
-          <img className={styles.home_icon} alt="Home" src={home} />
+         <div onClick={goToMain}>
+                 <img className={styles.home_icon} alt="Home" src={home} />
+          </div>
         </div>
     
   );

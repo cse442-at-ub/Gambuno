@@ -16,6 +16,10 @@ const LogIn = () => {
     navigate("/create-account");
   }
 
+  const goToMain = () => {
+    navigate("/");
+  }
+
   const handleSubmit = async (e) => {
     if (username === "" || password === "") {
       setError("ERROR: Please enter a username and password.");
@@ -97,8 +101,9 @@ return (
         <img className={styles.background_logo} alt="Next GEN" src={NEXTGen} />
         <img className={styles.background_uno} alt="Uno" src={UNO} />
       </div>
-
-      <img className={styles.home_icon} alt="Home" src={home} />
+      <div onClick={goToMain}>
+        <img className={styles.home_icon} alt="Home" src={home} />
+      </div>
     </div>
   )
 

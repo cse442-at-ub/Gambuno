@@ -1,109 +1,89 @@
-@import "https://fonts.googleapis.com/css?family=Inter:1,900;1,undefined&display=swap";
-.PlayGameMenu_73_9 {
+@import "https://fonts.googleapis.com/css?family=Inter:900&display=swap";
+.PlayGameMenu {
   background: linear-gradient(#ff8008 0%, #cb8e0c 100%);
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
+
+.BackButton {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  cursor: pointer;
+}
+
+
+.TitleContainer {
+  width: 80%;
+  text-align: center;
+  margin-bottom: 50px;
+  position: fixed;
+  top: 0;
+  margin-top: 20px;
+
+}
+
+.SelectGameType {
+  color: #eb0000d1;
+  -webkit-text-stroke-width: 3px;
+  -webkit-text-stroke-color: #000000c9;
+  font-family: Inter, sans-serif;
+  font-size: 70px;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Button Container */
+.ButtonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Join and Host Buttons */
+.JoinButton,
+.HostButton {
+  width: 300px;
+  height: 100px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  box-shadow: 0 4px 4px #00000040;
+  border: 6px solid #ffffff;
+  cursor: pointer;
+}
+
 .HelpTutorialCircle_154_45 {
   flex-shrink: 0;
   width: 65px;
   height: 66px;
-  position: absolute;
-  top: 96%;
-  left: 98%;
+  position: fixed;
+  top: 94%;
+  left: 94%;
 
 }
-.JoinButton_73_14 {
-  opacity: 0.89;
-  box-sizing: border-box;
-  background: #f42c04f2;
-  border: 8px solid #ffffff;
-  border-radius: 60px;
-  flex-shrink: 0;
-  width: 600px;
-  height: 200px;
-  position: absolute;
-  top: 30%;
-  left: 20%;
-  box-shadow: 0 4px 4px #00000040;
+
+.JoinButton {
+  background: #f42c04;
+  margin-top: 17rem;
 }
-.JoinGame_283_142 {
-  color: #fffffb;
-  -webkit-text-stroke-width: 4px;
-  -webkit-text-stroke-color: #000000ab;
-  box-sizing: border-box;
-  font-family: Inter;
-  font-size: 90px;
-  font-style: italic;
-  font-weight: 900;
-  line-height: normal;
-  
-  position: absolute;
-  top: 32%;
-  left: 22%;
-}
-.HostButton_73_27 {
-  box-sizing: border-box;
+
+.HostButton {
   background: #1789fc;
-  border: 8px solid #ffffff;
-  border-radius: 60px;
-  flex-shrink: 0;
-  width: 600px;
-  height: 200px;
-  box-shadow: 0 4px 4px #00000040;
-  position: absolute;
-  top: 30%;
-  left: 60%;
-}
-.ArrowLeftCircle_194_673 {
-  flex-shrink: 0;
-  position: absolute;
-  top: 2%;
-  left: 2%;
-  width: 100px;
-}
-.HostGame_283_144 {
-  color: #fffffb;
-  -webkit-text-stroke-width: 4px;
-  -webkit-text-stroke-color: #000000ab;
-  box-sizing: border-box;
-  font-family: Inter;
-  font-size: 90px;
-  font-style: italic;
-  font-weight: 900;
-  line-height: normal;
-  display: inline-block;
-  position: absolute;
-  top: 32%;
-  left: 62%;
-}
-.SelectGameType_283_146 {
-  color: #eb0000d1;
-  -webkit-text-stroke-width: 10px;
-  -webkit-text-stroke-color: #000000c9;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  font-family: Inter;
-  position: absolute;
-  top: 7%;
-  left: 18%;
-  font-size: 200px;
-  font-style: italic;
-  font-weight: 600;
-  line-height: normal;
-  display: inline-block;
 }
 
-.arrowbutton{
-  position: absolute;
-  top: 50%;
-  left: 30%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: none;
-  border: none;
-  
+/* Button Text */
+.ButtonText {
+  color: #ffffff;
+  font-family: Inter, sans-serif;
+  font-size: 40px;
+  font-weight: 900;
 }

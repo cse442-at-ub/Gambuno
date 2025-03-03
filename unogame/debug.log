@@ -1,12 +1,4 @@
-[0213/234118.861:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/234119.098:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235217.811:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235217.983:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235904.809:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235904.997:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235914.233:ERROR:crashpad_client_win.cc(810)] not connected
-[0213/235914.363:ERROR:crashpad_client_win.cc(810)] not connected
-[0214/001401.984:ERROR:crashpad_client_win.cc(810)] not connected
-[0214/001402.171:ERROR:crashpad_client_win.cc(810)] not connected
-[0214/134700.768:ERROR:crashpad_client_win.cc(810)] not connected
-[0214/134701.901:ERROR:crashpad_client_win.cc(810)] not connected
+[0228/025218.500:ERROR:crashpad_client_win.cc(810)] not connected
+[0228/025219.977:ERROR:crashpad_client_win.cc(810)] not connected
+[0228/122636.547:ERROR:crashpad_client_win.cc(810)] not connected
+[0228/122637.838:ERROR:crashpad_client_win.cc(810)] not connected

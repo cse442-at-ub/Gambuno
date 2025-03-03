@@ -6,7 +6,7 @@ import home from '../components/Assets/home.svg';
 import { useNavigate } from 'react-router-dom';
 import { Divide } from 'lucide-react';
 import NEXTGEN from "./Assets/next-genM.png"
-import UNO1 from "./Assets/unoM.png"
+import UNO2 from "./Assets/unoM.png"
 import tutorialCircle from "./Assets/tutorial-circle.svg"
 import "./LogInM.css"
 
@@ -85,7 +85,7 @@ const LogIn = () => {
           </div>
 
           <div className="forgot-password">Forgot Password?</div>
-          <button className="login-button">Log In</button>
+          <button className="login-button1">Log In</button>
         
           <span className = "new-acct"><p>
           Don't have an account?{" "}
@@ -96,17 +96,13 @@ const LogIn = () => {
           </span>
         </div>
 
-        <div className="logo-group" onClick={() => navigate('/')}>
-          <div className="logo-container">
-            <div className= "logo-background"/>
-            <img className="next-gen-logo" src={NEXTGEN} alt="Next GEN" />
-            <img className="uno-logo" src={UNO1} alt="Uno" />
+        <div className="logo-group1" onClick={() => navigate('/')}>
+          <div className="logo-container1">
+            <div className= "logo-background1"/>
+            <img className="next-gen-logo1" src={NEXTGEN} alt="Next GEN" />
+            <img className="uno-logo1" src={UNO2} alt="Uno" />
           </div>
         </div>
-        <img 
-        className= "help-icon"
-        src= {tutorialCircle}
-        alt="Help tutorial circle" />
         </div>
       </div>
     )

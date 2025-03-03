@@ -41,7 +41,7 @@ function MainMenu() {
       <main className="p-main-screen">
       <section className="container">
       <header className="header">
-          <button className="login-button">Log In</button>
+          <button className="login-button" onClick={() => navigate('/Login')}>Log In</button>
         </header>
         
         <div className="logo-container">

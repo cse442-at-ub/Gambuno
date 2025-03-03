@@ -5,8 +5,8 @@ import home from '../components/Assets/home.svg';
 import styles from "../styles/CreateAccount.module.css";
 import { useNavigate } from 'react-router-dom';
 import { isValidPassword } from './validate_password';
-import NEXTGEN from "./Assets/next-genM.png"
-import UNO1 from "./Assets/unoM.png"
+import NEXTGEN from "./Assets/next-genL.png"
+import UNO2 from "./Assets/unoL.png"
 import tutorialCircle from "./Assets/tutorial-circle.svg"
 import "./LogInM.css"
 import { LogIn } from 'lucide-react';
@@ -95,22 +95,22 @@ const CreateAccount = () => {
             <input type="text" id="password" name="password" />
           </div>
 
-          <button className="login-button">Sign up</button>
+          <button className="login-button1">Sign up</button>
         
           <span className = "new-acct"><p>
           Already have an account?{" "}
-          <button onClick={LogIn} className="create-account">
+          <button onClick={goToLogin} className="create-account">
             Log In
           </button>
           </p>
           </span>
         </div>
 
-        <div className="logo-group" onClick={() => navigate('/')}>
-          <div className="logo-container">
-            <div className= "logo-background"/>
-            <img className="next-gen-logo" src={NEXTGEN} alt="Next GEN" />
-            <img className="uno-logo" src={UNO1} alt="Uno" />
+        <div className="logo-group1" onClick={() => navigate('/')}>
+          <div className="logo-container1">
+            <div className= "logo-background1"/>
+            <img className="next-gen-logo1" src={NEXTGEN} alt="Next GEN" />
+            <img className="uno-logo1" src={UNO2} alt="Uno" />
           </div>
         </div>
         </div>

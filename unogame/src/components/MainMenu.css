@@ -20,14 +20,15 @@
         position: relative;
         margin-top: 200px;
         margin-bottom: 80px;
-        
+
     }
     .header{
         width: 100%;
         display: flex;
         justify-content: flex-end;
         padding: 10px;
-        margin-top: -300px;
+        margin-top: -200px;
+        margin-right: -50px;
     }
     .login-button{
         background-color: rgba(0, 0, 0, 0.8);
@@ -37,7 +38,7 @@
         font-style: italic;
         font-weight: 900;
         border-radius: 20px;
-        padding: 5px 15px;
+        padding: 10px 20px;
         border: none;
         cursor: pointer;
     }
@@ -90,7 +91,7 @@
         padding: 20px;
         position: fixed;
         bottom: 0;
-        
+
     }
     .icon-button{
         background-color: #f42c04f2;
@@ -108,5 +109,6 @@
         width: 50px;
         height: 50px;
     }
+
 
 }

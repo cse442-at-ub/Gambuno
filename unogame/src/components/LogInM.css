@@ -12,7 +12,7 @@
       width: 100%;
 }
 .container{
-    position: relative;
+    position: flex;
     width: 402px;
     display: flex;
     flex-direction: column;
@@ -67,15 +67,15 @@
     margin-bottom: 15px;
     font-weight: bold;
 }
-.login-button{
+.login-button1{
     background-color: #353535;
     color: #fff;
     font-size: 20px;
     font-weight: bold;
     border: none ;
-    border-radius: 25px;
-    padding: 15px;
-    width: 100%;
+    border-radius: 15px;
+    padding: 10px;
+    width: 70%;
     cursor: pointer;
 }
 .signup-text{
@@ -93,17 +93,17 @@
     font-weight: bold;
     cursor: pointer;
 }
-.logo-group{
+.logo-group1{
     position: absolute;
-    top: -250px;
+    top: -170px;
     right: 20px;
 }
-.logo-container{
+.logo-container1{
     position: relative;
     width: 80px;
     height: 58px;
 }
-.logo-background{
+.logo-background1{
     background-color: rgba(217,217,217,0.15);
     border: 5px solid rgba(0,0,0,0.84);
     border-radius: 50%;
@@ -111,19 +111,19 @@
     height: 75px;
     position: absolute;
 }
-.next-gen-logo{
+.next-gen-logo1{
     position: absolute;
-    top: 7px;
-    left: 10px;
+    top: 17px;
+    right: -10px;
     width: 60px;
 }
-.uno-logo{
+.uno-logo1{
     position: absolute;
-    top: 20px;
-    left: 5px;
+    top: 30px;
+    left: 25px;
     width: 70px;
 }
-.help-icon{
+.help-icon1{
     position: absolute;
     bottom: 20px;
     right: 20px;

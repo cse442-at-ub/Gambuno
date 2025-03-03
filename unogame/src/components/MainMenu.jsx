@@ -8,6 +8,7 @@ function MainMenu() {
 
     const goToPlayPage = () => {
       navigate("/play");
+
     }
 
     const goToCard = () => {
@@ -43,6 +44,7 @@ function MainMenu() {
         </svg>
       </div>
       <div className={styles.PlayButton_80_77}><svg width="220" height="100" viewBox="0 0 356 124" fill="none" xmlns="http://www.w3.org/2000/svg">
+
         
 
           <g filter="url(#filter0_d_80_77)">
@@ -70,3 +72,4 @@ function MainMenu() {
 }
 
 export default MainMenu;
+

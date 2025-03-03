@@ -12,7 +12,7 @@ function MainMenu() {
     }
 
     const goToCard = () => {
-      navigate("/main");
+      navigate("/cards");
     
   };
 

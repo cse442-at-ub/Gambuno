@@ -7,6 +7,7 @@ import Tutorial from "./components/Tutorial";
 import LogIn from './components/LogIn';
 import CreateAccount from './components/CreateAccount'; 
 import FriendList from './components/FriendList/FriendList';
+import SingleGame from './components/SingleGame'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         />
         {/* Other routes without Friend List */}
         <Route path="/play" element={<PlayGame />} />
+        <Route path="/single-game" element={<SingleGame />} />
         <Route path="/card" element={<TempPath />} />
         <Route path="/tutorial" element={<Tutorial />} />
         <Route path="/login" element={<LogIn />} />

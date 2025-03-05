@@ -4,10 +4,16 @@ import React, { useState } from "react"
 import { X } from "lucide-react"
 import { Button } from "./ui/button"
 import { Card } from "./ui/card"
+import { useNavigate } from 'react-router-dom';
 
 const Tutorial = () => {
+    const navigate = useNavigate();
     const [currentScreenId, setCurrentScreenId] = useState("intro")
     const [currentBranch, setCurrentBranch] = useState("intro")
+    const goToTGame = () => {
+        navigate("/single-game");
+      
+    };
 
     const screens = {
         intro: {
@@ -26,7 +32,7 @@ const Tutorial = () => {
                         Game's Setup
                     </Button>
                     <Button
-                        className="w-full py-8 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]"                        onClick={() => {
+                        className="w-full py-8 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]" onClick={() => {
                             setCurrentBranch("howToPlay")
                             setCurrentScreenId("howToPlay")
                         }}
@@ -42,6 +48,7 @@ const Tutorial = () => {
                     >
                         Betting rules
                     </Button>
+
                 </div>
             ),
         },
@@ -183,9 +190,17 @@ const Tutorial = () => {
                         Alternatively, you can set a specific number of rounds, and the player with the highest score at the end
                         wins.
                     </p>
+                    <Button
+                        className="w-full py-8 text-xl bg-green-600 hover:bg-green-700"
+                        onClick={goToTGame}
+                    >
+                        Play A Basic Tutorial
+                    </Button>
+
                 </div>
             ),
             previous: "unoRules",
+            
         },
         // Betting Branch
         betting: {

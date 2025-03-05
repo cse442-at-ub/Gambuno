@@ -45,7 +45,7 @@ function App() {
 
 
         <Route 
-          path="/select-game" element={ isMobile ? (  <GameTypeSelectMobile />) : ( <GameTypeSelectDesktop />)}  />
+          path="/select-game" element={ isMobile ? (  <GameTypeSelectMobile />) : ( <PlayGame />)}  />
 
         <Route 
           path="/join-game-menu" element={isMobile ? ( <JoinGameM />) : ( <JoinGameD />)} />

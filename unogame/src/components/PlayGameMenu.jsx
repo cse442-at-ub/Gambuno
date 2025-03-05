@@ -35,10 +35,10 @@ function PlayGameMenu() {
       {/* Buttons Container */}
       <div className={styles.ButtonContainer}>
         <div className={styles.JoinButton}>
-          <span className={styles.ButtonText}>Join Game</span>
+          <button className={styles.ButtonText} onClick={() => navigate('/join-game-menu')}>Join Game</button>
         </div>
         <div className={styles.HostButton}>
-          <span className={styles.ButtonText}>Host Game</span>
+          <span className={styles.ButtonText} onClick={() => navigate('/host-game')}>Host Game</span>
         </div>
       </div>
     </div>

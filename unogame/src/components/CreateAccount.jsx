@@ -87,6 +87,7 @@ const CreateAccount = () => {
         <div className="login-card">
           <h1 className="logo">NEXT GEN UNO</h1>
           
+          <form onSubmit = {handleSubmit}>
           <div className="input-group">
             <label htmlFor="username">Username</label>
             <input 
@@ -124,8 +125,8 @@ const CreateAccount = () => {
               <p className = "text-red-500 font-bold">{valid.message}</p>
             </div>
 
-          <button className="login-button1">Sign up</button>
-        
+          <button type="submit" className="login-button1">Sign up</button>
+          </form>
           <span className = "new-acct"><p>
           Already have an account?{" "}
           <button onClick={goToLogin} className="create-account">
@@ -146,10 +147,6 @@ const CreateAccount = () => {
       </div>
     )
   }
-
-
-
-
 
 
     

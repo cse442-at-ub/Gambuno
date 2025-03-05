@@ -1,6 +1,12 @@
 import React from 'react';
 import styles from '../styles/MainMenu.module.css';
 import { useNavigate } from 'react-router-dom';
+import "./MCSS/MainMenu.css"
+import {useState, useEffect} from 'react';
+import { Section } from 'lucide-react';
+import NEXTGen from "./Assets/next-genM.png"
+import UNO from "./Assets/unoM.png"
+import tutorialCircle from "./Assets/tutorial-circle.svg"
 
 
 function MainMenu() {
@@ -25,6 +31,52 @@ const goToTutorial = () => {
   navigate("/tutorial");
 
 };
+
+const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if(isMobile){
+    return(
+      <main className="p-main-screen">
+      <section className="container">
+      <header className="header">
+          <button className="login-button" onClick={() => navigate('/Login')}>Log In</button>
+        </header>
+        
+        <div className="logo-container">
+          <div className="logo-border">
+            <img className="NEXT-GEN" alt="Next GEN" src={NEXTGen} />
+            <img className="UNO" alt="Uno" src={UNO} />
+          </div>
+        </div>
+        <nav className="menu">
+          <button className= "menu-button">Play</button>
+          <button className= "menu-button">Settings</button>
+        </nav>
+
+        <footer className="footer">
+          <button className="icon-button">...</button>
+          <img 
+          className="help-icon" 
+          src={tutorialCircle} 
+          alt="Help tutorial circle"
+           />
+        </footer>
+      </section>
+
+    </main>
+    )
+  }
+
+
 
   return (
     <div className={styles.MainMenu_1_2}>

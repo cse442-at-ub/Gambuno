@@ -1,0 +1,114 @@
+@media (max-width: 768px) {
+
+    .p-main-screen{
+        background: linear-gradient(
+            180deg,
+            rgb(254, 128, 8) 0%,
+            rgba(203, 142, 12, 0.96) 100%
+          ) ;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          width: 100%;
+    }
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 400px;
+        position: relative;
+        margin-top: 200px;
+        margin-bottom: 80px;
+
+    }
+    .header{
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px;
+        margin-top: -100px;
+        margin-right: -50px;
+    }
+    .login-button{
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        font-family: "Inter-BlackItalic", Helvetica;
+        font-size: 16px;
+        font-style: italic;
+        font-weight: 900;
+        border-radius: 20px;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+    }
+    .logo-container{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        margin-top: 100px;
+    }
+    .logo-border{
+        background-color: rgba(217,217,217,0.15);
+        border: 10px solid rgba(0,0,0,0.84);
+        border-radius: 50%;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .NEXT-GEN{
+        width: 140px;
+        margin-bottom: 10px;
+    }
+    .UNO{
+        width: 240px;
+    }
+    .menu{
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 50px;
+    }
+    .menu-button{
+        background-color: #f42c04f2;
+        border: 5px solid #ffb30f80;
+        border-radius: 60px;
+        box-shadow: 0px 4px 4px rbga(0,0,0,0.46);
+        color: white;
+        font-family: "Inter-BlackItalic", Helvetica;
+        font-size: 28px;
+        font-style: italic;
+        font-weight: 900;
+        padding: 15px 40px;
+        cursor: pointer;
+    }
+    .footer{
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        padding: 20px;
+        position: fixed;
+        bottom: 0;
+
+    }
+    .icon-button{
+        background-color: #f42c04f2;
+        border: 5px solid #ffb30f80;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        cursor: pointer;
+    }
+    .help-icon{
+        width: 50px;
+        height: 50px;
+    }
+
+
+}

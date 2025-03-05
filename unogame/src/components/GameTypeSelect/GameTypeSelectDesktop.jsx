@@ -1,9 +1,10 @@
+// GameTypeSelectDesktop.jsx
+
 import React from 'react';
-import styles from '../styles/PlayGameMenu.module.css';
+import styles from "../../styles/PlayGameMenu.module.css";
 import { useNavigate } from 'react-router-dom';
 
-
-export default function PlayGameMenu() {
+export default function GameTypeSelectDesktop() {
   const navigate = useNavigate();
 
     const goToMainPage = () => {
@@ -28,6 +29,4 @@ export default function PlayGameMenu() {
       </div><span className={styles.HostGame_283_144}>Host Game</span><span className={styles.SelectGameType_283_146}>Select Game Type</span>
     </div>
   );
-}
-
-
+  }

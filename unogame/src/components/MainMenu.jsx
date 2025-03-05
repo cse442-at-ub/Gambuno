@@ -7,8 +7,13 @@ function MainMenu() {
     const navigate = useNavigate();
 
     const goToPlayPage = () => {
-      navigate("/play");
-    };
+      navigate("/select-game");
+    }
+
+    const goToCard = () => {
+      navigate("/card");
+    
+  };
 
   return (
     <div className={styles.MainMenu_1_2}>
@@ -53,7 +58,7 @@ function MainMenu() {
           </defs>
         </svg>
       </div>
-      <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}>Credits</span>
+      <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Play_80_74} onClick={goToCard}>Credits</button></span>
       <div className={styles.LoginButton_14_8}></div><span className={styles.LogIn_26_10}>Log In</span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79}>Settings</span>
     </div>
   );

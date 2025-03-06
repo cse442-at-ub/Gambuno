@@ -8,7 +8,7 @@ import NEXTGen from "./Assets/next-genM.png"
 import UNO from "./Assets/unoM.png"
 import tutorialCircle from "./Assets/tutorial-circle.svg"
 import SettingsPopup from "./SettingsPopup";
-
+import MobilePopup from "../MobilePopup";
 
 function MainMenu() {
     const navigate = useNavigate();
@@ -35,6 +35,7 @@ const goToTutorial = () => {
 
 const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+const [showPopup, setShowPopup] = useState(false)
 
 
 
@@ -79,12 +80,12 @@ const toggleSettings = () => {
           className="help-icon" 
           src={tutorialCircle} 
           alt="Help tutorial circle"
-          
+          onClick={() => setShowPopup(true)}
            />
         </footer>
       </section>
       <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
-      
+      {showPopup && <MobilePopup onClose={() => setShowPopup(false)} />}
     </main>
     )
   }

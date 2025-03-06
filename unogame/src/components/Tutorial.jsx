@@ -82,17 +82,17 @@ const Tutorial = () => {
                         <div>
                             <p className="text-lg mb-4">Same Color: A card can be placed on top of a card of the same color</p>
                             <div className="flex items-center justify-center gap-4">
-                                <img src="/images/sameColor 1.png" alt="Yellow card with number 3" className="h-24 w-auto" />
-                                <img src="/images/arrow-right.png" alt="Right arrow" className="h-8 w-auto" />
-                                <img src="/images/sameColor 2.png" alt="Yellow card with number 1" className="h-24 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sameColor%201-8Ty5JFrAaroq2zJUPqnicW0AD1Qjbt.png" alt="Yellow card with number 3" className="h-24 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Arrow%20right-1-CLWw7TBfP8mnOWcr1NmyC22ZLDBidC.png" alt="Right arrow" className="h-8 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sameColor%202-oh3l6iQsbeitnmPTWPh5yMjCvI5fX1.png" alt="Yellow card with number 1" className="h-24 w-auto" />
                             </div>
                         </div>
                         <div>
                             <p className="text-lg mb-4">Same Number: A card can be placed on top of a card of the same number</p>
                             <div className="flex items-center justify-center gap-4">
-                                <img src="/images/difColor1.png" alt="Blue card with number 3" className="h-24 w-auto" />
-                                <img src="/images/arrow-right.png" alt="Right arrow" className="h-8 w-auto" />
-                                <img src="/images/difColor 2.png" alt="Yellow card with number 3" className="h-24 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Dif%20color%201-fXV1pYOmCE3emdMAk94HKDBU1BWFeW.png" alt="Blue card with number 3" className="h-24 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Arrow%20right-ydUhZGU0m72wXJCP4B3VyQ56k7YB4k.png" alt="Right arrow" className="h-8 w-auto" />
+                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dif%20color%202-dgN2ZUOaIeM3E9B2riaFHJNC0Fw5Lf.png" alt="Yellow card with number 3" className="h-24 w-auto" />
                             </div>
                         </div>
                     </div>
@@ -127,23 +127,23 @@ const Tutorial = () => {
                 <div className="space-y-4">
                     <div className="grid gap-4">
                         <div className="flex items-center gap-4">
-                            <img src="/images/skip-card.png" alt="Skip card" className="h-24 w-auto" />
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/skip%20card-s6fcL3wT5VbGHQT8kTEiKaSAVmrHBy.png" alt="Skip card" className="h-24 w-auto" />
                             <p className="text-lg">Skip: Next player loses their turn</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="/images/draw-two-card.png" alt="Draw Two card" className="h-24 w-auto" />
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/draw%202%20card-kxEuMnxs4WQMGnlcKUXq8zQBSHXlE4.png" alt="Draw Two card" className="h-24 w-auto" />
                             <p className="text-lg">Draw Two: Next player draws two cards and loses their turn</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="/images/reverse-card.png" alt="Reverse card" className="h-24 w-auto" />
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reverse%20card-J3vxjIpjBchMuGkjmqf3TNj5ZvQ0EX.png" alt="Reverse card" className="h-24 w-auto" />
                             <p className="text-lg">Reverse: Reverses the order of play</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="/images/wild-card.png" alt="Wild card" className="h-24 w-auto" />
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wild%20card-i42gPcJ9GtgK8m6zP74JhYN5wj08Kj.png" alt="Wild card" className="h-24 w-auto" />
                             <p className="text-lg">Wild: Player chooses the next color to be matched</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="/images/plus-four-card.png" alt="Wild Draw Four card" className="h-24 w-auto" />
+                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/plus%204%20card-Uo5ipxH5EEeP1RZnmL9d7kNIBWj4M5.png" alt="Wild Draw Four card" className="h-24 w-auto" />
                             <p className="text-lg">
                                 Wild Draw Four: Choose the next color, and the next player draws four cards and loses their turn
                             </p>

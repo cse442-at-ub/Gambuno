@@ -10,6 +10,7 @@ import tutorialCircle from "./Assets/tutorial-circle.svg"
 import SettingsPopup from "./SettingsPopup";
 import MobilePopup from "../MobilePopup";
 
+
 function MainMenu() {
     const navigate = useNavigate();
 
@@ -21,7 +22,7 @@ function MainMenu() {
     const goToCard = () => {
       navigate("/cards");
     
-  };
+  }; 
 
   const goToLogin = () => {
     navigate("/login");
@@ -70,7 +71,7 @@ const toggleSettings = () => {
           </div>
         </div>
         <nav className="menu">
-          <button className= "menu-button">Play</button>
+          <button className= "menu-button" onClick={() => navigate('/select-game')}>Play</button>
           <button className= "menu-button" onClick={toggleSettings} >Settings</button>
         </nav>
 

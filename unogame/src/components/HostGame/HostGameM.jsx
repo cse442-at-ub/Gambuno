@@ -8,7 +8,7 @@ const HostGame = () => {
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
       <button className="absolute top-4 left-4 p-2" aria-label="Back"
-      onClick={() => navigate("/play")}>
+      onClick={() => navigate("/select-game")}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="24px"

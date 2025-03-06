@@ -15,7 +15,7 @@ const JoinGame = () => {
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
       <button className="absolute top-4 left-4 p-2" aria-label="Back"
-      onClick={() => navigate("/play")}>
+      onClick={() => navigate("/select-game")}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="24px"
@@ -28,8 +28,10 @@ const JoinGame = () => {
       </button>
       
       {/* Logo */}
-      <div className="absolute top-4 right-4 bg-black text-white px-4 py-2 rounded-full text-xl font-bold border-4 border-orange-700">
+      <div  className="absolute top-4 right-4 bg-black text-white px-4 py-2 rounded-full text-xl font-bold border-4 border-orange-700">
+        <button onClick={() => navigate("/")} >
         NEXT GEN <span className="text-red-500">UNO</span>
+        </button>
       </div>
       
       {/* Title */}

@@ -1,8 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import {useState, useEffect} from 'react';
+import MobilePopup from "../../MobilePopup";
 
 const GameSelection = () => {
     const navigate = useNavigate();
+    const [showPopup, setShowPopup] = useState(false)
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
@@ -43,7 +46,7 @@ const GameSelection = () => {
       </div>
 
       {/* Help Button */}
-      <button className="absolute bottom-4 right-4 p-2" aria-label="Help">
+      <button  onClick={() => setShowPopup(true)} className="absolute bottom-4 right-4 p-2" aria-label="Help">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="24px"
@@ -54,6 +57,7 @@ const GameSelection = () => {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
         </svg>
       </button>
+      {showPopup && <MobilePopup onClose={() => setShowPopup(false)} />}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { Section } from 'lucide-react';
 import NEXTGen from "./Assets/next-genM.png"
 import UNO from "./Assets/unoM.png"
 import tutorialCircle from "./Assets/tutorial-circle.svg"
+import SettingsPopup from "./SettingsPopup";
 
 
 function MainMenu() {
@@ -33,6 +34,16 @@ const goToTutorial = () => {
 };
 
 const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+
+
+
+const toggleSettings = () => {
+  setIsSettingsOpen(!isSettingsOpen);
+};
+
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -59,7 +70,7 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
         </div>
         <nav className="menu">
           <button className= "menu-button">Play</button>
-          <button className= "menu-button">Settings</button>
+          <button className= "menu-button" onClick={toggleSettings} >Settings</button>
         </nav>
 
         <footer className="footer">
@@ -68,10 +79,12 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
           className="help-icon" 
           src={tutorialCircle} 
           alt="Help tutorial circle"
+          
            />
         </footer>
       </section>
-
+      <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
+      
     </main>
     )
   }
@@ -125,7 +138,9 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
       </div>
 
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17} onClick={goToCard}>Credits</button></span>
-      <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79}>Settings</span>
+      <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
+    
+      <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>
   );
 }

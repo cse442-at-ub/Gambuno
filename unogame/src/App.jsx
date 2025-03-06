@@ -17,7 +17,7 @@ import JoinGameM from './components/JoinGameMenu/JoinGameMenuM';
 import JoinGameD from './components/JoinGameMenu/JoinGameMenuD';
 import WaitingRoomM from './components/WaitingRoom/WaitingRoomHostM';
 import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
-
+import SettingsPopup from "./components/SettingsPopup";
 
 function App() {
   
@@ -30,7 +30,7 @@ function App() {
           path="/" 
           element={
             <div className="main-menu-container">
-              <MainMenu />
+              <MainMenu  />
               <FriendList /> {/* Add FriendList here */}
             </div>
           } 

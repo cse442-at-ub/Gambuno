@@ -107,14 +107,12 @@
 }
 
 .HelpTutorialCircle_154_45 {
-  flex-shrink: 0;
-  width: 65px;
-  height: 66px;
-  position: fixed;
-  top: 90%;
-  left: 94%;
-
+  position: absolute;
+  top: 93vh;
+  left: 93vw;
+  cursor: pointer;
 }
+
 .LoginButton_14_8 {
   background: #000000c9;
   border-radius: 60px;

@@ -2,10 +2,14 @@
 
 import { useState } from "react"
 import { X, ArrowRight, ArrowLeft } from "lucide-react"
+import { useNavigate } from "react-router-dom";
 
 export default function MobilePopup({ onClose }) {
     const [currentScreen, setCurrentScreen] = useState("main")
-
+    const navigate = useNavigate()
+    const goToSingle = () => {
+        navigate("/single-game");
+      } 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
             <div
@@ -48,6 +52,13 @@ export default function MobilePopup({ onClose }) {
                                 className="w-full rounded-full border-4 border-black bg-[#3e8914] py-4 px-8 text-center shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
                             >
                                 <span className="text-2xl font-bold text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">Betting</span>
+                            </button>
+
+                            <button
+                                onClick={goToSingle}
+                                className="w-full rounded-full border-4 border-black bg-[#a43eed] py-4 px-8 text-center shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
+                            >
+                                <span className="text-2xl font-bold text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">Play a Tutorial</span>
                             </button>
                         </>
                     ) : currentScreen === "setup" ? (

@@ -37,7 +37,7 @@ const goToTutorial = () => {
 const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 const [showPopup, setShowPopup] = useState(false)
-
+const [username, setUsername] = useState(localStorage.getItem("username"));
 
 
 
@@ -61,7 +61,12 @@ const toggleSettings = () => {
       <main className="p-main-screen">
       <section className="container">
       <header className="header">
-          <button className="login-button" onClick={() => navigate('/Login')}>Log In</button>
+      {username ? (
+                        <span className="username-display">{username}</span>
+                    ) : (
+                        <button className="login-button" onClick={() => navigate('/Login')}>Log In</button>
+                    )}
+          {/* <button className="login-button" onClick={() => navigate('/Login')}>Log In</button> */}
         </header>
         
         <div className="logo-container">
@@ -140,7 +145,15 @@ const toggleSettings = () => {
       </div>
 
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17} onClick={goToCard}>Credits</button></span>
-      <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
+      <div className={styles.LoginButton_14_8}>
+        </div><span>
+        {username ? (
+                        <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
+                    ) : (
+                      <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button>
+                    )}
+          {/* <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button> */}
+          </span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
     
       <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>

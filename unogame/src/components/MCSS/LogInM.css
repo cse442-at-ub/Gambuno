@@ -17,7 +17,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    top: -75px;
+    top: -70px;
     
 }
 .login-card{
@@ -77,6 +77,7 @@
     padding: 10px;
     width: 70%;
     cursor: pointer;
+   
 }
 .signup-text{
     font-size: 13px;
@@ -131,4 +132,5 @@
     height: 40px;
     top: 600px;
 }
+
 }

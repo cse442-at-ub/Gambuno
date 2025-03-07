@@ -173,3 +173,12 @@
   justify-content: center;
 
 }
+.username_display{
+  font-family: "Inter-BlackItalic", Helvetica;
+  font-size: 25px;
+  font-style: italic;
+  font-weight: 800;
+  color: #eeeded;
+  
+ 
+}

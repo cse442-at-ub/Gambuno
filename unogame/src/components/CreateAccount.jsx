@@ -53,6 +53,7 @@ const CreateAccount = () => {
             const data = await response.json();
 
             if (data.status === "success") {
+              localStorage.setItem("username", username); 
               navigate("/");
               setValid({valid: true, message:"Account Created"});
             } 

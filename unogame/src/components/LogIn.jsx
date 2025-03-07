@@ -44,6 +44,7 @@ const LogIn = () => {
       setError(data);
 
       if(data["message"] === "User verified"){
+        localStorage.setItem("username", username);
         navigate("/");
         setError("Welcome Back!");
       }

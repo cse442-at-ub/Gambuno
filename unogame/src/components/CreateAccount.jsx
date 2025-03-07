@@ -185,7 +185,7 @@ const CreateAccount = () => {
               <div className="whitespace-pre-line">
               <p className = "text-red-500 font-bold">{valid.message}</p>
               </div>
-              <button type="submit" className="{stylesSignup_button}">
+              <button type="submit" className={styles.Signup_button}>
                 Sign Up
               </button>
 
@@ -193,9 +193,9 @@ const CreateAccount = () => {
     
             <p className="signup-text">
               Already have an account?{" "}
-              <button onClick={goToLogin} className={styles.Signup_button}>
-                  Log In
-              </button>
+              {/* <button onClick={goToLogin} className={styles.Signup_button}>
+                  Sign Up
+              </button> */}
             </p>
           </div>
     

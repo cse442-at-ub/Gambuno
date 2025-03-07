@@ -1,0 +1,136 @@
+@media (max-width: 768px) {
+.p-log-in-screen{
+    background: linear-gradient(
+        180deg,
+        rgb(254, 128, 8) 0%,
+        rgba(203, 142, 12, 0.96) 100%
+      ) ;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100%;
+}
+.container{
+    position: flex;
+    width: 402px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: -70px;
+    
+}
+.login-card{
+    background-color: #d9d9d9;
+    border-radius: 20px;
+    box-shadow: 0px 4px 4px #00000040;
+    padding: 40px;
+    width: 100%;
+    text-align: center;
+}
+.logo{
+    font-family: "Inter-BlackItalic", Helvetica;
+    font-size: 32px;
+    font-style: italic;
+    font-weight: 800;
+    color: #000;
+    margin-bottom: 20px;
+
+    color: #ebe7e7;
+  -webkit-text-stroke: 16px black;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 7px rgba(0, 0, 0, 0.5);
+}
+.input-group{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+.input-group label{
+    font-size: 14px;
+    font-family: "Inter-BlackItalic", Helvetica;
+    color: #000;
+    margin-bottom: 5px;
+}
+.input-group input{
+    width: 100%;
+    padding:10px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+}
+.forgot-password{
+    font-size: 11px;
+    color:#000;
+    text-align: left;
+    width: 100%;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+.login-button1{
+    background-color: #353535;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    border: none ;
+    border-radius: 15px;
+    padding: 10px;
+    width: 70%;
+    cursor: pointer;
+   
+}
+.signup-text{
+    font-size: 13px;
+    color: #000;
+    margin-top: 15px;
+}
+.new-acct{
+    font-size: 13px;
+   padding-bottom: 70px;
+   margin-top: 10px;
+   
+}
+.create-account{
+    font-weight: bold;
+    cursor: pointer;
+}
+.logo-group1{
+    position: absolute;
+    top: -170px;
+    right: 20px;
+}
+.logo-container1{
+    position: relative;
+    width: 80px;
+    height: 58px;
+}
+.logo-background1{
+    background-color: rgba(217,217,217,0.15);
+    border: 5px solid rgba(0,0,0,0.84);
+    border-radius: 50%;
+    width: 120px;
+    height: 75px;
+    position: absolute;
+}
+.next-gen-logo1{
+    position: absolute;
+    top: 17px;
+    right: -10px;
+    width: 60px;
+}
+.uno-logo1{
+    position: absolute;
+    top: 30px;
+    left: 25px;
+    width: 70px;
+}
+.help-icon1{
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    top: 600px;
+}
+
+}

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../styles/LogIn.module.css';
 import NEXTGen from '../components/Assets/next-gen.png';
 import UNO from '../components/Assets/uno.png';
 import home from '../components/Assets/home.svg';
 import { useNavigate } from 'react-router-dom';
-  
+import { Divide } from 'lucide-react';
+import NEXTGEN from "./Assets/next-genM.png"
+import UNO2 from "./Assets/unoM.png"
+import "./MCSS/LogInM.css"
+
 
 const LogIn = () => {
   const [username, setUsername] = useState('');
@@ -40,6 +44,7 @@ const LogIn = () => {
       setError(data);
 
       if(data["message"] === "User verified"){
+        localStorage.setItem("username", username);
         navigate("/");
         setError("Welcome Back!");
       }
@@ -53,6 +58,74 @@ const LogIn = () => {
 
   
   }
+
+
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+if (isMobile){
+  return(
+    <div className="p-log-in-screen">
+      <div className="container">
+      <div className="login-card">
+        <h1 className="logo">NEXT GEN UNO</h1>
+        
+        <div className="input-group">
+          <label htmlFor="username">Username</label>
+          <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          placeholder="Enter your username"
+          onChange={(e) => setUsername(e.target.value)} />
+        </div>
+
+        <div className="input-group">
+          <label htmlFor="password">Password</label>
+          <input 
+          type="text" 
+          id="password" 
+          name="password"
+          placeholder="Enter your password"
+          onChange={(e) => setPassword(e.target.value)}/>
+        </div>
+
+        <div className="forgot-password">Forgot Password?</div>
+        <p className = "text-red-500 font-bold" >{error}</p>
+        <button className="login-button1">Log In</button>
+      
+        <span className = "new-acct"><p>
+        Don't have an account?{" "}
+        <button onClick={goToCreateAccount} className="create-account">
+          Create Account
+        </button>
+        </p>
+        </span>
+      </div>
+
+      <div className="logo-group1" onClick={() => navigate('/')}>
+        <div className="logo-container1">
+          <div className= "logo-background1"/>
+          <img className="next-gen-logo1" src={NEXTGEN} alt="Next GEN" />
+          <img className="uno-logo1" src={UNO2} alt="Uno" />
+        </div>
+      </div>
+      </div>
+    </div>
+  )
+}
+
+
+
 
 return (
     <div className={styles.container}>

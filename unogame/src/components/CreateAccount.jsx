@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import NEXTGen from '../components/Assets/next-gen.png';
 import UNO from '../components/Assets/uno.png';
 import home from '../components/Assets/home.svg';
 import styles from "../styles/CreateAccount.module.css";
 import { useNavigate } from 'react-router-dom';
 import { isValidPassword } from './validate_password';
+import NEXTGEN from "./Assets/next-genL.png"
+import UNO2 from "./Assets/unoL.png"
+import "./MCSS/LogInM.css"
+
 
 
 const CreateAccount = () => {
@@ -49,6 +53,7 @@ const CreateAccount = () => {
             const data = await response.json();
 
             if (data.status === "success") {
+              localStorage.setItem("username", username); 
               navigate("/");
               setValid({valid: true, message:"Account Created"});
             } 
@@ -62,6 +67,89 @@ const CreateAccount = () => {
             
       }
     }
+
+
+
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 768);
+      };
+  
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+  if (isMobile){
+    return(
+      <div className="p-log-in-screen">
+        <div className="container">
+        <div className="login-card">
+          <h1 className="logo">NEXT GEN UNO</h1>
+          
+          <form onSubmit = {handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="username">Username</label>
+            <input 
+            type="text" 
+            id="username" 
+            name="username"
+            placeholder="Enter your username"
+            onChange={(e) => setUsername(e.target.value)} 
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Create Password</label>
+            <input 
+            type="text" 
+            id="password" 
+            name="password"
+            placeholder="Enter your password"
+            onChange={(e) => setPassword(e.target.value)} 
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Confirm Password</label>
+            <input 
+            type="text" 
+            id="password" 
+            name="password"
+            placeholder="Enter your password"
+            onChange={(e) => setPassword2(e.target.value)} 
+            />
+          </div>
+
+          <div className="whitespace-pre-line">
+              <p className = "text-red-500 font-bold">{valid.message}</p>
+            </div>
+
+          <button type="submit" className="login-button1">Sign up</button>
+          </form>
+          <span className = "new-acct"><p>
+          Already have an account?{" "}
+          <button onClick={goToLogin} className="create-account">
+            Log In
+          </button>
+          </p>
+          </span>
+        </div>
+
+        <div className="logo-group1" onClick={() => navigate('/')}>
+          <div className="logo-container1">
+            <div className= "logo-background1"/>
+            <img className="next-gen-logo1" src={NEXTGEN} alt="Next GEN" />
+            <img className="uno-logo1" src={UNO2} alt="Uno" />
+          </div>
+        </div>
+        </div>
+      </div>
+    )
+  }
+
+
     
   return (
      <div className= {styles.container2}>
@@ -97,7 +185,7 @@ const CreateAccount = () => {
               <div className="whitespace-pre-line">
               <p className = "text-red-500 font-bold">{valid.message}</p>
               </div>
-              <button type="submit" className="{stylesSignup_button}">
+              <button type="submit" className={styles.Signup_button}>
                 Sign Up
               </button>
 
@@ -105,9 +193,9 @@ const CreateAccount = () => {
     
             <p className="signup-text">
               Already have an account?{" "}
-              <button onClick={goToLogin} className={styles.create_account}>
-                  Log In
-              </button>
+              {/* <button onClick={goToLogin} className={styles.Signup_button}>
+                  Sign Up
+              </button> */}
             </p>
           </div>
     

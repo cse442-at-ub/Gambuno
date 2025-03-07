@@ -1,19 +1,102 @@
+@import "https://fonts.googleapis.com/css?family=Inter:900&display=swap";
 @import "https://fonts.googleapis.com/css?family=Inter:1,900;1,undefined&display=swap";
+
+.PlayGameMenu {
+  background: linear-gradient(#ff8008 0%, #cb8e0c 100%);
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.BackButton {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  cursor: pointer;
+}
+
+
+.TitleContainer {
+  width: 80%;
+  text-align: center;
+  margin-bottom: 50px;
+  position: fixed;
+  top: 0;
+  margin-top: 20px;
+
+}
+
+.SelectGameType {
+  color: #eb0000d1;
+  -webkit-text-stroke-width: 3px;
+  -webkit-text-stroke-color: #000000c9;
+  font-family: Inter, sans-serif;
+  font-size: 70px;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Button Container */
+.ButtonContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Join and Host Buttons */
+.JoinButton,
+.HostButton {
+  width: 300px;
+  height: 100px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  box-shadow: 0 4px 4px #00000040;
+  border: 6px solid #ffffff;
+  cursor: pointer;
+}
+
+.JoinButton {
+  background: #f42c04;
+  margin-top: 17rem;
+}
+
+.HostButton {
+  background: #1789fc;
+}
+
+/* Button Text */
+.ButtonText {
+  color: #ffffff;
+  font-family: Inter, sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+}
+
+
 .PlayGameMenu_73_9 {
   background: linear-gradient(#ff8008 0%, #cb8e0c 100%);
   width: 100vw;
   height: 100vh;
   overflow: hidden;
 }
+
 .HelpTutorialCircle_154_45 {
-  flex-shrink: 0;
-  width: 65px;
-  height: 66px;
   position: absolute;
-  top: 96%;
-  left: 98%;
+  top: 93vh;
+  left: 93vw;
+  cursor: pointer;
 
 }
+
+
 .JoinButton_73_14 {
   opacity: 0.89;
   box-sizing: border-box;

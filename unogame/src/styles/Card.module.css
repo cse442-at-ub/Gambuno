@@ -1,0 +1,106 @@
+.game-container {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #0f3057;
+  color: rgb(255, 255, 255);
+  padding: 20px;
+  min-height: 100vh;
+}
+
+
+.played-card {
+  font-size: 24px;
+  font-weight: bold;
+  background: white;
+  color: black;
+  border-radius: 10px;
+  padding: 20px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+
+.player-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+
+.card {
+  font-size: 20px;
+  font-weight: bold;
+  padding: 40px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+
+.card:hover {
+  transform: scale(1.1);
+}
+
+
+.card.R { background-color: red; color: white; }
+.card.G { background-color: green; color: white; }
+.card.B { background-color: blue; color: white; }
+.card.Y { background-color: yellow; color: black; }
+.card.W { background-color: aliceblue; color: black; }
+
+
+.draw-button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: white;
+  color: black;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.draw-button:hover {
+  background-color: lightgray;
+  transform: scale(1.1);
+}
+.quit-button{
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: rgb(237, 24, 0);
+  color: black;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: 0.3s;
+  border-width: 3px ;
+}
+
+.game-over {
+  font-size: 32px;
+  font-weight: bold;
+  color: gold;
+}
+.play-again{
+  padding: 70px 70px;
+  font-size: 18px;
+  background-color: rgb(0, 191, 255);
+  color: black;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.title{
+font-size: 50px;
+font-style: italic;
+  font-weight: 800;
+  color: #ebe7e7;
+  -webkit-text-stroke: 16px black;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 7px rgba(0, 0, 0, 0.5);
+}
+
+.indicator{
+  font-size: 30px;
+}

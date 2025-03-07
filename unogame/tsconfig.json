@@ -12,11 +12,17 @@
       "outDir": "./dist"                  // Specify output directory for compiled files
     },
 
-    "include": [
-      "src/**/*"                          // Include all files in the 'src' folder
-    ],
-    "exclude": [
-      "node_modules"                      // Exclude node_modules
-    ]
+  "include": [
+    "src/**/*"                          // Include all files in the 'src' folder
+  ],
+
+      "include": [
+        "src/**/*"                          // Include all files in the 'src' folder
+      ],
+
+      "exclude": [
+        "node_modules"                      // Exclude node_modules
+      ]
+
 }
   

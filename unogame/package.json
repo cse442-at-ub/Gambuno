@@ -2,21 +2,32 @@
   "name": "uno",
   "version": "0.1.0",
   "private": true,
+  "homepage": "/CSE442/2025-Spring/cse-442c",
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-slot": "^1.1.2",
+    "axios": "^1.7.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cra-template": "1.2.0",
+    "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.5",
+    "react-modal": "^3.16.3",
+    "react-responsive": "^10.0.1",
+    "react-router-dom": "^7.2.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^4.2.4",
-    "homepage": "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/unogame/public_html/myapp                     "
+    "tailwind": "^4.0.0",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7",
+    "web-vitals": "^4.2.4"
   },
-
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:css": "postcss src/index.css -o dist/styles.css"
   },
   "eslintConfig": {
     "extends": [
@@ -35,5 +46,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.14.9",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
   }
 }

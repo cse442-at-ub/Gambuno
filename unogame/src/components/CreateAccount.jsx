@@ -193,7 +193,7 @@ const CreateAccount = () => {
     
             <p className="signup-text">
               Already have an account?{" "}
-              <button onClick={goToLogin} className={styles.create_account}>
+              <button onClick={goToLogin} className={styles.Signup_button}>
                   Log In
               </button>
             </p>

@@ -9,35 +9,31 @@ import UNO from "./Assets/unoM.png"
 import tutorialCircle from "./Assets/tutorial-circle.svg"
 import SettingsPopup from "./SettingsPopup";
 import MobilePopup from "../MobilePopup";
+import Tutorial from './Tutorial';
 
 
 function MainMenu() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const goToPlayPage = () => {
-      navigate("/play");
+  const goToPlayPage = () => {
+    navigate("/play");
 
-    }
-
-    const goToCard = () => {
-      navigate("/cards");
-    
-  }; 
+  }
 
   const goToLogin = () => {
     navigate("/login");
   
 };
 
-const goToTutorial = () => {
-  navigate("/tutorial");
-
-};
-
 const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 const [showPopup, setShowPopup] = useState(false)
+<<<<<<< HEAD
 const [username, setUsername] = useState(localStorage.getItem("username"));
+=======
+const [isTutOpen, setIsTutOpen] = useState(false)
+
+>>>>>>> 7bdbb3b2159899edc2b7be19848005402cf607f9
 
 
 
@@ -139,10 +135,12 @@ const toggleSettings = () => {
           </defs>
         </svg>
       </div>
-      <div className={styles.HelpTutorialCircle_154_45} onClick={goToTutorial}><svg width="65" height="66" viewBox="0 0 65 66" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M24.6186 24.75C25.2553 22.9121 26.5121 21.3623 28.1664 20.3751C29.8206 19.3879 31.7656 19.0271 33.6568 19.3565C35.548 19.6858 37.2633 20.6842 38.499 22.1747C39.7347 23.6652 40.411 25.5517 40.4082 27.5C40.4082 33 32.2832 35.75 32.2832 35.75M32.4998 46.75H32.5269M59.5832 33C59.5832 48.1878 47.4575 60.5 32.4998 60.5C17.5421 60.5 5.4165 48.1878 5.4165 33C5.4165 17.8122 17.5421 5.5 32.4998 5.5C47.4575 5.5 59.5832 17.8122 59.5832 33Z" stroke="#1E1E1E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+      
+      <div className={styles.HelpTutorialCircle_154_45} onClick={()=> setIsTutOpen(true)}><svg width="40" height="40" viewBox="0 0 65 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M24.6186 24.75C25.2553 22.9121 26.5121 21.3623 28.1664 20.3751C29.8206 19.3879 31.7656 19.0271 33.6568 19.3565C35.548 19.6858 37.2633 20.6842 38.499 22.1747C39.7347 23.6652 40.411 25.5517 40.4082 27.5C40.4082 33 32.2832 35.75 32.2832 35.75M32.4998 46.75H32.5269M59.5832 33C59.5832 48.1878 47.4575 60.5 32.4998 60.5C17.5421 60.5 5.4165 48.1878 5.4165 33C5.4165 17.8122 17.5421 5.5 32.4998 5.5C47.4575 5.5 59.5832 17.8122 59.5832 33Z" stroke="#1E1E1E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </div>
+<<<<<<< HEAD
 
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17} onClick={goToCard}>Credits</button></span>
       <div className={styles.LoginButton_14_8}>
@@ -154,6 +152,11 @@ const toggleSettings = () => {
                     )}
           {/* <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button> */}
           </span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
+=======
+      <Tutorial isOpen ={isTutOpen} onClose={()=> setIsTutOpen(false)}/>
+      <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17}>Credits</button></span>
+      <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
+>>>>>>> 7bdbb3b2159899edc2b7be19848005402cf607f9
     
       <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>

@@ -63,16 +63,6 @@
   cursor: pointer;
 }
 
-.HelpTutorialCircle_154_45 {
-  flex-shrink: 0;
-  width: 65px;
-  height: 66px;
-  position: fixed;
-  top: 94%;
-  left: 94%;
-
-}
-
 .JoinButton {
   background: #f42c04;
   margin-top: 17rem;
@@ -97,15 +87,16 @@
   height: 100vh;
   overflow: hidden;
 }
+
 .HelpTutorialCircle_154_45 {
-  flex-shrink: 0;
-  width: 65px;
-  height: 66px;
   position: absolute;
-  top: 94%;
-  left: 96%;
+  top: 93vh;
+  left: 93vw;
+  cursor: pointer;
 
 }
+
+
 .JoinButton_73_14 {
   opacity: 0.89;
   box-sizing: border-box;

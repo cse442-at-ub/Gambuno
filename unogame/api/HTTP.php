@@ -1,12 +1,18 @@
 <?php
 // Database connection parameters
+<<<<<<< Updated upstream
 $servername = "localhost";
 $username = "kurianva";
 $password = "50554678";
+=======
+$host = "localhost";
+$user = "kurianva";
+$pass = "50554678";
+>>>>>>> Stashed changes
 $dbname = "cse442_2025_spring_team_c_db";
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Connect to MySQL
+$conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
@@ -29,8 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Get game state information
     $gameState = fetchGameState($conn, $gameID, $playerID);
 
-    // Check if it's time to update the current player's turn
-    checkAndUpdateTurn($conn, $gameID, $gameState);
+    skipCheck($conn, $gameID, $gameState);
 
     // Handle card placement if the player is making a move
     if (isset($_GET['placedCard']) && $playerID) {
@@ -82,16 +87,15 @@ function fetchGameState($conn, $gameID, $playerID = null) {
         ];
 
         // Only send the full card list to the requesting player
+        $cardList = json_decode($player['cardList'], true);
+        $players[$pid]['cardCount'] = count($cardList);
         if ($pid === $playerID) {
-            $players[$pid]['cardList'] = json_decode($player['cardList'], true);
-        } else {
-            // For other players, just send the card count
-            $players[$pid]['cardCount'] = count(json_decode($player['cardList'], true));
+            $players[$pid]['cardList'] = $cardList;
         }
     }
 
     // Construct the game state
-    $gameState = [
+    return [
         'lobby' => [
             'curCard' => $lobbyData['curCard'],
             'curPlayer' => $lobbyData['curPlayer'],
@@ -102,14 +106,12 @@ function fetchGameState($conn, $gameID, $playerID = null) {
         'players' => $players,
         'yourTurn' => ($playerID && $lobbyData['curPlayer'] === $playerID)
     ];
-
-    return $gameState;
 }
 
 /**
  * Check if it's time to update the turn and handle skipped players
  */
-function checkAndUpdateTurn($conn, $gameID, $gameState) {
+function skipCheck($conn, $gameID, $gameState) {
     if (!isset($gameState['lobby'])) {
         return;
     }
@@ -121,6 +123,10 @@ function checkAndUpdateTurn($conn, $gameID, $gameState) {
     if (isset($gameState['players'][$curPlayer]['skipped']) && $gameState['players'][$curPlayer]['skipped']) {
         // Find the next player in the game order
         $currentIndex = array_search($curPlayer, $gameOrder);
+        if ($currentIndex === false) {
+            // Log error or handle appropriately
+            return;
+        }
         $nextIndex = ($currentIndex + 1) % count($gameOrder);
         $nextPlayer = $gameOrder[$nextIndex];
 
@@ -141,7 +147,7 @@ function checkAndUpdateTurn($conn, $gameID, $gameState) {
 /**
  * Handle card placement and card effects
  */
-function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {
+function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {// update when doing color/number stacking
     // Check if it's this player's turn
     if ($gameState['lobby']['curPlayer'] !== $playerID) {
         return ['error' => 'Not your turn'];
@@ -165,8 +171,14 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     $playerCards = $gameState['players'][$playerID]['cardList'];
     $cardIndex = array_search($placedCard, $playerCards);
 
-    if ($cardIndex === false) {
-        return ['error' => 'Card not in player hand'];
+    if (isset($_GET['placedCard']) && $playerID) {
+        $placedCard = $conn->real_escape_string($_GET['placedCard']);
+        $result = handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState);
+
+        if (isset($result['error'])) {
+            echo json_encode($result);
+            exit;
+        }
     }
 
     // Remove the card from player's hand
@@ -211,6 +223,7 @@ function handleCardEffect($conn, $gameID, $placedCard, $gameState) {
     }
 
     if (!$cardEffect) {
+        moveToNextPlayer($conn, $gameID, $gameState);
         return;
     }
 
@@ -240,6 +253,8 @@ function handleCardEffect($conn, $gameID, $placedCard, $gameState) {
             reverseGameOrder($conn, $gameID);
             break;
     }
+
+    moveToNextPlayer($conn, $gameID, $gameState);
 }
 
 /**

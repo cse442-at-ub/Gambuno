@@ -1,14 +1,8 @@
 <?php
 // Database connection parameters
-<<<<<<< Updated upstream
-$servername = "localhost";
-$username = "kurianva";
-$password = "50554678";
-=======
 $host = "localhost";
-$user = "kurianva";
-$pass = "50554678";
->>>>>>> Stashed changes
+$user = "root";
+$pass = "";
 $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
@@ -21,6 +15,16 @@ if ($conn->connect_error) {
 
 // Set the response content type to JSON
 header('Content-Type: application/json');
+
+if (php_sapi_name() == 'cli'){
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    foreach ($argv as $arg) {
+        if (strpos($arg, '=') !== false) {
+            list($key, $value) = explode('=', $arg);
+            $_GET[$key] = $value;
+        }
+    }
+}
 
 // GET request to fetch game state
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

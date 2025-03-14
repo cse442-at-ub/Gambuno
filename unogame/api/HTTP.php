@@ -195,9 +195,9 @@ function handleHostAction($conn, $data) {
 function connectToDatabase() {
     // Replace with your actual database connection code
     $servername = "localhost";
-    $username = "username";
-    $password = "password";
-    $dbname = "database";
+    $username = "kurianva";
+    $password = "50554678";
+    $dbname = "cse442_2025_spring_team_c_db";
     
     $conn = new mysqli($servername, $username, $password, $dbname);
     
@@ -229,7 +229,7 @@ function validateAuthToken($userID, $authToken) {
  * @return bool True if exists, false otherwise
  */
 function checkGameExists($conn, $gameID) {
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM games WHERE gameID = ?");
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM gameTable WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -247,7 +247,7 @@ function checkGameExists($conn, $gameID) {
  * @return string JSON string of player list
  */
 function getPlayerList($conn, $gameID) {
-    $stmt = $conn->prepare("SELECT playerList FROM games WHERE gameID = ?");
+    $stmt = $conn->prepare("SELECT playerList FROM gameTable WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -266,7 +266,7 @@ function getPlayerList($conn, $gameID) {
  * @return bool True on success, false on failure
  */
 function updatePlayerList($conn, $gameID, $playerListJson) {
-    $stmt = $conn->prepare("UPDATE games SET playerList = ? WHERE gameID = ?");
+    $stmt = $conn->prepare("UPDATE gameTable SET playerList = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $playerListJson, $gameID);
     $result = $stmt->execute();
     $stmt->close();
@@ -284,7 +284,7 @@ function updatePlayerList($conn, $gameID, $playerListJson) {
  * @return bool True on success, false on failure
  */
 function createGame($conn, $gameID, $playerListJson, $gameSettingsJson) {
-    $stmt = $conn->prepare("INSERT INTO games (gameID, playerList, gameSettings) VALUES (?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO gameTable (gameID, playerList, gameSettings) VALUES (?, ?, ?)");
     $stmt->bind_param("sss", $gameID, $playerListJson, $gameSettingsJson);
     $result = $stmt->execute();
     $stmt->close();

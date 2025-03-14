@@ -1,9 +1,9 @@
 <?php
 // Database connection parameters
 $servername = "localhost";
-$username = "username";
-$password = "password";
-$dbname = "card_game_db";
+$username = "kurianva";
+$password = "50554678";
+$dbname = "cse442_2025_spring_team_c_db";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);

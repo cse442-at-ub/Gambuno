@@ -17,6 +17,7 @@ import JoinGameD from './components/JoinGameMenu/JoinGameMenuD';
 import WaitingRoomM from './components/WaitingRoom/WaitingRoomHostM';
 import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
 import SettingsPopup from "./components/SettingsPopup";
+import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
 
 function App() {
   
@@ -44,6 +45,7 @@ function App() {
         <Route path="/join-game-menu" element={isMobile ? ( <JoinGameM />) : ( <JoinGameD />)} />
         <Route path="/host-game" element={isMobile ? (<HostGameM />) : (<HostGameD />)} />
         <Route path="/waiting-host" element={isMobile ? ( <WaitingRoomM />) : (<WaitingRoomD />)} />
+        <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
 
       </Routes>
     </Router>

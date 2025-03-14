@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 const HostGame = () => {
   const navigate = useNavigate();
 
+  // Function to generate a random 6-character game code
+  const generateGameCode = () => Math.random().toString(36).substr(2, 6).toUpperCase();
+
+  const handleHostGame = () => {
+    const gameCode = generateGameCode(); // Generate game code
+    navigate(`/host-game-lobby/${gameCode}`); // Navigate to HostGameLobby with the game code
+  };
+
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
@@ -50,7 +58,10 @@ const HostGame = () => {
       </div>
       
       {/* Host Game Button */}
-      <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700">
+      <button
+        className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700"
+        onClick={handleHostGame}
+      >
         Host Game
       </button>
     </div>

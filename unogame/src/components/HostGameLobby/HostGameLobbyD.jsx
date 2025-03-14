@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 const HostGameLobby = () => {
   const { gameCode } = useParams(); // Get game code from URL
-  const [players, setPlayers] = useState([]);
+  const [players, setPlayers] = useState([]); // Store players
 
-  // Function to add the host as the first player
-  const joinGame = () => {
-    setPlayers((prev) => [
-      ...prev,
-      { id: prev.length + 1, name: `Player ${prev.length + 1}`, ready: false },
-    ]);
-  };
+  // Add the host as the first player when the component mounts
+  useEffect(() => {
+    setPlayers((prevPlayers) => {
+      // Only add the host if they are not already in the list
+      if (prevPlayers.length === 0) {
+        return [{ id: 1, name: "Host", ready: false }];
+      }
+      return prevPlayers;
+    });
+  }, []);
 
-  // Function to toggle "Ready" status
+  // Function to toggle a player's "Ready" status
   const toggleReady = (id) => {
     setPlayers((prev) =>
       prev.map((player) =>
@@ -47,7 +50,9 @@ const HostGameLobby = () => {
             key={player.id}
             className="flex justify-between items-center w-96 p-4 bg-white rounded-lg shadow-md border"
           >
-            <span className="text-lg font-semibold">{player.name}</span>
+            <span className="text-lg font-semibold">
+              {player.name} {player.name === "Host" && "(Host)"} {/* Mark host */}
+            </span>
             <button
               className={`px-4 py-1 rounded-md font-semibold text-white ${
                 player.ready ? "bg-green-500" : "bg-red-500"
@@ -58,17 +63,17 @@ const HostGameLobby = () => {
             </button>
           </div>
         ))}
-      </div>
 
-      {/* Start Game Button */}
+    {/* Start Game Button (Disabled until all players are ready) */}
+      </div>
       <button
-        className={`mt-8 px-6 py-3 text-lg font-semibold rounded-lg shadow-md ${
-          allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
+        className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 ${
+            allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
         }`}
         disabled={!allReady}
-      >
+        >
         Start Game
-      </button>
+        </button>
     </div>
   );
 };

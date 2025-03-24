@@ -1,19 +1,37 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const HostGameLobby = () => {
-  const { gameCode } = useParams(); // Get game code from URL
-  const [players, setPlayers] = useState([]); // Store players
+  const [gameCode, setGameCode] = useState(null);
+  const [players, setPlayers] = useState([]);
+  const navigate = useNavigate();
 
-  // Create the lobby in the backend on mount
+  // Step 1: Generate game code from backend
+  useEffect(() => {
+    const fetchGameCode = async () => {
+      try {
+        const response = await fetch("/gamecode.php");
+        const data = await response.json();
+
+        if (data.success) {
+          setGameCode(data.gameCode);
+        } else {
+          console.error("Failed to generate game code:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching game code:", error);
+      }
+    };
+
+    fetchGameCode();
+  }, []);
+
+  // Step 2: Once gameCode is set, create the lobby
   useEffect(() => {
     const createLobby = async () => {
-      const username = localStorage.getItem("username"); // retrieves username from LogIn.jsx
+      const username = localStorage.getItem("username");
 
-      if (!username) {
-        console.error("No logged-in user found.");
-        return;
-      }
+      if (!username || !gameCode) return;
 
       try {
         const response = await fetch("/post.php", {
@@ -22,16 +40,16 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             action: "create",
             gameID: gameCode,
-            playerID: username,      
-            playerName: username
-          })
+            playerID: username,
+            playerName: username,
+          }),
         });
 
         const data = await response.json();
 
         if (data.success) {
           console.log("Lobby created!", data);
-          setPlayers([{ id: 1, name: username, ready: false }]);
+          setPlayers([{ id: username, name: username, ready: false }]);
         } else {
           console.error("Error creating lobby:", data.error);
         }
@@ -40,10 +58,12 @@ const HostGameLobby = () => {
       }
     };
 
-    createLobby();
+    if (gameCode) {
+      createLobby();
+    }
   }, [gameCode]);
 
-  // Toggle a player's ready status
+  // Toggle readiness (local only for now)
   const toggleReady = (id) => {
     setPlayers((prev) =>
       prev.map((player) =>
@@ -57,9 +77,11 @@ const HostGameLobby = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
       {/* Display Game Code */}
-      <div className="absolute top-4 left-4 px-4 py-2 bg-white rounded-md shadow-md text-lg">
-        Code: {gameCode}
-      </div>
+      {gameCode && (
+        <div className="absolute top-4 left-4 px-4 py-2 bg-white rounded-md shadow-md text-lg">
+          Code: {gameCode}
+        </div>
+      )}
 
       {/* Title Button */}
       <button className="absolute top-4 right-4 px-6 py-2 bg-black text-white rounded-full text-lg">

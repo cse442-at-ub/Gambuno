@@ -4,12 +4,19 @@ import { useNavigate } from "react-router-dom";
 const HostGame = () => {
   const navigate = useNavigate();
 
-  // Function to generate a random 6-character game code
-  const generateGameCode = () => Math.random().toString(36).substr(2, 6).toUpperCase();
-
-  const handleHostGame = () => {
-    const gameCode = generateGameCode(); // Generate game code
-    navigate(`/host-game-lobby/${gameCode}`); // Navigate to HostGameLobby with the game code
+  const handleHostGame = async () => {
+    try {
+      const response = await fetch("/gamecode.php");
+      const data = await response.json();
+  
+      if (data.success) {
+        navigate(`/host-game-lobby/${data.gameCode}`);
+      } else {
+        console.error("Failed to generate game code:", data.error);
+      }
+    } catch (error) {
+      console.error("Error contacting gamecode.php:", error);
+    }
   };
 
   return (

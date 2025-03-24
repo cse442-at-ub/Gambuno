@@ -16,45 +16,453 @@ if ($conn->connect_error) {
 // Set the response content type to JSON
 header('Content-Type: application/json');
 
-if (php_sapi_name() == 'cli'){
-    $_SERVER['REQUEST_METHOD'] = 'POST';
-    foreach ($argv as $arg) {
-        if (strpos($arg, '=') !== false) {
-            list($key, $value) = explode('=', $arg);
-            $_POST[$key] = $value;
-        }
+// Testing mode - when set to true, will log actions and use test game IDs
+$testingMode = false;
+$testGameID = "test_game_" . date("Ymd_His") . "_" . rand(1000, 9999);
+
+// Log function for testing
+function testLog($message) {
+    global $testingMode;
+    if ($testingMode) {
+        error_log("[UNO_TEST] " . $message);
     }
 }
 
-// POST request to fetch game state
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get the raw POST data
-    $rawData = file_get_contents("php://input");
-    $postData = json_decode($rawData, true);
+// Handle CLI testing if needed
+if (php_sapi_name() == 'cli'){
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    // Simulate POST data from command line args
+    parse_str(file_get_contents('php://stdin'), $_POST);
+}
 
-    if (!isset($postData['gameID'])) {
+// POST request to update game state
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Decode JSON input if content type is application/json
+    $contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
+
+    if (strpos($contentType, 'application/json') !== false) {
+        $postData = json_decode(file_get_contents('php://input'), true);
+    } else {
+        $postData = $_POST;
+    }
+
+    // For testing: if no gameID is provided, use the test game ID
+    if (!isset($postData['gameID']) && $testingMode) {
+        $postData['gameID'] = $testGameID;
+        testLog("Using test game ID: " . $testGameID);
+    } elseif (!isset($postData['gameID'])) {
         echo json_encode(['error' => 'Game ID is required']);
         exit;
     }
 
     $gameID = $conn->real_escape_string($postData['gameID']);
-    $playerID = isset($postData['playerID']) ? $conn->real_escape_string($postData['playerID']) : null;
 
-    // Get game state information
-    $gameState = fetchGameState($conn, $gameID, $playerID);
-
-    skipCheck($conn, $gameID, $gameState);
-
-    // Handle card placement if the player is making a move
-    if (isset($postData['placedCard']) && $playerID) {
-        $placedCard = $conn->real_escape_string($postData['placedCard']);
-        handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState);
+    // For testing: if no action is provided, default to 'create'
+    if (!isset($postData['action']) && $testingMode) {
+        $postData['action'] = 'create';
+        testLog("No action specified, defaulting to 'create'");
+    } elseif (!isset($postData['action'])) {
+        echo json_encode(['error' => 'Action is required']);
+        exit;
     }
 
-    // Get fresh game state after any updates
-    $updatedGameState = fetchGameState($conn, $gameID, $playerID);
+    $action = $postData['action'];
 
-    echo json_encode($updatedGameState);
+    // For testing: if no playerID is provided but needed, generate one
+    if (!isset($postData['playerID']) &&
+        ($action == 'join' || $action == 'create' || $action == 'placeCard' || $action == 'drawCard' || $action == 'chooseColor') &&
+        $testingMode) {
+        $postData['playerID'] = "player_" . rand(1000, 9999);
+        testLog("Generated test player ID: " . $postData['playerID']);
+    }
+
+    // For testing: if no playerName is provided but needed, generate one
+    if (!isset($postData['playerName']) &&
+        ($action == 'join' || $action == 'create') &&
+        $testingMode) {
+        $names = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank", "Grace", "Heidi"];
+        $postData['playerName'] = $names[array_rand($names)] . rand(1, 99);
+        testLog("Generated test player name: " . $postData['playerName']);
+    }
+
+    testLog("Processing action: " . $action . " for game: " . $gameID);
+
+    switch ($action) {
+        case 'join':
+            $result = handleJoinGame($conn, $gameID, $postData);
+            break;
+
+        case 'create':
+            $result = handleCreateGame($conn, $postData);
+            break;
+
+        case 'placeCard':
+            if (!isset($postData['cardPlaced'])) {
+                if ($testingMode) {
+                    // Generate a random card for testing
+                    $colors = ['red', 'blue', 'green', 'yellow'];
+                    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                    $postData['cardPlaced'] = $colors[array_rand($colors)] . '_' . $values[array_rand($values)];
+                    testLog("Generated test card: " . $postData['cardPlaced']);
+                } else {
+                    echo json_encode(['error' => 'cardPlaced is required']);
+                    exit;
+                }
+            }
+
+            $playerID = $conn->real_escape_string($postData['playerID']);
+            $cardPlaced = $conn->real_escape_string($postData['cardPlaced']);
+
+            // Get current game state
+            $gameState = fetchGameState($conn, $gameID, $playerID);
+
+            // Handle card placement
+            $result = handleCardPlacement($conn, $gameID, $playerID, $cardPlaced, $gameState);
+            break;
+
+        case 'drawCard':
+            $playerID = $conn->real_escape_string($postData['playerID']);
+            $result = handleDrawCard($conn, $gameID, $playerID);
+            break;
+
+        case 'chooseColor':
+            if (!isset($postData['color'])) {
+                if ($testingMode) {
+                    $colors = ['red', 'blue', 'green', 'yellow'];
+                    $postData['color'] = $colors[array_rand($colors)];
+                    testLog("Generated test color: " . $postData['color']);
+                } else {
+                    echo json_encode(['error' => 'color is required']);
+                    exit;
+                }
+            }
+
+            $playerID = $conn->real_escape_string($postData['playerID']);
+            $color = $conn->real_escape_string($postData['color']);
+            $result = handleColorChoice($conn, $gameID, $playerID, $color);
+            break;
+
+        case 'test':
+            // Special test action that generates a complete test game
+            if ($testingMode) {
+                $result = createTestGame($conn, $gameID);
+            } else {
+                $result = ['error' => 'Test mode is disabled'];
+            }
+            break;
+
+        default:
+            $result = ['error' => 'Unknown action: ' . $action];
+            break;
+    }
+
+    // Get updated game state after action
+    if ($action !== 'placeCard') { // placeCard already returns a result
+        $updatedGameState = isset($postData['playerID']) ?
+            fetchGameState($conn, $gameID, $conn->real_escape_string($postData['playerID'])) :
+            fetchGameState($conn, $gameID);
+
+        // Merge the result with the updated game state
+        if (is_array($result)) {
+            $response = array_merge($result, $updatedGameState);
+        } else {
+            $response = $updatedGameState;
+        }
+
+        echo json_encode($response);
+    } else {
+        echo json_encode($result);
+    }
+}
+
+/**
+ * Create a complete test game with multiple players
+ */
+function createTestGame($conn, $gameID) {
+    testLog("Creating test game: " . $gameID);
+
+    // First, create the game
+    $creator = [
+        'playerID' => 'test_player_1',
+        'playerName' => 'Test Player 1',
+        'gameID' => $gameID
+    ];
+
+    $result = handleCreateGame($conn, $creator);
+
+    if (isset($result['error'])) {
+        return $result;
+    }
+
+    // Add 2-3 more players
+    $playerCount = rand(2, 3);
+
+    for ($i = 2; $i <= $playerCount + 1; $i++) {
+        $player = [
+            'playerID' => 'test_player_' . $i,
+            'playerName' => 'Test Player ' . $i,
+            'gameID' => $gameID
+        ];
+
+        $joinResult = handleJoinGame($conn, $gameID, $player);
+
+        if (isset($joinResult['error'])) {
+            testLog("Error adding test player " . $i . ": " . $joinResult['error']);
+        } else {
+            testLog("Added test player " . $i);
+        }
+    }
+
+    // Start the game
+    $startResult = startGame($conn, $gameID);
+
+    testLog("Test game created with " . ($playerCount + 1) . " players");
+
+    return [
+        'success' => true,
+        'message' => 'Test game created with ' . ($playerCount + 1) . ' players',
+        'gameID' => $gameID,
+        'players' => [
+            'test_player_1' => ['playerName' => 'Test Player 1'],
+            'test_player_2' => ['playerName' => 'Test Player 2'],
+        ]
+    ];
+}
+
+/**
+ * Handle joining an existing game
+ */
+function handleJoinGame($conn, $gameID, $postData) {
+    if (!isset($postData['playerID']) || !isset($postData['playerName'])) {
+        return ['error' => 'PlayerID and playerName are required to join a game'];
+    }
+
+    $playerID = $conn->real_escape_string($postData['playerID']);
+    $playerName = $conn->real_escape_string($postData['playerName']);
+
+    // Check if game exists
+    $checkGameQuery = "SELECT playerList, gameStatus FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkGameQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
+    }
+
+    $gameData = $result->fetch_assoc();
+    $playerList = json_decode($gameData['playerList'], true);
+    $gameStatus = $gameData['gameStatus'];
+
+    // Check if game has already started
+    if ($gameStatus === 'inProgress') {
+        // Check if player is rejoining
+        if (!in_array($playerID, $playerList)) {
+            return ['error' => 'Game has already started, cannot join'];
+        }
+    }
+
+    // Add player to list if not already there
+    if (!in_array($playerID, $playerList)) {
+        $playerList[] = $playerID;
+        $updatedPlayerList = json_encode($playerList);
+
+        // Update player list in lobby
+        $updateLobbyQuery = "UPDATE lobby SET playerList = ? WHERE gameID = ?";
+        $stmt = $conn->prepare($updateLobbyQuery);
+        $stmt->bind_param("ss", $updatedPlayerList, $gameID);
+        $stmt->execute();
+
+        // Add player to players table with initial cards
+        $initialCards = generateRandomCards(7); // Start with 7 cards
+        $cardsJson = json_encode($initialCards);
+
+        $addPlayerQuery = "INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) 
+                           VALUES (?, ?, ?, ?, '', 0)";
+        $stmt = $conn->prepare($addPlayerQuery);
+        $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $cardsJson);
+        $stmt->execute();
+    }
+
+    return ['success' => true, 'message' => 'Joined game successfully'];
+}
+
+/**
+ * Handle creating a new game
+ */
+function handleCreateGame($conn, $postData) {
+    if (!isset($postData['gameID']) || !isset($postData['playerID']) || !isset($postData['playerName'])) {
+        return ['error' => 'GameID, playerID, and playerName are required to create a game'];
+    }
+
+    $gameID = $conn->real_escape_string($postData['gameID']);
+    $playerID = $conn->real_escape_string($postData['playerID']);
+    $playerName = $conn->real_escape_string($postData['playerName']);
+
+    // Check if game already exists
+    $checkGameQuery = "SELECT gameID FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkGameQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        return ['error' => 'Game ID already in use'];
+    }
+
+    // Initialize player list with creator
+    $playerList = [$playerID];
+    $playerListJson = json_encode($playerList);
+    $gameOrderJson = json_encode($playerList); // Initial game order
+
+    // Create an initial card for the game
+    $colors = ['red', 'blue', 'green', 'yellow'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $initialCard = $colors[array_rand($colors)] . '_' . $values[array_rand($values)];
+
+    // Create new game in lobby
+    $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus) 
+                        VALUES (?, ?, ?, '', ?, ?, 'waiting')";
+    $stmt = $conn->prepare($createGameQuery);
+    $stmt->bind_param("sssss", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson);
+    $stmt->execute();
+
+    // Create player entry
+    $initialCards = generateRandomCards(7); // Start with 7 cards
+    $cardsJson = json_encode($initialCards);
+
+    $addPlayerQuery = "INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) 
+                       VALUES (?, ?, ?, ?, '', 0)";
+    $stmt = $conn->prepare($addPlayerQuery);
+    $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $cardsJson);
+    $stmt->execute();
+
+    return ['success' => true, 'message' => 'Game created successfully', 'testGameID' => $gameID];
+}
+
+/**
+ * Handle drawing a card
+ */
+function handleDrawCard($conn, $gameID, $playerID) {
+    // Check if it's the player's turn
+    $checkTurnQuery = "SELECT curPlayer FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkTurnQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
+    }
+
+    $row = $result->fetch_assoc();
+    if ($row['curPlayer'] !== $playerID) {
+        return ['error' => 'Not your turn'];
+    }
+
+    // Get player's current cards
+    $getCardsQuery = "SELECT cardList FROM players WHERE gameID = ? AND playerID = ?";
+    $stmt = $conn->prepare($getCardsQuery);
+    $stmt->bind_param("ss", $gameID, $playerID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return ['error' => 'Player not found'];
+    }
+
+    $playerData = $result->fetch_assoc();
+    $cardList = json_decode($playerData['cardList'], true);
+
+    // Generate a new random card
+    $newCard = generateRandomCards(1)[0];
+    $cardList[] = $newCard;
+    $updatedCardList = json_encode($cardList);
+
+    // Update player's cards
+    $updateCardsQuery = "UPDATE players SET cardList = ? WHERE gameID = ? AND playerID = ?";
+    $stmt = $conn->prepare($updateCardsQuery);
+    $stmt->bind_param("sss", $updatedCardList, $gameID, $playerID);
+    $stmt->execute();
+
+    // Move to next player
+    $gameState = fetchGameState($conn, $gameID, $playerID);
+    moveToNextPlayer($conn, $gameID, $gameState);
+
+    return ['success' => true, 'message' => 'Card drawn', 'newCard' => $newCard];
+}
+
+/**
+ * Handle color choice for wild cards
+ */
+function handleColorChoice($conn, $gameID, $playerID, $color) {
+    // Validate color
+    $validColors = ['red', 'blue', 'green', 'yellow'];
+    if (!in_array($color, $validColors)) {
+        return ['error' => 'Invalid color choice'];
+    }
+
+    // Check if it's the player's turn and if the current card is a wild
+    $checkCardQuery = "SELECT curCard, curPlayer FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkCardQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
+    }
+
+    $row = $result->fetch_assoc();
+    if ($row['curPlayer'] !== $playerID) {
+        return ['error' => 'Not your turn'];
+    }
+
+    $curCard = $row['curCard'];
+    if (strpos($curCard, 'wild') === false) {
+        return ['error' => 'Current card is not wild'];
+    }
+
+    // Update the current card with chosen color
+    $newCard = "{$color}_wild";
+    $updateCardQuery = "UPDATE lobby SET curCard = ? WHERE gameID = ?";
+    $stmt = $conn->prepare($updateCardQuery);
+    $stmt->bind_param("ss", $newCard, $gameID);
+    $stmt->execute();
+
+    return ['success' => true, 'message' => 'Color chosen', 'newColor' => $color];
+}
+
+/**
+ * Start the game (move from waiting to inProgress)
+ */
+function startGame($conn, $gameID) {
+    // Check if there are at least 2 players
+    $checkPlayersQuery = "SELECT playerList FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkPlayersQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
+    }
+
+    $row = $result->fetch_assoc();
+    $playerList = json_decode($row['playerList'], true);
+
+    if (count($playerList) < 2) {
+        return ['error' => 'Need at least 2 players to start'];
+    }
+
+    // Update game status
+    $updateStatusQuery = "UPDATE lobby SET gameStatus = 'inProgress' WHERE gameID = ?";
+    $stmt = $conn->prepare($updateStatusQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+
+    return ['success' => true, 'message' => 'Game started'];
 }
 
 /**
@@ -62,7 +470,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
  */
 function fetchGameState($conn, $gameID, $playerID = null) {
     // Get lobby information
-    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder FROM lobby WHERE gameID = ?";
+    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($lobbyQuery);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -79,7 +487,7 @@ function fetchGameState($conn, $gameID, $playerID = null) {
     $gameOrder = json_decode($lobbyData['gameOrder'], true);
 
     // Get all players' data
-    $playersQuery = "SELECT playerID, cardList, placedCard, skipped FROM players WHERE gameID = ?";
+    $playersQuery = "SELECT playerID, playerName, cardList, placedCard, skipped FROM players WHERE gameID = ?";
     $stmt = $conn->prepare($playersQuery);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -90,6 +498,7 @@ function fetchGameState($conn, $gameID, $playerID = null) {
     while ($player = $playersResult->fetch_assoc()) {
         $pid = $player['playerID'];
         $players[$pid] = [
+            'playerName' => $player['playerName'],
             'skipped' => (bool)$player['skipped'],
             'placedCard' => $player['placedCard']
         ];
@@ -109,47 +518,12 @@ function fetchGameState($conn, $gameID, $playerID = null) {
             'curPlayer' => $lobbyData['curPlayer'],
             'cardEffect' => $lobbyData['cardEffect'],
             'playerList' => $playerList,
-            'gameOrder' => $gameOrder
+            'gameOrder' => $gameOrder,
+            'gameStatus' => $lobbyData['gameStatus']
         ],
         'players' => $players,
         'yourTurn' => ($playerID && $lobbyData['curPlayer'] === $playerID)
     ];
-}
-
-/**
- * Check if it's time to update the turn and handle skipped players
- */
-function skipCheck($conn, $gameID, $gameState) {
-    if (!isset($gameState['lobby'])) {
-        return;
-    }
-
-    $curPlayer = $gameState['lobby']['curPlayer'];
-    $gameOrder = $gameState['lobby']['gameOrder'];
-
-    // Check if current player is skipped
-    if (isset($gameState['players'][$curPlayer]['skipped']) && $gameState['players'][$curPlayer]['skipped']) {
-        // Find the next player in the game order
-        $currentIndex = array_search($curPlayer, $gameOrder);
-        if ($currentIndex === false) {
-            // Log error or handle appropriately
-            return;
-        }
-        $nextIndex = ($currentIndex + 1) % count($gameOrder);
-        $nextPlayer = $gameOrder[$nextIndex];
-
-        // Update current player
-        $updateQuery = "UPDATE lobby SET curPlayer = ? WHERE gameID = ?";
-        $stmt = $conn->prepare($updateQuery);
-        $stmt->bind_param("ss", $nextPlayer, $gameID);
-        $stmt->execute();
-
-        // Reset skipped status for the player we just skipped
-        $resetSkippedQuery = "UPDATE players SET skipped = 0 WHERE gameID = ? AND playerID = ?";
-        $stmt = $conn->prepare($resetSkippedQuery);
-        $stmt->bind_param("ss", $gameID, $curPlayer);
-        $stmt->execute();
-    }
 }
 
 /**
@@ -179,8 +553,17 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     $playerCards = $gameState['players'][$playerID]['cardList'];
     $cardIndex = array_search($placedCard, $playerCards);
 
-    // Remove the card from player's hand
-    array_splice($playerCards, $cardIndex, 1);
+    if ($cardIndex === false) {
+        // In testing mode, allow the card even if not in hand
+        global $testingMode;
+        if (!$testingMode) {
+            return ['error' => 'Card not in hand'];
+        }
+    } else {
+        // Remove the card from player's hand
+        array_splice($playerCards, $cardIndex, 1);
+    }
+
     $updatedCardList = json_encode($playerCards);
 
     $updatePlayerQuery = "UPDATE players SET cardList = ?, placedCard = ? WHERE gameID = ? AND playerID = ?";
@@ -197,10 +580,7 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     // Handle card effects
     handleCardEffect($conn, $gameID, $placedCard, $gameState);
 
-    // Move to the next player
-    moveToNextPlayer($conn, $gameID, $gameState);
-
-    return ['success' => true];
+    return ['success' => true, 'message' => 'Card placed successfully'];
 }
 
 /**
@@ -290,13 +670,19 @@ function addCardsToPlayer($conn, $gameID, $playerID, $cardCount) {
  */
 function generateRandomCards($count) {
     $colors = ['red', 'blue', 'green', 'yellow'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw2'];
+    $specialCards = ['wild_Wild', 'wild_Draw4'];
     $cards = [];
 
     for ($i = 0; $i < $count; $i++) {
-        $color = $colors[array_rand($colors)];
-        $value = $values[array_rand($values)];
-        $cards[] = "{$color}_{$value}";
+        // Small chance of getting a special card
+        if (rand(1, 10) > 8) {
+            $cards[] = $specialCards[array_rand($specialCards)];
+        } else {
+            $color = $colors[array_rand($colors)];
+            $value = $values[array_rand($values)];
+            $cards[] = "{$color}_{$value}";
+        }
     }
 
     return $cards;
@@ -381,5 +767,4 @@ function parseCard($cardString) {
 
 // Close the database connection
 $conn->close();
-
 ?>

@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $gameID = $conn->real_escape_string($postData['gameID']);
+    $gameID = $conn->real_escape_string(trim($postData['gameID']));
     
     // For testing: if no action is provided, default to 'create'
     if (!isset($postData['action']) && $testingMode) {

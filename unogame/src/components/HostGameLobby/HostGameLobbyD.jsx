@@ -5,18 +5,45 @@ const HostGameLobby = () => {
   const { gameCode } = useParams(); // Get game code from URL
   const [players, setPlayers] = useState([]); // Store players
 
-  // Add the host as the first player when the component mounts
+  // Create the lobby in the backend on mount
   useEffect(() => {
-    setPlayers((prevPlayers) => {
-      // Only add the host if they are not already in the list
-      if (prevPlayers.length === 0) {
-        return [{ id: 1, name: "Host", ready: false }];
-      }
-      return prevPlayers;
-    });
-  }, []);
+    const createLobby = async () => {
+      const username = localStorage.getItem("username"); // retrieves username from LogIn.jsx
 
-  // Function to toggle a player's "Ready" status
+      if (!username) {
+        console.error("No logged-in user found.");
+        return;
+      }
+
+      try {
+        const response = await fetch("/post.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "create",
+            gameID: gameCode,
+            playerID: username,      
+            playerName: username
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          console.log("Lobby created!", data);
+          setPlayers([{ id: 1, name: username, ready: false }]);
+        } else {
+          console.error("Error creating lobby:", data.error);
+        }
+      } catch (error) {
+        console.error("Failed to create lobby:", error);
+      }
+    };
+
+    createLobby();
+  }, [gameCode]);
+
+  // Toggle a player's ready status
   const toggleReady = (id) => {
     setPlayers((prev) =>
       prev.map((player) =>
@@ -25,7 +52,6 @@ const HostGameLobby = () => {
     );
   };
 
-  // Check if all players are ready
   const allReady = players.length > 0 && players.every((p) => p.ready);
 
   return (
@@ -35,12 +61,12 @@ const HostGameLobby = () => {
         Code: {gameCode}
       </div>
 
-      {/* Next Gen UNO Button (Top Right) */}
+      {/* Title Button */}
       <button className="absolute top-4 right-4 px-6 py-2 bg-black text-white rounded-full text-lg">
         NEXT GEN <span className="text-red-500">UNO</span>
       </button>
 
-      {/* Lobby Title */}
+      {/* Lobby Header */}
       <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
 
       {/* Players List */}
@@ -51,7 +77,7 @@ const HostGameLobby = () => {
             className="flex justify-between items-center w-96 p-4 bg-white rounded-lg shadow-md border"
           >
             <span className="text-lg font-semibold">
-              {player.name} {player.name === "Host" && "(Host)"} {/* Mark host */}
+              {player.name} {player.name === "Host" && "(Host)"}
             </span>
             <button
               className={`px-4 py-1 rounded-md font-semibold text-white ${
@@ -63,17 +89,17 @@ const HostGameLobby = () => {
             </button>
           </div>
         ))}
-
-    {/* Start Game Button (Disabled until all players are ready) */}
       </div>
+
+      {/* Start Game Button */}
       <button
         className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 ${
-            allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
+          allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
         }`}
         disabled={!allReady}
-        >
+      >
         Start Game
-        </button>
+      </button>
     </div>
   );
 };

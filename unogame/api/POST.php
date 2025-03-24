@@ -1,13 +1,9 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 // Database connection parameters
-$host = "localhost"; // Database host (usually 'localhost' for XAMPP)
-$user = "root";      // Database username (default for XAMPP is 'root')
-$pass = "";          // Database password (default for XAMPP is empty)
-$dbname = "cse442_2025_spring_team_c_db"; // Database name
+$host = "localhost";
+$user = "root";
+$pass = "";
+$dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
@@ -20,30 +16,34 @@ if ($conn->connect_error) {
 // Set the response content type to JSON
 header('Content-Type: application/json');
 
-// Handle CLI requests (for testing)
+// Process request data consistently
+$postData = [];
+
 if (php_sapi_name() == 'cli') {
+    // For CLI, use arguments
     $_SERVER['REQUEST_METHOD'] = 'POST';
     foreach ($argv as $arg) {
         if (strpos($arg, '=') !== false) {
             list($key, $value) = explode('=', $arg);
-            $_POST[$key] = $value;
+            $postData[$key] = $value;
         }
+    }
+} else {
+    // For web requests, parse JSON input
+    $rawData = file_get_contents("php://input");
+    $decoded = json_decode($rawData, true);
+    
+    // If JSON decode fails, fall back to $_POST
+    if ($decoded !== null) {
+        $postData = $decoded;
+    } else {
+        $postData = $_POST;
     }
 }
 
 // POST request to fetch game state
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get the raw POST data
-    $rawData = file_get_contents("php://input");
-    $postData = json_decode($rawData, true);
-
-    // Validate JSON input
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        echo json_encode(['error' => 'Invalid JSON input']);
-        exit;
-    }
-
-    // Validate required fields
+    // Validate required data
     if (!isset($postData['gameID'])) {
         echo json_encode(['error' => 'Game ID is required']);
         exit;
@@ -52,40 +52,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gameID = $conn->real_escape_string($postData['gameID']);
     $playerID = isset($postData['playerID']) ? $conn->real_escape_string($postData['playerID']) : null;
 
-    // Fetch the game state
+    // Get game state information
     $gameState = fetchGameState($conn, $gameID, $playerID);
+    
+    // Check for errors in game state
+    if (isset($gameState['error'])) {
+        echo json_encode($gameState);
+        exit;
+    }
+
+    // Handle skipped players
+    skipCheck($conn, $gameID, $gameState);
 
     // Handle card placement if the player is making a move
     if (isset($postData['placedCard']) && $playerID) {
         $placedCard = $conn->real_escape_string($postData['placedCard']);
-        $result = handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState);
-
-        if (isset($result['error'])) {
-            echo json_encode($result);
+        $placementResult = handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState);
+        
+        if (isset($placementResult['error'])) {
+            echo json_encode($placementResult);
             exit;
         }
     }
 
-    // Fetch the updated game state
+    // Get fresh game state after any updates
     $updatedGameState = fetchGameState($conn, $gameID, $playerID);
-
-    // Return the updated game state
     echo json_encode($updatedGameState);
-} else {
-    echo json_encode(['error' => 'Invalid request method']);
+    exit;
 }
 
 /**
  * Fetch the current game state
+ * @return array Game state or error message
  */
 function fetchGameState($conn, $gameID, $playerID = null) {
     // Get lobby information
     $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($lobbyQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return ['error' => 'Database error'];
-    }
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $lobbyResult = $stmt->get_result();
@@ -103,10 +106,6 @@ function fetchGameState($conn, $gameID, $playerID = null) {
     // Get all players' data
     $playersQuery = "SELECT playerID, cardList, placedCard, skipped FROM players WHERE gameID = ?";
     $stmt = $conn->prepare($playersQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return ['error' => 'Database error'];
-    }
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $playersResult = $stmt->get_result();
@@ -122,6 +121,10 @@ function fetchGameState($conn, $gameID, $playerID = null) {
 
         // Only send the full card list to the requesting player
         $cardList = json_decode($player['cardList'], true);
+        if ($cardList === null) {
+            $cardList = []; // Ensure we have a valid array
+        }
+        
         $players[$pid]['cardCount'] = count($cardList);
         if ($pid === $playerID) {
             $players[$pid]['cardList'] = $cardList;
@@ -143,12 +146,61 @@ function fetchGameState($conn, $gameID, $playerID = null) {
 }
 
 /**
+ * Check if it's time to update the turn and handle skipped players
+ */
+function skipCheck($conn, $gameID, $gameState) {
+    if (!isset($gameState['lobby'])) {
+        return;
+    }
+
+    $curPlayer = $gameState['lobby']['curPlayer'];
+    $gameOrder = $gameState['lobby']['gameOrder'];
+
+    // Check if current player is skipped
+    if (isset($gameState['players'][$curPlayer]['skipped']) && $gameState['players'][$curPlayer]['skipped']) {
+        // Find the next player in the game order
+        $currentIndex = array_search($curPlayer, $gameOrder);
+        if ($currentIndex === false) {
+            return; // Invalid game state
+        }
+        
+        $nextIndex = ($currentIndex + 1) % count($gameOrder);
+        $nextPlayer = $gameOrder[$nextIndex];
+
+        // Update current player
+        $updateQuery = "UPDATE lobby SET curPlayer = ? WHERE gameID = ?";
+        $stmt = $conn->prepare($updateQuery);
+        $stmt->bind_param("ss", $nextPlayer, $gameID);
+        $stmt->execute();
+
+        // Reset skipped status for the player we just skipped
+        $resetSkippedQuery = "UPDATE players SET skipped = 0 WHERE gameID = ? AND playerID = ?";
+        $stmt = $conn->prepare($resetSkippedQuery);
+        $stmt->bind_param("ss", $gameID, $curPlayer);
+        $stmt->execute();
+    }
+}
+
+/**
  * Handle card placement and card effects
+ * @return array Operation result
  */
 function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {
     // Check if it's this player's turn
     if ($gameState['lobby']['curPlayer'] !== $playerID) {
         return ['error' => 'Not your turn'];
+    }
+
+    // Check if the player has this card
+    if (!isset($gameState['players'][$playerID]['cardList'])) {
+        return ['error' => 'Player cards not found'];
+    }
+    
+    $playerCards = $gameState['players'][$playerID]['cardList'];
+    $cardIndex = array_search($placedCard, $playerCards);
+    
+    if ($cardIndex === false) {
+        return ['error' => 'Card not in player hand'];
     }
 
     $curCard = $gameState['lobby']['curCard'];
@@ -165,38 +217,24 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
         return ['error' => 'Invalid card placement'];
     }
 
-    // Update the player's card list
-    $playerCards = $gameState['players'][$playerID]['cardList'];
-    $cardIndex = array_search($placedCard, $playerCards);
-
     // Remove the card from player's hand
     array_splice($playerCards, $cardIndex, 1);
     $updatedCardList = json_encode($playerCards);
 
+    // Update the player's card list and placed card
     $updatePlayerQuery = "UPDATE players SET cardList = ?, placedCard = ? WHERE gameID = ? AND playerID = ?";
     $stmt = $conn->prepare($updatePlayerQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return ['error' => 'Database error'];
-    }
     $stmt->bind_param("ssss", $updatedCardList, $placedCard, $gameID, $playerID);
     $stmt->execute();
 
     // Update the lobby's current card
     $updateLobbyQuery = "UPDATE lobby SET curCard = ? WHERE gameID = ?";
     $stmt = $conn->prepare($updateLobbyQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return ['error' => 'Database error'];
-    }
     $stmt->bind_param("ss", $placedCard, $gameID);
     $stmt->execute();
 
-    // Handle card effects
+    // Handle card effects (this no longer calls moveToNextPlayer internally)
     handleCardEffect($conn, $gameID, $placedCard, $gameState);
-
-    // Move to the next player
-    moveToNextPlayer($conn, $gameID, $gameState);
 
     return ['success' => true];
 }
@@ -218,23 +256,25 @@ function handleCardEffect($conn, $gameID, $placedCard, $gameState) {
         $cardEffect = 'Reverse';
     }
 
+    // Update the card effect in the lobby (even if null)
+    $updateEffectQuery = "UPDATE lobby SET cardEffect = ? WHERE gameID = ?";
+    $stmt = $conn->prepare($updateEffectQuery);
+    $stmt->bind_param("ss", $cardEffect, $gameID);
+    $stmt->execute();
+
     if (!$cardEffect) {
         moveToNextPlayer($conn, $gameID, $gameState);
         return;
     }
 
-    // Update the card effect in the lobby
-    $updateEffectQuery = "UPDATE lobby SET cardEffect = ? WHERE gameID = ?";
-    $stmt = $conn->prepare($updateEffectQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
-    $stmt->bind_param("ss", $cardEffect, $gameID);
-    $stmt->execute();
-
     $gameOrder = $gameState['lobby']['gameOrder'];
     $currentIndex = array_search($gameState['lobby']['curPlayer'], $gameOrder);
+    
+    if ($currentIndex === false) {
+        moveToNextPlayer($conn, $gameID, $gameState);
+        return;
+    }
+    
     $nextIndex = ($currentIndex + 1) % count($gameOrder);
     $nextPlayer = $gameOrder[$nextIndex];
 
@@ -264,10 +304,6 @@ function addCardsToPlayer($conn, $gameID, $playerID, $cardCount) {
     // Get the player's current cards
     $query = "SELECT cardList FROM players WHERE gameID = ? AND playerID = ?";
     $stmt = $conn->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("ss", $gameID, $playerID);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -278,6 +314,10 @@ function addCardsToPlayer($conn, $gameID, $playerID, $cardCount) {
 
     $row = $result->fetch_assoc();
     $cardList = json_decode($row['cardList'], true);
+    
+    if ($cardList === null) {
+        $cardList = []; // Ensure we have a valid array
+    }
 
     // Generate random cards
     $newCards = generateRandomCards($cardCount);
@@ -287,16 +327,13 @@ function addCardsToPlayer($conn, $gameID, $playerID, $cardCount) {
     $updatedCardListJson = json_encode($updatedCardList);
     $updateQuery = "UPDATE players SET cardList = ? WHERE gameID = ? AND playerID = ?";
     $stmt = $conn->prepare($updateQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("sss", $updatedCardListJson, $gameID, $playerID);
     $stmt->execute();
 }
 
 /**
  * Generate random cards for draw effects
+ * @return array Array of card strings
  */
 function generateRandomCards($count) {
     $colors = ['red', 'blue', 'green', 'yellow'];
@@ -318,10 +355,6 @@ function generateRandomCards($count) {
 function setPlayerSkipped($conn, $gameID, $playerID) {
     $query = "UPDATE players SET skipped = 1 WHERE gameID = ? AND playerID = ?";
     $stmt = $conn->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("ss", $gameID, $playerID);
     $stmt->execute();
 }
@@ -333,10 +366,6 @@ function reverseGameOrder($conn, $gameID) {
     // Get current game order
     $query = "SELECT gameOrder FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -347,6 +376,10 @@ function reverseGameOrder($conn, $gameID) {
 
     $row = $result->fetch_assoc();
     $gameOrder = json_decode($row['gameOrder'], true);
+    
+    if (!is_array($gameOrder)) {
+        return; // Invalid game order
+    }
 
     // Reverse the order
     $reversedOrder = array_reverse($gameOrder);
@@ -355,10 +388,6 @@ function reverseGameOrder($conn, $gameID) {
     // Update the game order
     $updateQuery = "UPDATE lobby SET gameOrder = ? WHERE gameID = ?";
     $stmt = $conn->prepare($updateQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("ss", $reversedOrderJson, $gameID);
     $stmt->execute();
 }
@@ -367,12 +396,16 @@ function reverseGameOrder($conn, $gameID) {
  * Move to the next player in the game order
  */
 function moveToNextPlayer($conn, $gameID, $gameState) {
+    if (!isset($gameState['lobby']['gameOrder']) || !isset($gameState['lobby']['curPlayer'])) {
+        return;
+    }
+    
     $gameOrder = $gameState['lobby']['gameOrder'];
     $currentPlayer = $gameState['lobby']['curPlayer'];
     $currentIndex = array_search($currentPlayer, $gameOrder);
 
-    if ($currentIndex === false) {
-        return;
+    if ($currentIndex === false || count($gameOrder) === 0) {
+        return; // Invalid game state
     }
 
     $nextIndex = ($currentIndex + 1) % count($gameOrder);
@@ -381,16 +414,13 @@ function moveToNextPlayer($conn, $gameID, $gameState) {
     // Update the current player
     $updateQuery = "UPDATE lobby SET curPlayer = ? WHERE gameID = ?";
     $stmt = $conn->prepare($updateQuery);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $conn->error);
-        return;
-    }
     $stmt->bind_param("ss", $nextPlayer, $gameID);
     $stmt->execute();
 }
 
 /**
  * Parse a card string to get color and value
+ * @return array Array with color and value keys
  */
 function parseCard($cardString) {
     $parts = explode('_', $cardString);
@@ -404,4 +434,7 @@ function parseCard($cardString) {
         'value' => $parts[1]
     ];
 }
+
+// Close the database connection
+$conn->close();
 ?>

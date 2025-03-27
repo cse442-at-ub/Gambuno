@@ -15,7 +15,8 @@ const CreateAccount = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
-    const [valid, setValid] = useState({valid: false, message: ""});   const navigate = useNavigate();
+    const [valid, setValid] = useState({valid: false, message: ""});   
+    const navigate = useNavigate();
   
     const goToLogin = () => {
       navigate("/login");

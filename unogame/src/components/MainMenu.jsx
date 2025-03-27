@@ -30,27 +30,42 @@ const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 const [showPopup, setShowPopup] = useState(false)
 
 const [username, setUsername] = useState(localStorage.getItem("username"));
+const [money, setMoney] = useState(null);
+const [isLoading, setIsLoading] = useState(null);
 
 const [isTutOpen, setIsTutOpen] = useState(false)
-
-
-
 
 
 const toggleSettings = () => {
   setIsSettingsOpen(!isSettingsOpen);
 };
 
+useEffect(() => {
+  const fetchUserMoney = async () => {
+    if (!username) {
+      setIsLoading(false);
+      return;
+    }
 
+    try {
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/login.php=${username}`);
+      const data = await response.json();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+      if (data.money !== undefined) {
+        setMoney(parseFloat(data.money).toFixed(2));
+      } else {
+        setMoney('0.00');
+      }
+    } catch (error) {
+      console.error("Failed to fetch money:", error);
+      setMoney('0.00');
+    } finally {
+      setIsLoading(false);
+    }
+  };  
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  fetchUserMoney();
+  }, [username]);
 
   if(isMobile){
     return(
@@ -146,17 +161,20 @@ const toggleSettings = () => {
       <div className={styles.LoginButton_14_8}>
         </div><span>
         {username ? (
-                        <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
-                    ) : (
-                      <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button>
-                    )}
+          <>
+            <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
+            <span className={styles.money_display}>
+              Money: ${!isLoading ? money : 'Loading...'}
+            </span>
+          </>
+        ) : (
+          <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button>
+        )}
           {/* <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button> */}
           </span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
 
       <Tutorial isOpen ={isTutOpen} onClose={()=> setIsTutOpen(false)}/>
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17}>Credits</button></span>
-      <div className={styles.LoginButton_14_8}></div><span><button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button></span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
-
     
       <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
     </div>

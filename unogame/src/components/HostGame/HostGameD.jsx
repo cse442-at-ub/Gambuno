@@ -5,8 +5,10 @@ const HostGame = () => {
   const navigate = useNavigate();
 
   const handleHostGame = async () => {
+    console.log("Host Game button clicked"); // ✅ Step 1
+
     try {
-      const response = await fetch("/gamecode.php");
+      const response = await fetch("http://localhost/cse442_2025_spring_team_c/gamecode.php");
       const data = await response.json();
   
       if (data.success) {

@@ -1,32 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const HostGameLobby = () => {
-  const [gameCode, setGameCode] = useState(null);
+  const { gameCode } = useParams(); // ✅ Read game code from URL
   const [players, setPlayers] = useState([]);
   const navigate = useNavigate();
 
-  // Step 1: Generate game code from backend
-  useEffect(() => {
-    const fetchGameCode = async () => {
-      try {
-        const response = await fetch("/gamecode.php");
-        const data = await response.json();
-
-        if (data.success) {
-          setGameCode(data.gameCode);
-        } else {
-          console.error("Failed to generate game code:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching game code:", error);
-      }
-    };
-
-    fetchGameCode();
-  }, []);
-
-  // Step 2: Once gameCode is set, create the lobby
+  // Create the lobby once gameCode is available
   useEffect(() => {
     const createLobby = async () => {
       const username = localStorage.getItem("username");
@@ -58,9 +38,7 @@ const HostGameLobby = () => {
       }
     };
 
-    if (gameCode) {
-      createLobby();
-    }
+    createLobby();
   }, [gameCode]);
 
   // Toggle readiness (local only for now)

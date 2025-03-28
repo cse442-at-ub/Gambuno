@@ -1,12 +1,12 @@
 <?php
 // Database configuration
-$servername = "your_servername";
-$dbusername = "your_dbusername";
-$dbpassword = "your_dbpassword";
-$dbname = "your_dbname";
+$host = "localhost";
+$user = "kurianva";
+$pass = "50554678";
+$dbname = "cse442_2025_spring_team_c_db";
 
 // Create connection
-$conn = new mysqli($servername, $dbusername, $dbpassword, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
@@ -45,10 +45,6 @@ if (!empty($username)) {
     $stmt->close();
 }
 
-// Close connection if not already closed
-if ($conn) {
-    $conn->close();
-}
 
 /**
  * Creates a leaderboard sorted by the specified column
@@ -74,4 +70,6 @@ function create_leaderboard($conn, $sort_by = 'money') {
 
     return $leaderboard;
 }
+
+create_leaderboard($conn);
 ?>

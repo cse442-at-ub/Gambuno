@@ -32,6 +32,41 @@ if ($row = $result->fetch_assoc()) {
 
 }
 
+function createLeaderboard($sortBy = 'points') {
+    global $conn;
+
+    // Validate and sanitize sort parameter
+    $allowedSortColumns = ['points', 'wins'];
+    $sortColumn = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'points';
+
+    // Map sort parameter to actual database column
+    $dbColumn = ($sortColumn === 'points') ? 'money' : 'wins';
+
+    // Prepare SQL to get all users sorted by specified column in descending order
+    $stmt = $conn->prepare("SELECT username, money, wins FROM users ORDER BY $dbColumn DESC LIMIT 50");
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $leaderboard = [];
+    $rank = 1;
+
+    while ($row = $result->fetch_assoc()) {
+        $leaderboard[] = [
+            'rank' => $rank,
+            'username' => $row['username'],
+            'points' => $row['money'],
+            'wins' => $row['wins']
+        ];
+        $rank++;
+    }
+
+    return [
+        'sortedBy' => $sortColumn,
+        'leaderboard' => $leaderboard
+    ];
+}
+
+
 // Close statement and connection
 $stmt->close();
 $conn->close();

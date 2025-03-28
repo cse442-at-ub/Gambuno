@@ -6,13 +6,54 @@ import { useNavigate } from "react-router-dom"
 const HostGame = () => {
     const navigate = useNavigate()
     const [betAmount, setBetAmount] = useState("")
+    let currentBalance = Number(localStorage.getItem("money"))
 
     // Function to generate a random 6-character game code
     const generateGameCode = () => Math.random().toString(36).substr(2, 6).toUpperCase()
 
     const handleHostGame = () => {
+        if (betAmount === "") {
+            alert("Please enter a betting amount.")
+            return
+        }
+        if (betAmount > currentBalance) {
+            alert("You do not have enough money to bet that amount.")
+            return
+        }
         const gameCode = generateGameCode() // Generate game code
+        currentBalance = currentBalance - Number(betAmount)
+        localStorage.setItem("money", (currentBalance.toString())) // Update balance
+        console.log(currentBalance)
+        const updateMoneyInDatabase = async (username, money) => {
+          try {
+            const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/update_money.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                username: username,
+                money: parseFloat(money)
+              })
+            });
+        
+            const data = await response.json();
+        
+            if (data.status === 'success') {
+              console.log('Money updated successfully');
+            } else {
+              console.error('Failed to update money:', data.message);
+            }
+          } catch (error) {
+            console.error('Error updating money:', error);
+          }
+        };
+        let username = localStorage.getItem("username");
+        updateMoneyInDatabase(username, Number(currentBalance));
         navigate(`/host-game-lobby/${gameCode}`, { state: { betAmount } }) // Navigate with bet amount
+
+
+        
     }
 
     return (

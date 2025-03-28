@@ -52,6 +52,7 @@ useEffect(() => {
       const data = await response.json();
 
       if (data.money !== undefined) {
+        localStorage.setItem('money', parseFloat(data.money).toFixed(2));
         setMoney(parseFloat(data.money).toFixed(2));
         console.log(data.money);
       } else {

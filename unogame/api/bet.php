@@ -3,6 +3,7 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
+header('Content-Type: application/json');
 
 $host = "localhost";
 $user = "kurianva";
@@ -72,7 +73,7 @@ function create_leaderboard($conn, $sort_by = 'money') {
         }
     }
 
-    return $leaderboard;
+    echo json_encode($leaderboard);
 }
 
 create_leaderboard($conn);

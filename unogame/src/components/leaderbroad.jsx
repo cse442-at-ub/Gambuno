@@ -24,8 +24,8 @@ const Leaderboard = () => {
             setError(null);
 
             const startTime = performance.now();
-            const response = await fetch(`bet.php?action=leaderboard&sort_by=${sortBy}`);
-
+            const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=leaderboard&sort_by=${sortBy}`);
+            
             // Simple headers logging for JSX
             console.log("[DEBUG] Response headers:");
             response.headers.forEach((value, key) => {

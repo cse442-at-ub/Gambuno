@@ -1,29 +1,36 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import FriendList from "../FriendList/FriendList";
 
 const WaitingRoom = () => {
+  const { gameID } = useParams();
   const navigate = useNavigate();
-  const players = [
-    { name: "Player 1", status: "Ready" },
-    { name: "Player 2", status: "Waiting" },
-    { name: "Player 3", status: "Waiting" },
-    { name: "Player 4", status: "Ready" },
-    { name: "Player 5", status: "Ready" },
-  ];
+  const [players, setPlayers] = useState([]);
+  const [showFriendList, setShowFriendList] = useState(true);
+
+  const fetchPlayers = async () => {
+    try {
+      // Fetch players for the specific lobby using gameID
+      const response = await fetch(`/api/HTTP.php?table=players&gameID=${gameID}`);
+      const data = await response.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlayers();
+    const interval = setInterval(fetchPlayers, 1000);
+    return () => clearInterval(interval);
+  }, [gameID]);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
       <button className="absolute top-4 left-4 p-2" aria-label="Back"
-      onClick={() => navigate("/join-game-menu")}>   
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24px"
-          viewBox="0 0 24 24"
-          width="24px"
-          fill="#5f6368"
-        >
+        onClick={() => navigate("/join-game-menu")}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
       </button>
@@ -44,7 +51,7 @@ const WaitingRoom = () => {
           <div key={index} className="flex justify-between items-center bg-white px-4 py-3 shadow-lg rounded-xl border-4 border-black">
             <div className="flex items-center gap-4">
               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
               <p className="text-lg font-bold text-black">{player.name}</p>
             </div>
@@ -60,30 +67,10 @@ const WaitingRoom = () => {
         Start Game
       </button>
       
-      {/* Bottom Icons */}
-      <button className="absolute bottom-4 left-4 p-2">
-        <svg
-        xmlns="http://www.w3.org/2000/svg" 
-        height="24px" 
-        viewBox="0 0 24 24" 
-        width="24px" 
-        fill="#5f6368"
-        >
-          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5s-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.02 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-        </svg>
-      </button>
-
-      <button className="absolute bottom-4 right-4 p-2" aria-label="Help">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24px"
-          viewBox="0 0 24 24"
-          width="24px"
-          fill="#5f6368"
-        >
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
-        </svg>
-      </button>
+      {/* Friend List */}
+      {showFriendList && (
+        <FriendList onClose={() => setShowFriendList(false)} />
+      )}
     </div>
   );
 };

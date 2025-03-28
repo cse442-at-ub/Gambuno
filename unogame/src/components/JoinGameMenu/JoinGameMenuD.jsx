@@ -1,35 +1,59 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const JoinGame = () => {
   const navigate = useNavigate();
-  const gameRooms = [
-    { host: "Player 2", mode: "Hard", cap: "3/6" },
-    { host: "Player 1", mode: "Easy", cap: "3/6" },
-    { host: "Player 4", mode: "Hard", cap: "3/6" },
-    { host: "Player 5", mode: "Normal", cap: "3/6" },
-    { host: "Player 3", mode: "Easy", cap: "3/6" },
-  ];
+  const [gameRooms, setGameRooms] = useState([]);
+
+  const fetchGameRooms = async () => {
+    try {
+      // Fetch lobby data from the GET endpoint
+      const response = await fetch("/api/HTTP.php?table=lobby");
+      const data = await response.json();
+      // Filter for lobbies with gameStatus "waiting"
+      const waitingRooms = data.filter(room => room.gameStatus === "waiting");
+      setGameRooms(waitingRooms);
+    } catch (error) {
+      console.error("Error fetching game rooms:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchGameRooms();
+    const interval = setInterval(fetchGameRooms, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleJoin = async (gameID) => {
+    try {
+      // Optionally record the join action via POST request
+      await fetch("/api/POST.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameID, action: "join", playerID: YOUR_PLAYER_ID })
+      });
+      // Navigate to the waiting room with the specific gameID
+      navigate(`/waiting-host/${gameID}`);
+    } catch (error) {
+      console.error("Error joining game:", error);
+    }
+  };
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
       <button className="absolute top-4 left-4 p-2" aria-label="Back"
-      onClick={() => navigate("/play")}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24px"
-          viewBox="0 0 24 24"
-          width="24px"
-          fill="#5f6368"
-        >
+        onClick={() => navigate("/select-game")}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
       </button>
       
       {/* Logo */}
       <div className="absolute top-4 right-4 bg-black text-white px-4 py-2 rounded-full text-xl font-bold border-4 border-orange-700">
-        NEXT GEN <span className="text-red-500">UNO</span>
+        <button onClick={() => navigate("/")}>
+          NEXT GEN <span className="text-red-500">UNO</span>
+        </button>
       </div>
       
       {/* Title */}
@@ -49,7 +73,10 @@ const JoinGame = () => {
               <p>Cap</p>
               <p>{room.cap}</p>
             </div>
-            <button onClick={() => navigate("/waiting-host")} className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition">
+            <button
+              className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
+              onClick={() => handleJoin(room.gameID)}
+            >
               Join
             </button>
           </div>

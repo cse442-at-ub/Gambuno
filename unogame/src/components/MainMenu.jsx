@@ -52,6 +52,7 @@ useEffect(() => {
       const data = await response.json();
 
       if (data.money !== undefined) {
+        localStorage.setItem('money', parseFloat(data.money).toFixed(2));
         setMoney(parseFloat(data.money).toFixed(2));
         console.log(data.money);
       } else {
@@ -165,7 +166,7 @@ useEffect(() => {
           <>
             <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
             <span className={styles.money_display}>
-              Money: ${!isLoading ? money : 'Loading...'}
+              ${!isLoading ? money : 'Loading...'}
             </span>
           </>
         ) : (

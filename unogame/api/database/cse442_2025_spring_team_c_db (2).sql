@@ -34,7 +34,7 @@ CREATE TABLE `lobby` (
   `cardEffect` varchar(20) DEFAULT NULL COMMENT 'Current active card effect (Draw2, Draw4, Skip, Reverse, or NULL)',
   `playerList` json NOT NULL COMMENT 'List of player IDs in the game',
   `gameOrder` json NOT NULL COMMENT 'Ordered queue of players determining turn order'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -49,7 +49,7 @@ CREATE TABLE `players` (
   `cardList` json NOT NULL COMMENT 'List of cards in player hand',
   `placedCard` varchar(50) DEFAULT NULL COMMENT 'Card the player is attempting to place',
   `skipped` tinyint(1) DEFAULT '0' COMMENT 'Whether player should be skipped on their next turn'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -59,10 +59,10 @@ CREATE TABLE `players` (
 
 CREATE TABLE `users` (
   `username` text NOT NULL,
-  `hashed_password` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `hashed_password` text CHARACTER SET utf8mb4 COLLATE=utf8mb4_general_ci NOT NULL,
   `auth` text,
   `money` decimal(10,2) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`

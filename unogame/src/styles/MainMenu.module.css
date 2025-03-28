@@ -113,6 +113,18 @@
   cursor: pointer;
 }
 
+.money_display{
+  font-family: "Inter-BlackItalic", Helvetica;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 800;
+  color: #eeeded;
+  position: absolute;
+  top: 12vh;
+  left: 90vw;
+  transform: translate(-50%, -50%);
+}
+
 .LoginButton_14_8 {
   background: #000000c9;
   border-radius: 60px;

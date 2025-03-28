@@ -29,12 +29,13 @@ const JoinGame = () => {
 
     try {
       // Optionally record the join action via POST request
-      await fetch("/api/POST.php", {
+      await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gameID, action: "join", playerID: playerID })
       });
       // Navigate to the waiting room with the specific gameID
+      console.log("Joining game:", gameID);
       navigate(`/waiting-host/${gameID}`);
     } catch (error) {
       console.error("Error joining game:", error);

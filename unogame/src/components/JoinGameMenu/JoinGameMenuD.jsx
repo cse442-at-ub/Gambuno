@@ -25,12 +25,14 @@ const JoinGame = () => {
   }, []);
 
   const handleJoin = async (gameID) => {
+    const playerID = 1; 
+
     try {
       // Optionally record the join action via POST request
       await fetch("/api/POST.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameID, action: "join", playerID: YOUR_PLAYER_ID })
+        body: JSON.stringify({ gameID, action: "join", playerID: playerID })
       });
       // Navigate to the waiting room with the specific gameID
       navigate(`/waiting-host/${gameID}`);

@@ -3,11 +3,10 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 27, 2025 at 09:29 PM
+-- Generation Time: Mar 27, 2025 at 09:43 PM
 -- Server version: 8.0.39-0ubuntu0.22.04.1
 -- PHP Version: 8.1.2-1ubuntu2.18
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -27,9 +26,10 @@ SET time_zone = "+00:00";
 -- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `username` text NOT NULL,
-  `hashed_password` text CHARACTER SET utf8mb4 COLLATE=utf8mb4_general_ci NOT NULL,
+  `hashed_password` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `auth` text,
   `money` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

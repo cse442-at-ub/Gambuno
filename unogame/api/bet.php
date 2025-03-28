@@ -16,7 +16,7 @@ if ($conn->connect_error) {
 }
 $username = isset($_GET['username']) ? $_GET['username'] : '';
 $stmt = $conn->prepare("SELECT money FROM users WHERE username = ?");
-$stmt->bind_param("s", $susername);
+$stmt->bind_param("s", $username);
 
 // Execute the query
 $stmt->execute();

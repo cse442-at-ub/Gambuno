@@ -48,11 +48,12 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/login.php=${username}`);
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?username=${username}`);
       const data = await response.json();
 
       if (data.money !== undefined) {
         setMoney(parseFloat(data.money).toFixed(2));
+        console.log(data.money);
       } else {
         setMoney('0.00');
       }

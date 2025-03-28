@@ -3,50 +3,26 @@ import { useNavigate } from "react-router-dom";
 
 const JoinGame = () => {
   const navigate = useNavigate();
-  const [gameRooms, setGameRooms] = useState([]);
-
-  const fetchGameRooms = async () => {
-    try {
-      // Fetch lobby data from the GET endpoint
-      const response = await fetch("/api/HTTP.php?table=lobby");
-      const data = await response.json();
-      // Filter for lobbies with gameStatus "waiting"
-      const waitingRooms = data.filter(room => room.gameStatus === "waiting");
-      setGameRooms(waitingRooms);
-    } catch (error) {
-      console.error("Error fetching game rooms:", error);
-    }
-  };
+  const [lobbies, setLobbies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchGameRooms();
-    const interval = setInterval(fetchGameRooms, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleJoin = async (gameID) => {
-    const playerID = 1; 
-
-    try {
-      // Optionally record the join action via POST request
-      await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gameID, action: "join", playerID: playerID })
+    fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/HTTP.php?action=getWaitingLobbies")
+      .then((response) => response.json())
+      .then((data) => {
+        setLobbies(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching lobbies:", error);
+        setLoading(false);
       });
-      // Navigate to the waiting room with the specific gameID
-      console.log("Joining game:", gameID);
-      navigate(`/waiting-host/${gameID}`);
-    } catch (error) {
-      console.error("Error joining game:", error);
-    }
-  };
+  }, []);
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
-      <button className="absolute top-4 left-4 p-2" aria-label="Back"
-        onClick={() => navigate("/select-game")}>
+      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/play")}>
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
@@ -54,9 +30,7 @@ const JoinGame = () => {
       
       {/* Logo */}
       <div className="absolute top-4 right-4 bg-black text-white px-4 py-2 rounded-full text-xl font-bold border-4 border-orange-700">
-        <button onClick={() => navigate("/")}>
-          NEXT GEN <span className="text-red-500">UNO</span>
-        </button>
+        NEXT GEN <span className="text-red-500">UNO</span>
       </div>
       
       {/* Title */}
@@ -64,27 +38,38 @@ const JoinGame = () => {
         Join a Game
       </h1>
       
-      {/* Game Room List */}
-      <div className="flex flex-col gap-4 w-full max-w-xs">
-        {gameRooms.map((room, index) => (
-          <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
-            <div>
-              <p className="italic">Host - {room.host}</p>
-              <p>Game Mode - {room.mode}</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <p>Cap</p>
-              <p>{room.cap}</p>
-            </div>
-            <button
-              className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
-              onClick={() => handleJoin(room.gameID)}
-            >
-              Join
-            </button>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <p className="text-lg text-black">Loading lobbies...</p>
+      ) : (
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          {lobbies.length === 0 ? (
+            <p className="text-black">No available lobbies.</p>
+          ) : (
+            lobbies.map((lobby, index) => {
+              // Assuming playerList is stored as a JSON string.
+              const playerList = lobby.playerList ? JSON.parse(lobby.playerList) : [];
+              const playerCount = playerList.length;
+              // Use the first player in the list as the host (if available).
+              const host = playerCount > 0 ? playerList[0] : "Unknown";
+              return (
+                <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
+                  <div>
+                    <p className="italic">Host - {host}</p>
+                    <p>Lobby ID - {lobby.gameID}</p>
+                    <p>Players - {playerCount}</p>
+                  </div>
+                  <button
+                    onClick={() => navigate(`/waiting-host/${lobby.gameID}`)}
+                    className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
+                  >
+                    Join
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
     </div>
   );
 };

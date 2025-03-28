@@ -46,7 +46,7 @@ const HostGame = () => {
         className="w-24 h-12 text-center text-xl border-4 border-black rounded-lg bg-white shadow-md mb-6" 
         placeholder=""
       />
-      
+
       {/* Game Mode Selection */}
       <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
         Game Mode

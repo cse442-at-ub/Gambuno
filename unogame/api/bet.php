@@ -73,7 +73,7 @@ function create_leaderboard($conn, $sort_by = 'money') {
         }
     }
 
-    echo json_encode($leaderboard);
+    return ($leaderboard);
 }
 
 create_leaderboard($conn);

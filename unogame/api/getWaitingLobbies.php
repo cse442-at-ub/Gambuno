@@ -1,38 +1,45 @@
 <?php
-// Debug file to fetch all waiting lobbies with the updated database structure
+// Allow cross-origin requests and set headers
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET");
+header("Content-Type: application/json");
 
-// Database connection parameters
+// Database configuration
 $host = "localhost";
-$user = "root";
-$pass = "";
+$user = "kurianva";
+$pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
-// Connect to MySQL
+// Create connection
 $conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
-    die(json_encode(['error' => 'Connection failed: ' . $conn->connect_error]));
+    die(json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]));
 }
 
-// Set the response content type to JSON
-header('Content-Type: application/json');
+// Handle getWaitingLobbies action
+if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
+    $query = "SELECT gameID, playerList, gameStatus FROM lobby WHERE gameStatus = 'waiting'";
+    $result = $conn->query($query);
 
-// Query to fetch all lobbies with gameStatus = 'waiting'
-$query = "SELECT gameID, playerList, gameStatus FROM lobby WHERE gameStatus = 'waiting'";
-$result = $conn->query($query);
-
-$lobbies = [];
-while ($row = $result->fetch_assoc()) {
-    // Handle cases where playerList (or other JSON columns) might be stored as the string "null"
-    if ($row['playerList'] === 'null' || $row['playerList'] === null) {
-        $row['playerList'] = '[]';
+    $lobbies = [];
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            // Ensure that playerList is a valid JSON array
+            if ($row['playerList'] === 'null' || $row['playerList'] === null) {
+                $row['playerList'] = '[]';
+            }
+            $lobbies[] = $row;
+        }
     }
-    $lobbies[] = $row;
+
+    echo json_encode(["status" => "success", "lobbies" => $lobbies]);
+    $conn->close();
+    exit;
+} else {
+    echo json_encode(["status" => "error", "message" => "Invalid action"]);
+    $conn->close();
+    exit;
 }
-
-echo json_encode($lobbies);
-
-// Close the database connection
-$conn->close();
 ?>

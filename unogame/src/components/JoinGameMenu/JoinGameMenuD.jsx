@@ -7,13 +7,14 @@ const JoinGame = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/HTTP.php?action=getWaitingLobbies")
-      .then((response) => response.json())
-      .then((data) => {
+    // Updated to use the separate PHP file for debugging waiting lobbies.
+    fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getWaitingLobbies.php")
+      .then(response => response.json())
+      .then(data => {
         setLobbies(data);
         setLoading(false);
       })
-      .catch((error) => {
+      .catch(error => {
         console.error("Error fetching lobbies:", error);
         setLoading(false);
       });
@@ -46,10 +47,8 @@ const JoinGame = () => {
             <p className="text-black">No available lobbies.</p>
           ) : (
             lobbies.map((lobby, index) => {
-              // Assuming playerList is stored as a JSON string.
               const playerList = lobby.playerList ? JSON.parse(lobby.playerList) : [];
               const playerCount = playerList.length;
-              // Use the first player in the list as the host (if available).
               const host = playerCount > 0 ? playerList[0] : "Unknown";
               return (
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">

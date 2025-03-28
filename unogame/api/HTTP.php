@@ -2,8 +2,8 @@
 
 // Database connection parameters
 $host = "localhost";
-$user = "root";
-$pass = "";
+$user = "kurianva";
+$pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
@@ -27,22 +27,8 @@ if (php_sapi_name() == 'cli'){
     }
 }
 
-// GET request handling
+// GET request to fetch game state
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-    // New handler: List all waiting lobbies when action=getWaitingLobbies
-    if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
-        $query = "SELECT gameID, playerList, gameStatus FROM lobby WHERE gameStatus = 'waiting'";
-        $result = $conn->query($query);
-        $lobbies = [];
-        while ($row = $result->fetch_assoc()) {
-            $lobbies[] = $row;
-        }
-        echo json_encode($lobbies);
-        exit;
-    }
-
-    // Existing logic: Fetch game state by gameID
     if (!isset($_GET['gameID'])) {
         echo json_encode(['error' => 'Game ID is required']);
         exit;
@@ -73,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
  */
 function fetchGameState($conn, $gameID, $playerID = null) {
     // Get lobby information
-    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus FROM lobby WHERE gameID = ?";
+    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($lobbyQuery);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -120,8 +106,7 @@ function fetchGameState($conn, $gameID, $playerID = null) {
             'curPlayer' => $lobbyData['curPlayer'],
             'cardEffect' => $lobbyData['cardEffect'],
             'playerList' => $playerList,
-            'gameOrder' => $gameOrder,
-            'gameStatus' => $lobbyData['gameStatus']
+            'gameOrder' => $gameOrder
         ],
         'players' => $players,
         'yourTurn' => ($playerID && $lobbyData['curPlayer'] === $playerID)
@@ -144,6 +129,7 @@ function skipCheck($conn, $gameID, $gameState) {
         // Find the next player in the game order
         $currentIndex = array_search($curPlayer, $gameOrder);
         if ($currentIndex === false) {
+            // Log error or handle appropriately
             return;
         }
         $nextIndex = ($currentIndex + 1) % count($gameOrder);
@@ -166,7 +152,7 @@ function skipCheck($conn, $gameID, $gameState) {
 /**
  * Handle card placement and card effects
  */
-function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {
+function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {// update when doing color/number stacking
     // Check if it's this player's turn
     if ($gameState['lobby']['curPlayer'] !== $playerID) {
         return ['error' => 'Not your turn'];
@@ -311,19 +297,13 @@ function addCardsToPlayer($conn, $gameID, $playerID, $cardCount) {
  */
 function generateRandomCards($count) {
     $colors = ['red', 'blue', 'green', 'yellow'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw2'];
-    $specialCards = ['wild_Wild', 'wild_Draw4'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $cards = [];
 
     for ($i = 0; $i < $count; $i++) {
-        // Small chance of getting a special card
-        if (rand(1, 10) > 8) {
-            $cards[] = $specialCards[array_rand($specialCards)];
-        } else {
-            $color = $colors[array_rand($colors)];
-            $value = $values[array_rand($values)];
-            $cards[] = "{$color}_{$value}";
-        }
+        $color = $colors[array_rand($colors)];
+        $value = $values[array_rand($values)];
+        $cards[] = "{$color}_{$value}";
     }
 
     return $cards;

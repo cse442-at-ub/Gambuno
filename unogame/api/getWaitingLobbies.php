@@ -1,5 +1,5 @@
 <?php
-// Debug file to fetch all waiting lobbies
+// Debug file to fetch all waiting lobbies with the updated database structure
 
 // Database connection parameters
 $host = "localhost";
@@ -24,6 +24,10 @@ $result = $conn->query($query);
 
 $lobbies = [];
 while ($row = $result->fetch_assoc()) {
+    // Handle cases where playerList (or other JSON columns) might be stored as the string "null"
+    if ($row['playerList'] === 'null' || $row['playerList'] === null) {
+        $row['playerList'] = '[]';
+    }
     $lobbies[] = $row;
 }
 

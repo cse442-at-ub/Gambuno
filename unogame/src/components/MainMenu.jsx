@@ -166,7 +166,7 @@ useEffect(() => {
           <>
             <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
             <span className={styles.money_display}>
-              Money: ${!isLoading ? money : 'Loading...'}
+              ${!isLoading ? money : 'Loading...'}
             </span>
           </>
         ) : (

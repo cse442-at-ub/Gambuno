@@ -16,8 +16,8 @@ const Leaderboard = () => {
     }, [sortBy])
 
     const fetchLeaderboard = async () => {
-        console.log("[Frontend] Starting fetchLeaderboard");
-        console.log(`[Frontend] Request URL: bet.php?action=leaderboard&sort_by=${sortBy}`);
+        console.log("[DEBUG] Starting fetchLeaderboard");
+        console.log(`[DEBUG] Request URL: bet.php?action=leaderboard&sort_by=${sortBy}`);
 
         try {
             setLoading(true);
@@ -25,42 +25,51 @@ const Leaderboard = () => {
 
             const startTime = performance.now();
             const response = await fetch(`bet.php?action=leaderboard&sort_by=${sortBy}`);
-            const endTime = performance.now();
 
-            console.log(`[Frontend] Request completed in ${(endTime - startTime).toFixed(2)}ms`);
-            console.log("[Frontend] Response status:", response.status);
+            // Simple headers logging for JSX
+            console.log("[DEBUG] Response headers:");
+            response.headers.forEach((value, key) => {
+                console.log(`  ${key}: ${value}`);
+            });
 
-            // Check content type
             const contentType = response.headers.get('content-type');
-            console.log("[Frontend] Content-Type:", contentType);
+            console.log("[DEBUG] Content-Type:", contentType);
 
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error("[Frontend] Non-JSON response:", text.substring(0, 200));
-                throw new Error(`Invalid response: ${text.substring(0, 100)}`);
+            const responseText = await response.text();
+            console.log("[DEBUG] Raw response:", responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+                console.log("[DEBUG] Parsed JSON data:", data);
+            } catch (e) {
+                console.error("[DEBUG] Failed to parse JSON:", e);
+                throw new Error(`Invalid JSON: ${responseText.substring(0, 100)}...`);
             }
 
-            const data = await response.json();
-            console.log("[Frontend] Full response data:", data);
-
-            if (data.debug) {
-                console.groupCollapsed("[Backend] Debug Log");
-                data.debug.forEach((log, i) => console.log(`${i}. ${log}`));
-                console.groupEnd();
+            console.groupCollapsed("[DEBUG] Complete Response Data");
+            console.log("Full response:", data);
+            if (data.leaderboard) {
+                console.log("Leaderboard data:");
+                console.table(data.leaderboard);
             }
+            console.groupEnd();
+
+            const endTime = performance.now();
+            console.log(`[DEBUG] Request took ${(endTime - startTime).toFixed(2)}ms`);
 
             if (data.status === "success") {
-                console.log(`[Frontend] Received ${data.leaderboard.length} leaderboard entries`);
-                setLeaderboardData(data.leaderboard);
+                console.log(`[DEBUG] Received ${data.leaderboard?.length || 0} leaderboard entries`);
+                setLeaderboardData(data.leaderboard || []);
             } else {
-                console.error("[Frontend] API error:", data.message);
+                console.error("[DEBUG] API error response:", data);
                 throw new Error(data.message || 'Unknown error occurred');
             }
         } catch (err) {
-            console.error("[Frontend] Error in fetchLeaderboard:", err);
+            console.error("[DEBUG] Error in fetchLeaderboard:", err);
             setError(err.message || 'An unknown error occurred');
         } finally {
-            console.log("[Frontend] Fetch completed");
+            console.log("[DEBUG] Fetch completed");
             setLoading(false);
         }
     };

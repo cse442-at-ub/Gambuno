@@ -1,5 +1,9 @@
 <?php
 // Database configuration
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET");
+
 $host = "localhost";
 $user = "kurianva";
 $pass = "50554678";

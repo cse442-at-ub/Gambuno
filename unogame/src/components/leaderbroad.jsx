@@ -16,30 +16,51 @@ const Leaderboard = () => {
     }, [sortBy])
 
     const fetchLeaderboard = async () => {
+        console.log("[Frontend] Starting fetchLeaderboard");
+        console.log(`[Frontend] Request URL: bet.php?action=leaderboard&sort_by=${sortBy}`);
+
         try {
             setLoading(true);
             setError(null);
 
+            const startTime = performance.now();
             const response = await fetch(`bet.php?action=leaderboard&sort_by=${sortBy}`);
+            const endTime = performance.now();
 
-            // First check if the response is JSON
+            console.log(`[Frontend] Request completed in ${(endTime - startTime).toFixed(2)}ms`);
+            console.log("[Frontend] Response status:", response.status);
+
+            // Check content type
             const contentType = response.headers.get('content-type');
+            console.log("[Frontend] Content-Type:", contentType);
+
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
+                console.error("[Frontend] Non-JSON response:", text.substring(0, 200));
                 throw new Error(`Invalid response: ${text.substring(0, 100)}`);
             }
 
             const data = await response.json();
+            console.log("[Frontend] Full response data:", data);
+
+            if (data.debug) {
+                console.groupCollapsed("[Backend] Debug Log");
+                data.debug.forEach((log, i) => console.log(`${i}. ${log}`));
+                console.groupEnd();
+            }
 
             if (data.status === "success") {
+                console.log(`[Frontend] Received ${data.leaderboard.length} leaderboard entries`);
                 setLeaderboardData(data.leaderboard);
             } else {
+                console.error("[Frontend] API error:", data.message);
                 throw new Error(data.message || 'Unknown error occurred');
             }
         } catch (err) {
+            console.error("[Frontend] Error in fetchLeaderboard:", err);
             setError(err.message || 'An unknown error occurred');
-            console.error("Error fetching leaderboard:", err);
         } finally {
+            console.log("[Frontend] Fetch completed");
             setLoading(false);
         }
     };

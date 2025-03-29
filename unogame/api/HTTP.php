@@ -2,8 +2,8 @@
 
 // Database connection parameters
 $host = "localhost";
-$user = "root";
-$pass = "";
+$user = "kurianva";
+$pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL

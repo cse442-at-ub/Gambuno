@@ -21,6 +21,7 @@ function insertUser($data, $conn) {
         $username = $data['username'];
         $password = $data['password'];
         $authToken = bin2hex(random_bytes(16)); // 80 bits of entropy
+        $money = 1500;
         $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
         if (!checkAuthDetails($username, $password)) {
             echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
@@ -31,7 +32,7 @@ function insertUser($data, $conn) {
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
             setcookie("auth", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
 
-            $sql = "INSERT INTO users (username, hashed_password, auth) VALUES ('$username', '$hashedPassword', '$hashedAuthToken')";
+            $sql = "INSERT INTO users (username, hashed_password, auth, money) VALUES ('$username', '$hashedPassword', '$hashedAuthToken', '$money')";
 
             if ($conn->query($sql) === TRUE) {
                 echo json_encode(["status" => "success", "message" => "User created successfully"]);

@@ -184,4 +184,3 @@ useEffect(() => {
 }
 
 export default MainMenu;
-

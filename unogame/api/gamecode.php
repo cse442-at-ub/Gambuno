@@ -7,8 +7,8 @@ header('Content-Type: application/json');
 
 // Database credentials
 $host = "localhost";
-$user = "root";
-$pass = "";
+$user = "kurianva";
+$pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
 // Connect to MySQL
@@ -25,7 +25,7 @@ function generateGameCode($length = 6) {
     for ($i = 0; $i < $length; $i++) {
         $code .= $characters[rand(0, strlen($characters) - 1)];
     }
-    return $code;
+    echo json_encode(["success" => true, "message" => $code]);
 }
 
 // Check for uniqueness and insert

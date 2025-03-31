@@ -2,6 +2,7 @@
 // joinLobby.php
 error_reporting(0);
 header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
 
 // Ensure the request method is POST.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -39,14 +40,22 @@ if ($conn->connect_error) {
     exit;
 }
 
-// Insert the new player into the players table.
-// Adjust the table and column names based on your schema.
-$query = "INSERT INTO players (gameID, playerName, ready) VALUES ('$gameID', '$playerName', 0)";
-if ($conn->query($query) === TRUE) {
-    echo json_encode(["status" => "success"]);
-} else {
-    echo json_encode(["status" => "error", "message" => "Database insertion failed: " . $conn->error]);
+// Use prepared statement for insertion.
+$stmt = $conn->prepare("INSERT INTO players (gameID, playerName, ready) VALUES (?, ?, ?)");
+if (!$stmt) {
+    echo json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]);
+    exit;
 }
 
+$ready = 0; // 0 for not ready
+$stmt->bind_param("ssi", $gameID, $playerName, $ready);
+
+if ($stmt->execute()) {
+    echo json_encode(["status" => "success"]);
+} else {
+    echo json_encode(["status" => "error", "message" => "Database insertion failed: " . $stmt->error]);
+}
+
+$stmt->close();
 $conn->close();
 ?>

@@ -2,6 +2,7 @@
 // getPlayers.php
 error_reporting(0);
 header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
 
 // Ensure the request method is GET.
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -36,7 +37,6 @@ if ($conn->connect_error) {
 }
 
 // Query to retrieve players for the given gameID.
-// Adjust the table name and column names as per your database schema.
 $query  = "SELECT playerName, ready FROM players WHERE gameID = '$gameID'";
 $result = $conn->query($query);
 $players = [];

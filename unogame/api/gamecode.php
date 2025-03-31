@@ -25,7 +25,7 @@ function generateGameCode($length = 6) {
     for ($i = 0; $i < $length; $i++) {
         $code .= $characters[rand(0, strlen($characters) - 1)];
     }
-    return $code;
+    echo json_encode(["success" => true, "message" => $code]);
 }
 
 // Check for uniqueness and insert
@@ -43,8 +43,14 @@ while ($attempts < $maxAttempts) {
     $stmt->store_result();
 
     if ($stmt->num_rows === 0) {
-        $gameCode = $code;
-        break;
+        // Code is unique, insert into lobby with initial empty values
+        $emptyJSON = json_encode([]);
+        $stmtInsert = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder) VALUES (?, '', '', '', ?, ?)");
+        $stmtInsert->bind_param("sss", $code, $emptyJSON, $emptyJSON);
+        if ($stmtInsert->execute()) {
+            $gameCode = $code;
+            break;
+        }
     }
 
     $attempts++;

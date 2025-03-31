@@ -1,11 +1,17 @@
 <?php
-// Disable error reporting in production or log errors appropriately.
+// getPlayers.php
 error_reporting(0);
 header("Content-Type: application/json");
 
 // Ensure the request method is GET.
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     echo json_encode(["status" => "error", "message" => "Invalid request method"]);
+    exit;
+}
+
+// Validate the action parameter.
+if (!isset($_GET['action']) || $_GET['action'] !== 'getPlayers') {
+    echo json_encode(["status" => "error", "message" => "Invalid action"]);
     exit;
 }
 
@@ -23,7 +29,6 @@ $user = "kurianva";
 $pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
-// Create connection using MySQLi.
 $conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
     echo json_encode(["status" => "error", "message" => "Database connection failed"]);
@@ -31,7 +36,7 @@ if ($conn->connect_error) {
 }
 
 // Query to retrieve players for the given gameID.
-// Adjust table name and column names as per your database schema.
+// Adjust the table name and column names as per your database schema.
 $query  = "SELECT playerName, ready FROM players WHERE gameID = '$gameID'";
 $result = $conn->query($query);
 $players = [];

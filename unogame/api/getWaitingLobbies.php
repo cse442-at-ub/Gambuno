@@ -26,17 +26,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
     $lobbies = [];
     if ($result) {
         while ($row = $result->fetch_assoc()) {
-            $playerList = $row['playerList'];
-            
-            // Validate JSON and replace invalid entries
-            if ($playerList === 'null' || $playerList === null || json_validate($playerList) === false) {
-                $playerList = '[]';
-            } else {
-                // Decode and re-encode to ensure proper formatting
-                $playerList = json_encode(json_decode($playerList));
+            // Ensure that playerList is a valid JSON array
+            if ($row['playerList'] === 'null' || $row['playerList'] === null) {
+                $row['playerList'] = '[]';
             }
-            
-            $row['playerList'] = json_decode($playerList);
             $lobbies[] = $row;
         }
     }

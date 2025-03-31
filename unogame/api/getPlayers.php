@@ -18,10 +18,10 @@ if (!isset($_GET['gameID']) || empty($_GET['gameID'])) {
 $gameID = $_GET['gameID'];
 
 // Database connection parameters – update these with your actual credentials.
-$host     = "your_db_host";
-$user     = "your_db_user";
-$password = "your_db_password";
-$database = "your_db_name";
+$host = "localhost";
+$user = "kurianva";
+$pass = "50554678";
+$dbname = "cse442_2025_spring_team_c_db";
 
 // Create connection using MySQLi.
 $conn = new mysqli($host, $user, $password, $database);

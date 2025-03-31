@@ -4,11 +4,42 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 const HostGameLobby = () => {
   const { gameCode } = useParams(); // Read game code from URL
   const location = useLocation();
+  const [username, setUsername] = useState(localStorage.getItem("username"));
   const [players, setPlayers] = useState([]);
   const navigate = useNavigate();
 
   // Extract bet amount from navigation state
   const betAmount = location.state?.betAmount || 0;
+
+  const handleStartGame = async () => {
+    try {
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({
+          gameID: gameCode,
+          action: 'create',
+          playerID: '12',
+          playerName: username,
+          bet_amount: betAmount
+        })
+      });;
+  
+      const data = await response.json(); // Assuming PHP returns JSON
+      if (data.ok) {
+        // Handle success (e.g., start the game)
+        console.log("Game started", data);
+        navigate("/");
+      } else {
+        alert("Failed to start the game");
+      }
+    } catch (error) {
+      alert("Error occurred while starting the game");
+    }
+  };
+  
 
   // Create the lobby once gameCode is available
   useEffect(() => {
@@ -131,6 +162,7 @@ const HostGameLobby = () => {
           allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
         }`}
         disabled={!allReady}
+        onClick = {handleStartGame}
       >
         Start Game
       </button>

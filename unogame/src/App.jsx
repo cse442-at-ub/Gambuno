@@ -19,7 +19,7 @@ import React from 'react';
             import SettingsPopup from "./components/SettingsPopup";
             import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
             import Leaderboard from './components/leaderbroad';
-            import { GameBoard } from './components/gameplay/game-board';
+            import { GameBoard } from './components/gameLayout/game-board';
 
             function App() {
               const { isMobile } = useDeviceDetect();

@@ -29,7 +29,7 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             gameID: gameCode,
             action: 'create',
-            playerID: '1',
+            playerID: username,
             playerName: username,
             bet_amount: betAmount
           })

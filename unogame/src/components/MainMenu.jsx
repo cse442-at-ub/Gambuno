@@ -31,6 +31,7 @@ const [showPopup, setShowPopup] = useState(false)
 
 const [username, setUsername] = useState(localStorage.getItem("username"));
 const [money, setMoney] = useState(null);
+const [authi, setAuth] = useState(null);
 const [isLoading, setIsLoading] = useState(null);
 
 const [isTutOpen, setIsTutOpen] = useState(false)
@@ -55,6 +56,9 @@ useEffect(() => {
         localStorage.setItem('money', parseFloat(data.money).toFixed(2));
         setMoney(parseFloat(data.money).toFixed(2));
         console.log(data.money);
+
+        localStorage.setItem('auth', String(data.auth));
+        setAuth(data.auth)
       } else {
         setMoney('0.00');
       }

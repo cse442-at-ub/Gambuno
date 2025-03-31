@@ -2,10 +2,20 @@
 header('Content-Type: application/json');
 include 'db_connection.php'; // Ensure this file sets up your $conn variable
 
-// Get the raw POST data and decode it as JSON
-$data = json_decode(file_get_contents('php://input'), true);
+// Check if connection failed
+if (!$conn) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Database connection failed: ' . $db_error
+    ]);
+    exit;
+}
 
-// Check if data is valid and required keys exist
+
+// Get the raw POST data and decode it as JSON
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
+
 if (!$data || !isset($data['gameID']) || !isset($data['playerName'])) {
     echo json_encode([
         'status' => 'error', 
@@ -14,16 +24,14 @@ if (!$data || !isset($data['gameID']) || !isset($data['playerName'])) {
     exit;
 }
 
-// Sanitize input data
-$gameID = mysqli_real_escape_string($conn, $data['gameID']);
-$playerName = mysqli_real_escape_string($conn, $data['playerName']);
+// Trim and sanitize input values
+$gameID = trim(mysqli_real_escape_string($conn, $data['gameID']));
+$playerName = trim(mysqli_real_escape_string($conn, $data['playerName']));
 
-// Generate a unique playerID (you can adjust the logic as needed)
+// Generate a unique playerID
 $playerID = uniqid('player_', true);
 
-// Prepare an INSERT query to add the new player into the players table
-// Note: The players table expects cardList as a JSON array string, placedCard as empty string,
-// skipped as 0 (false), wins and total_games as 0.
+// Insert a new player record into the players table
 $query = "INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) 
           VALUES ('$gameID', '$playerID', '$playerName', '[]', '', 0, 0, 0)";
 
@@ -37,4 +45,5 @@ if ($result) {
         'message' => 'Database error: ' . mysqli_error($conn)
     ]);
 }
+exit;
 ?>

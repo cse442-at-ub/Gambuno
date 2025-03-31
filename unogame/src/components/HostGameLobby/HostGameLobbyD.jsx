@@ -13,12 +13,26 @@ const HostGameLobby = () => {
   // Create the lobby once gameCode is available
   useEffect(() => {
     const createLobby = async () => {
-      const username = localStorage.getItem("username");
-
-      if (!username || !gameCode) {
-        console.error("Missing username or game code");
+      const token = localStorage.getItem("authToken");
+      if (!token || !gameCode) {
+        console.error("Missing token or game code");
         return;
       }
+
+      const usernameRes = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getUsernameFromToken.php", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const usernameData = await usernameRes.json();
+
+      if (!usernameData.success) {
+        console.error("Failed to fetch username from token:", usernameData.message);
+        navigate("/login");
+        return;
+      }
+
+      const username = usernameData.username;
 
       try {
         const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
@@ -29,7 +43,7 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             gameID: gameCode,
             action: 'create',
-            playerID: username,
+            playerID: token,
             playerName: username,
             bet_amount: betAmount
           })
@@ -40,7 +54,7 @@ const HostGameLobby = () => {
         if (data.success) {
           console.log("Lobby created!", data);
           setPlayers([{ 
-            id: username, 
+            id: token, 
             name: username, 
             ready: false,
             isHost: true 

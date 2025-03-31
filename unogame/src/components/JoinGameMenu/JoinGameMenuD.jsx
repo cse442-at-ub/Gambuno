@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const JoinGameMenu = () => {
+const JoinGameMenuD = () => {
   const navigate = useNavigate();
   const [lobbies, setLobbies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,4 +134,4 @@ const JoinGameMenu = () => {
   );
 };
 
-export default JoinGameMenu;
+export default JoinGameMenuD;

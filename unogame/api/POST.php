@@ -416,8 +416,8 @@ function startGame($conn, $gameID) {
     $row = $result->fetch_assoc();
     $playerList = json_decode($row['playerList'], true);
     
-    if (count($playerList) < 2) {
-        return ['error' => 'Need at least 2 players to start'];
+    if (count($playerList) < 3) {
+        return ['error' => 'Need at least 3 players to start'];
     }
     
     // Update game status

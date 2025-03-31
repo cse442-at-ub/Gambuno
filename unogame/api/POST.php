@@ -18,6 +18,7 @@ if ($conn->connect_error) {
 }
 
 // Testing mode - when set to true, will log actions and use test game IDs// Example test game ID
+$testingMode = false;
 
 // Log function for testing
 function testLog($message) {
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     $action = $postData['action'] ?? null;
-    $playerID = $postData['action'] ?? null;
+    $playerID = $postData['playerID'] ?? null;
     $playerName = $postData['playerName'] ?? null;
    
     switch ($action) {
@@ -278,7 +279,9 @@ function handleCreateGame($conn, $postData) {
     // Initialize player list with creator
     $playerList = [$playerID];
     $playerListJson = json_encode($playerList);
-    $gameOrderJson = json_encode($playerList); // Initial game order
+    $gameOrderJson = null; // game order will be set when game is started
+    $curCard = null;       // first card will be set when game is start
+    $curPlayer = null;     // player turn will be set when game is started
     
     // Create an initial card for the game
     $colors = ['red', 'blue', 'green', 'yellow'];
@@ -286,10 +289,23 @@ function handleCreateGame($conn, $postData) {
     $initialCard = $colors[array_rand($colors)] . '_' . $values[array_rand($values)];
     
     // Create new game in lobby
+    error_log("Creating game: $gameID, curCard=$curCard, curPlayer=$curPlayer, gameOrder=$gameOrderJson");
     $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus) 
-                        VALUES (?, ?, ?, '', ?, ?, 'waiting')";
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($createGameQuery);
-    $stmt->bind_param("sssss", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson);
+    $cardEffect = ''; // explicitly define this
+    $gameStatus = 'waiting';
+
+    $stmt->bind_param(
+        "sssssss",
+        $gameID,
+        $curCard,
+        $curPlayer,
+        $cardEffect,
+        $playerListJson,
+        $gameOrderJson,
+        $gameStatus
+    );
     $stmt->execute();
     
     // Create player entry

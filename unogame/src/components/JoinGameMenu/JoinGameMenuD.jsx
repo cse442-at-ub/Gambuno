@@ -36,9 +36,13 @@ const JoinGameMenu = () => {
     }
   };
 
-  // Join a lobby: generate a random player name, post it to the server, then navigate.
+  // Join a lobby: get player name from localStorage, post it to the server, then navigate.
   const joinLobby = async (gameID) => {
-    const randomPlayerName = "Player" + Math.floor(Math.random() * 10000);
+    const playerName = localStorage.getItem("username");
+    if (!playerName) {
+      setError("Player name not found in localStorage.");
+      return;
+    }
     try {
       const response = await fetch(
         "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/joinLobby.php",
@@ -47,7 +51,7 @@ const JoinGameMenu = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ gameID, playerName: randomPlayerName }),
+          body: JSON.stringify({ gameID, playerName }),
         }
       );
       const result = await response.json();
@@ -110,7 +114,7 @@ const JoinGameMenu = () => {
                     <p>Players - {playerCount}</p>
                   </div>
                   <button
-                    onClick={() =>navigate("/waiting-host")/*joinLobby(lobby.gameID)*/}
+                    onClick={() => joinLobby(lobby.gameID)}
                     className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
                   >
                     Join

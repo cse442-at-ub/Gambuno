@@ -1,61 +1,40 @@
 <?php
-// joinLobby.php
-error_reporting(0);
-header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
+header('Content-Type: application/json');
+include 'db_connection.php'; // Ensure this file sets up your $conn variable
 
-// Ensure the request method is POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status" => "error", "message" => "Invalid request method"]);
+// Get the raw POST data and decode it as JSON
+$data = json_decode(file_get_contents('php://input'), true);
+
+// Check if data is valid and required keys exist
+if (!$data || !isset($data['gameID']) || !isset($data['playerName'])) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Invalid data provided. Expected gameID and playerName.'
+    ]);
     exit;
 }
 
-// Retrieve the JSON payload.
-$input = file_get_contents("php://input");
-$data = json_decode($input, true);
+// Sanitize input data
+$gameID = mysqli_real_escape_string($conn, $data['gameID']);
+$playerName = mysqli_real_escape_string($conn, $data['playerName']);
 
-if (!$data) {
-    echo json_encode(["status" => "error", "message" => "Invalid JSON"]);
-    exit;
-}
+// Generate a unique playerID (you can adjust the logic as needed)
+$playerID = uniqid('player_', true);
 
-// Ensure required parameters are present.
-if (!isset($data['gameID']) || !isset($data['playerName'])) {
-    echo json_encode(["status" => "error", "message" => "Missing parameters"]);
-    exit;
-}
+// Prepare an INSERT query to add the new player into the players table
+// Note: The players table expects cardList as a JSON array string, placedCard as empty string,
+// skipped as 0 (false), wins and total_games as 0.
+$query = "INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) 
+          VALUES ('$gameID', '$playerID', '$playerName', '[]', '', 0, 0, 0)";
 
-$gameID = $data['gameID'];
-$playerName = $data['playerName'];
+$result = mysqli_query($conn, $query);
 
-// Database connection parameters – update these with your actual credentials.
-$host = "localhost";
-$user = "kurianva";
-$pass = "50554678";
-$dbname = "cse442_2025_spring_team_c_db";
-
-$conn = new mysqli($host, $user, $password, $database);
-if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
-    exit;
-}
-
-// Use prepared statement for insertion.
-$stmt = $conn->prepare("INSERT INTO players (gameID, playerName, ready) VALUES (?, ?, ?)");
-if (!$stmt) {
-    echo json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]);
-    exit;
-}
-
-$ready = 0; // 0 for not ready
-$stmt->bind_param("ssi", $gameID, $playerName, $ready);
-
-if ($stmt->execute()) {
-    echo json_encode(["status" => "success"]);
+if ($result) {
+    echo json_encode(['status' => 'success']);
 } else {
-    echo json_encode(["status" => "error", "message" => "Database insertion failed: " . $stmt->error]);
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Database error: ' . mysqli_error($conn)
+    ]);
 }
-
-$stmt->close();
-$conn->close();
 ?>

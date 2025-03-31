@@ -363,3 +363,29 @@ body {
     transform-origin: left center;
 }
 
+/* Ensure images are visible */
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Fix for broken images */
+img:before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+}
+
+/* Ensure card images have proper dimensions */
+.uno-card img,
+.wild-card img,
+.card-back img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+

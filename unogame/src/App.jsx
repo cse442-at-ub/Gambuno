@@ -14,12 +14,12 @@ import React from 'react';
         import HostGameD from './components/HostGame/HostGameD';
         import JoinGameM from './components/JoinGameMenu/JoinGameMenuM';
         import JoinGameD from './components/JoinGameMenu/JoinGameMenuD';
+        import Game from './components/gameLayout/uno-layout';
         import WaitingRoomM from './components/WaitingRoom/WaitingRoomHostM';
         import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
         import SettingsPopup from "./components/SettingsPopup";
         import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
         import Leaderboard from './components/leaderbroad'; // Import Leaderboard component
-
         function App() {
 
           const { isMobile } = useDeviceDetect();
@@ -48,6 +48,7 @@ import React from 'react';
                 <Route path="/waiting-host" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
                 <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                 <Route path="/leaderboard" element={<Leaderboard />} /> {/* Add Leaderboard route */}
+                <Route path="/game" element={<Game />} /> 
               </Routes>
             </Router>
           );

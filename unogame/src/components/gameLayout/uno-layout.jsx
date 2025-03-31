@@ -1,21 +1,23 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { UnoCard } from "./uno-card"
-import { WildCard } from "./wild-card"
-import { CardBack } from "./card-back"
+import { UnoCard } from "./cards/uno-card"
+import { WildCard } from "./cards/wild-card"
+import { CardBack } from "./cards/card-back"
 
-export function UnoLayout({
-  playerCards = [],
-  opponentCards = [],
-  currentCard = null,
-  drawPileCount = 0,
-  currentColor = "red",
-  onPlayCard,
-  onDrawCard,
-  currentPlayer = 0,
-  playerNames = ["You", "Player 2", "Player 3", "Player 4"],
-}) {
+export function UnoLayout() {
+  const {
+    playerCards = [],
+    opponentCards = [],
+    currentCard = null,
+    drawPileCount = 0,
+    currentColor = "red",
+    onPlayCard,
+    onDrawCard,
+    currentPlayer = 0,
+    playerNames = ["You", "Player 2", "Player 3", "Player 4"],
+  } = {};
+  
   return (
     <div className="min-h-screen bg-[#3E8914] p-4 relative">
       {/* Game header */}
@@ -36,7 +38,7 @@ export function UnoLayout({
           <div className="flex justify-center">
             {Array.from({ length: opponentCards[2] || 0 }).map((_, index) => (
               <motion.div key={index} className="mx-[-8px]" animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
-                <CardBack isDark={true} />
+                <CardBack isDark={true} className="" onClick={() => {}} />
               </motion.div>
             ))}
           </div>
@@ -52,7 +54,7 @@ export function UnoLayout({
             <div className="flex flex-col">
               {Array.from({ length: opponentCards[1] || 0 }).map((_, index) => (
                 <motion.div key={index} className="my-[-8px]" animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
-                  <CardBack isDark={true} />
+                  <CardBack isDark={true} className="" onClick={() => {}} />
                 </motion.div>
               ))}
             </div>
@@ -71,9 +73,15 @@ export function UnoLayout({
             {/* Current card */}
             <div className="relative">
               {currentCard?.type === "special" ? (
-                <WildCard />
+                <WildCard className="wild-card" onClick={() => {}} disabled={false} />
               ) : (
-                <UnoCard color={currentCard?.color || "red"} number={currentCard?.value || "0"} />
+                <UnoCard
+                  color={currentCard?.color || "red"}
+                  number={currentCard?.value || "0"}
+                  className="current-card"
+                  onClick={() => {}}
+                  disabled={true}
+                />
               )}
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white px-2 py-1 rounded-full shadow-md text-xs">
                 <span
@@ -105,7 +113,7 @@ export function UnoLayout({
             <div className="flex flex-col">
               {Array.from({ length: opponentCards[3] || 0 }).map((_, index) => (
                 <motion.div key={index} className="my-[-8px]" animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
-                  <CardBack isDark={true} />
+                  <CardBack isDark={true} className="" onClick={() => {}} />
                 </motion.div>
               ))}
             </div>
@@ -132,9 +140,9 @@ export function UnoLayout({
                 transition={{ duration: 0.2 }}
               >
                 {card.type === "special" ? (
-                  <WildCard onClick={() => onPlayCard(card, index)} />
+                  <WildCard className="" onClick={() => onPlayCard(card, index)} disabled={false} />
                 ) : (
-                  <UnoCard color={card.color} number={card.value} onClick={() => onPlayCard(card, index)} />
+                  <UnoCard color={card.color} number={card.value} className="" onClick={() => onPlayCard(card, index)} disabled={false} />
                 )}
               </motion.div>
             ))}
@@ -144,4 +152,5 @@ export function UnoLayout({
     </div>
   )
 }
+export default UnoLayout;
 

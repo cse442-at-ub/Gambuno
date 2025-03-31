@@ -7,6 +7,7 @@ const JoinGameMenu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch available lobbies from the server.
   const fetchLobbies = async () => {
     setLoading(true);
     setError("");
@@ -16,7 +17,6 @@ const JoinGameMenu = () => {
       const response = await fetch(requestURL);
       const responseText = await response.text();
 
-      // Check if the response is HTML rather than JSON.
       if (responseText.trim().toLowerCase().startsWith("<!doctype html>")) {
         throw new Error("Received HTML instead of JSON. Please check the API endpoint.");
       }
@@ -36,6 +36,32 @@ const JoinGameMenu = () => {
     }
   };
 
+  // Join a lobby: generate a random player name, post it to the server, then navigate.
+  const joinLobby = async (gameID) => {
+    const randomPlayerName = "Player" + Math.floor(Math.random() * 10000);
+    try {
+      const response = await fetch(
+        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/joinLobby.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ gameID, playerName: randomPlayerName }),
+        }
+      );
+      const result = await response.json();
+      if (result.status === "success") {
+        navigate(`/waiting-host/${gameID}`);
+      } else {
+        throw new Error(result.message || "Failed to join lobby");
+      }
+    } catch (error) {
+      console.error("Error joining lobby:", error);
+      setError(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchLobbies();
   }, []);
@@ -43,18 +69,8 @@ const JoinGameMenu = () => {
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
-      <button
-        className="absolute top-4 left-4 p-2"
-        aria-label="Back"
-        onClick={() => navigate("/play")}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24px"
-          viewBox="0 0 24 24"
-          width="24px"
-          fill="#5f6368"
-        >
+      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/play")}>
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
       </button>
@@ -69,14 +85,11 @@ const JoinGameMenu = () => {
         Join a Game
       </h1>
 
-      {/* Lobby List Area (scrollable, wider, scrollbar hidden) */}
+      {/* Lobby List Area */}
       {loading && <p className="text-lg text-black">Loading lobbies...</p>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
-        <div
-          className="flex flex-col gap-4 w-full max-w-xl overflow-y-auto scrollbar-hide"
-          style={{ maxHeight: "40vh" }}
-        >
+        <div className="flex flex-col gap-4 w-full max-w-xl overflow-y-auto scrollbar-hide" style={{ maxHeight: "40vh" }}>
           {lobbies.length === 0 ? (
             <p className="text-black">No available lobbies.</p>
           ) : (
@@ -91,16 +104,13 @@ const JoinGameMenu = () => {
               const host = playerCount > 0 ? playerList[0] : "Unknown";
 
               return (
-                <div
-                  key={index}
-                  className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3"
-                >
+                <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
                     <p className="italic">Host - {host}</p>
                     <p>Players - {playerCount}</p>
                   </div>
                   <button
-                    onClick={() => navigate(`/waiting-host/${lobby.gameID}`)}
+                    onClick={() =>navigate("/waiting-host")/*joinLobby(lobby.gameID)*/}
                     className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
                   >
                     Join

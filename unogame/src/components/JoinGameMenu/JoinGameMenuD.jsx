@@ -36,34 +36,9 @@ const JoinGameMenu = () => {
     }
   };
 
-  // Join a lobby: get player name from localStorage, post it to the server, then navigate.
-  const joinLobby = async (gameID) => {
-    const playerName = localStorage.getItem("username");
-    if (!playerName) {
-      setError("Player name not found in localStorage.");
-      return;
-    }
-    try {
-      const response = await fetch(
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/joinLobby.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ gameID, playerName }),
-        }
-      );
-      const result = await response.json();
-      if (result.status === "success") {
-        navigate(`/waiting-host/${gameID}`);
-      } else {
-        throw new Error(result.message || "Failed to join lobby");
-      }
-    } catch (error) {
-      console.error("Error joining lobby:", error);
-      setError(error.message);
-    }
+  // Navigate to the lobby without joining (no API call or random player generation).
+  const joinLobby = (gameID) => {
+    navigate(`/waiting-host/${gameID}`);
   };
 
   useEffect(() => {
@@ -139,8 +114,3 @@ const JoinGameMenu = () => {
 };
 
 export default JoinGameMenu;
-
-
-/*
-
-*/

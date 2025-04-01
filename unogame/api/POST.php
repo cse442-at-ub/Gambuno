@@ -260,14 +260,14 @@ function handleJoinGame($conn, $gameID, $postData) {
  * Handle creating a new game
  */
 function handleCreateGame($conn, $postData) {
-    if (empty($postData['gameID']) || empty($postData['playerID']) || empty($postData['playerName'])) {
+    if (empty($postData['gameID']) || empty($postData['playerID']) || empty($postData['playerName']) || empty($postData['bet_amount'])) {
         return ['error' => $postData['gameID'] . " ". $postData['playerID'] . "   ". $postData['playerName']];
     }
     
     $gameID = $conn->real_escape_string($postData['gameID']);
     $playerID = $conn->real_escape_string($postData['playerID']);
     $playerName = $conn->real_escape_string($postData['playerName']);
-    
+    $bet = $conn->real_escape_string($postData['bet_amount']);
     // Check if game already exists
     $checkGameQuery = "SELECT gameID FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($checkGameQuery);
@@ -290,10 +290,10 @@ function handleCreateGame($conn, $postData) {
     $initialCard = $colors[array_rand($colors)] . '_' . $values[array_rand($values)];
     
     // Create new game in lobby
-    $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus) 
-                        VALUES (?, ?, ?, '', ?, ?, 'waiting')";
+    $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus, betting_amt) 
+                        VALUES (?, ?, ?, '', ?, ?, 'waiting', ?)";
     $stmt = $conn->prepare($createGameQuery);
-    $stmt->bind_param("sssss", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson);
+    $stmt->bind_param("sssssi", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson, $bet);
     $stmt->execute();
     
     // Create player entry

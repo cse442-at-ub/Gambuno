@@ -17,6 +17,7 @@ const JoinGameMenu = () => {
       const response = await fetch(requestURL);
       const responseText = await response.text();
 
+      // Ensure we received JSON and not an HTML error page.
       if (responseText.trim().toLowerCase().startsWith("<!doctype html>")) {
         throw new Error("Received HTML instead of JSON. Please check the API endpoint.");
       }
@@ -28,7 +29,7 @@ const JoinGameMenu = () => {
         throw new Error("Unexpected response format.");
       }
     } catch (err) {
-      console.error("Error in fetchLobbies:", err);
+      console.error("Error fetching lobbies:", err);
       setError(err.message);
       setLobbies([]);
     } finally {
@@ -36,10 +37,40 @@ const JoinGameMenu = () => {
     }
   };
 
-  // Navigate to the lobby without joining (no API call or random player generation).
-  const joinLobby = (gameID) => {
-    navigate(`/waiting-host/${gameID}`);
+  // Join a lobby by posting to joinLobby.php using the username from localStorage
+  const joinLobby = async (gameID) => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      setError("Username not found in localStorage.");
+      return;
+    }
+    try {
+      const response = await fetch(
+        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/joinLobby.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gameID: gameID,
+            action: "join",
+            playerID: username,
+            playerName: username,
+          }),
+        }
+      );
+      const result = await response.json();
+      // Now check the 'success' field as used in HostGameLobbyD.jsx
+      if (result.success) {
+        navigate(`/waiting-host/${gameID}`);
+      } else {
+        throw new Error(result.error || "Failed to join lobby");
+      }
+    } catch (error) {
+      console.error("Error joining lobby:", error);
+      setError(error.message);
+    }
   };
+  
 
   useEffect(() => {
     fetchLobbies();
@@ -48,7 +79,7 @@ const JoinGameMenu = () => {
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
-      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/play")}>
+      <button className="absolute top-4 left-4 p-2" onClick={() => navigate("/play")} aria-label="Back">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
@@ -80,13 +111,10 @@ const JoinGameMenu = () => {
                 console.error("Error parsing playerList:", e);
               }
               const playerCount = Array.isArray(playerList) ? playerList.length : 0;
-              const host = playerCount > 0 ? playerList[0] : "Unknown";
-
               return (
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
-                    <p className="italic">Host - {host}</p>
-                    <p>Players - {playerCount}</p>
+                    <p className="italic">Players - {playerCount}</p>
                   </div>
                   <button
                     onClick={() => joinLobby(lobby.gameID)}

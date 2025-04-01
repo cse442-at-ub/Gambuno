@@ -15,30 +15,30 @@ const HostGameLobby = () => {
     try {
       const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({
-          gameID: gameCode,
-          action: 'create',
-          playerID: '12',
-          playerName: username,
-          bet_amount: betAmount
-        })
-      });;
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gameID: gameCode, action: 'startGame'})
+      });
   
-      const data = await response.json(); // Assuming PHP returns JSON
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const text = await response.text();
+      console.log("Raw API Response:", text);
+  
+      const data = JSON.parse(text);
       if (data.ok) {
-        // Handle success (e.g., start the game)
         console.log("Game started", data);
         navigate("/");
       } else {
-        alert("Failed to start the game");
+        alert("Failed to start the game: " + (data.error || "Unknown error"));
       }
     } catch (error) {
-      alert("Error occurred while starting the game");
+      console.error("Request failed:", error);
+      alert("Error: " + error.message);
     }
   };
+  
   
 
   // Create the lobby once gameCode is available
@@ -60,7 +60,7 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             gameID: gameCode,
             action: 'create',
-            playerID: '1',
+            playerID: username,
             playerName: username,
             bet_amount: betAmount
           })

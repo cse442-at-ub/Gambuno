@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'startGame':
-            $result = startGame($gameID,$conn);
+            $result = startGame($conn, $gameID);
             break;
          
         case 'placeCard':
@@ -141,27 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode($result);
     }
-}
-
-function createDeck() {
-    $colors = ['Red', 'Yellow', 'Green', 'Blue'];
-    $values = array_merge(range(0, 9), ['Skip', 'Reverse', 'Draw Two']);
-    $deck = [];
-    
-    foreach ($colors as $color) {
-        foreach ($values as $value) {
-            $deck[] = "$color" . "_" . "$value";
-            if ($value !== 0) $deck[] = "$color" . "_" . "$value"; 
-        }
-    }
-    
-    for ($i = 0; $i < 4; $i++) {
-        $deck[] = 'Wild_Wild';
-        $deck[] = 'Wild_DrawFour';
-    }
-    
-    shuffle($deck);
-    return $deck;
 }
 
 /**
@@ -428,46 +407,30 @@ function handleColorChoice($conn, $gameID, $playerID, $color) {
  */
 function startGame($conn, $gameID) {
     // Check if there are at least 2 players
-    $query = "SELECT playerList FROM lobby WHERE gameID = ?";
-    $stmt = $conn->prepare($query);
+    $checkPlayersQuery = "SELECT playerList FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkPlayersQuery);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
-    $gameData = $result->fetch_assoc();
     
-    if (!$gameData) {
-        return json_encode(["error" => "Game not found"]);
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
     }
     
-    $players = json_decode($gameData['playerList'], true);
-    if (!$players || count($players) < 2) {
-        return json_encode(["error" => "Not enough players to start the game"]);
+    $row = $result->fetch_assoc();
+    $playerList = json_decode($row['playerList'], true);
+    
+    if (count($playerList) < 2) {
+        return ['error' => 'Need at least 2 players to start'];
     }
     
-    $deck = createDeck();
-    $hands = [];
-    foreach ($players as $player) {
-        $hands[$player] = array_splice($deck, 0, 7);
-    }
-    
-    do {
-        $startingCard = array_pop($deck);
-    } while (strpos($startingCard, 'Wild_DrawFour') !== false);
-    
-    $firstPlayer = $players[array_rand($players)];
-    
-    $updateQuery = "UPDATE lobby SET curCard = ?, curPlayer = ?, gameOrder = ?, gameStatus = 'active', betting_amt = NULL WHERE gameID = ?";
-    $stmt = $conn->prepare($updateQuery);
-    $gameOrder = json_encode($players);
-    $stmt->bind_param("ssss", $startingCard, $firstPlayer, $gameOrder, $gameID);
+    // Update game status
+    $updateStatusQuery = "UPDATE lobby SET gameStatus = 'inProgress' WHERE gameID = ?";
+    $stmt = $conn->prepare($updateStatusQuery);
+    $stmt->bind_param("s", $gameID);
     $stmt->execute();
     
-    return json_encode([
-        'ok' => true,
-        'players' => $hands,
-        'startingCard' => $startingCard,
-        'firstPlayer' => $firstPlayer
-    ]);
+    return ['success' => true, 'message' => 'Game started'];
 }
 
 /**

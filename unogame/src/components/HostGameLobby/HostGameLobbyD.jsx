@@ -166,11 +166,7 @@ const HostGameLobby = () => {
 
       {/* Start Game Button */}
       <button
-        className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 ${
-          allReady
-            ? "bg-red-500 text-white"
-            : "bg-gray-400 text-gray-700 cursor-not-allowed"
-        }`}
+        className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12`}
         disabled={!allReady}
       >
         Start Game

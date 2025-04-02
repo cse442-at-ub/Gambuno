@@ -6,3 +6,5 @@
 [0306/211349.816:ERROR:crashpad_client_win.cc(810)] not connected
 [0328/134546.710:ERROR:crashpad_client_win.cc(811)] not connected
 [0328/134547.079:ERROR:crashpad_client_win.cc(811)] not connected
+[0331/215845.160:ERROR:crashpad_client_win.cc(811)] not connected
+[0331/215846.146:ERROR:crashpad_client_win.cc(811)] not connected

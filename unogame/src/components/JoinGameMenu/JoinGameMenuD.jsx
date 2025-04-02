@@ -4,10 +4,11 @@ import { useNavigate } from "react-router-dom";
 const JoinGameMenu = () => {
   const navigate = useNavigate();
   const [lobbies, setLobbies] = useState([]);
+  const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch available lobbies from the server.
+  // Fetch available lobbies
   const fetchLobbies = async () => {
     setLoading(true);
     setError("");
@@ -36,29 +37,39 @@ const JoinGameMenu = () => {
     }
   };
 
-  // Join a lobby: generate a random player name, post it to the server, then navigate.
+  // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
-    const randomPlayerName = "Player" + Math.floor(Math.random() * 10000);
+    const username = localStorage.getItem("username");
+
+    if (!username || !gameID) {
+      alert("Missing username or game code.");
+      return;
+    }
+
     try {
-      const response = await fetch(
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/joinLobby.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ gameID, playerName: randomPlayerName }),
-        }
-      );
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameID,
+          action: "join",
+          playerID: username,
+          playerName: username,
+        }),
+      });
+
       const result = await response.json();
-      if (result.status === "success") {
+
+      if (result.success) {
         navigate(`/waiting-host/${gameID}`);
       } else {
-        throw new Error(result.message || "Failed to join lobby");
+        alert("Error: " + result.error);
       }
     } catch (error) {
-      console.error("Error joining lobby:", error);
-      setError(error.message);
+      console.error("Join failed:", error);
+      alert("Network error while joining the game.");
     }
   };
 
@@ -85,7 +96,31 @@ const JoinGameMenu = () => {
         Join a Game
       </h1>
 
-      {/* Lobby List Area */}
+      {/* Manual Code Entry */}
+      <div className="flex flex-col items-center mt-4 mb-6">
+        <input
+          type="text"
+          className="text-xl p-2 rounded border-2 border-black text-center uppercase"
+          placeholder="Enter Game Code"
+          value={manualCode}
+          onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+          maxLength={6}
+        />
+        <button
+          onClick={() => {
+            if (manualCode.length !== 6) {
+              alert("Game code must be 6 characters.");
+              return;
+            }
+            joinLobby(manualCode);
+          }}
+          className="mt-2 px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
+        >
+          Join by Code
+        </button>
+      </div>
+
+      {/* Lobby List */}
       {loading && <p className="text-lg text-black">Loading lobbies...</p>}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!loading && !error && (
@@ -110,7 +145,7 @@ const JoinGameMenu = () => {
                     <p>Players - {playerCount}</p>
                   </div>
                   <button
-                    onClick={() =>navigate("/waiting-host")/*joinLobby(lobby.gameID)*/}
+                    onClick={() => joinLobby(lobby.gameID)}
                     className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
                   >
                     Join

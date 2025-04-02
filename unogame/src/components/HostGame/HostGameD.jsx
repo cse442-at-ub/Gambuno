@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,7 +5,7 @@ const HostGame = () => {
   const navigate = useNavigate();
   const [betAmount, setBetAmount] = useState(""); // Move useState to the component level
   const [currentBalance, setCurrentBalance] = useState(Number(localStorage.getItem("money")));
-
+  
   const generateGameCode = async () => {
     try {
       const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
@@ -42,7 +41,8 @@ const HostGame = () => {
     const newBalance = currentBalance - Number(betAmount);
     setCurrentBalance(newBalance);
     localStorage.setItem("money", newBalance.toString());
-  
+    localStorage.setItem("bet", betAmount);
+
     // Update money in database
     const updateMoneyInDatabase = async (username, money) => {
       try {

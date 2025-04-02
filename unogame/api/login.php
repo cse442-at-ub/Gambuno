@@ -1,8 +1,8 @@
 <?php
-header("Access-Control-Allow-Origin: *"); 
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS"); 
-header("Access-Control-Allow-Headers: Content-Type"); 
-header("Content-Type: application/json"); 
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json");
 
 $host = "localhost";
 $user = "kurianva";
@@ -12,50 +12,49 @@ $dbname = "cse442_2025_spring_team_c_db";
 // Connect to MySQL
 $conn = new mysqli($host, $user, $pass, $dbname);
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-function verifyUser($conn, $data) {
-    /*
-    $sql = "SELECT * FROM users WHERE username = 'kurianvadakara'";
-    $result = $conn->query($sql);
-    $user = $result->fetch_assoc();
-
-    if ($user && password_verify($password, $user['hashed_password'])) {
-        return true;
-    }
-    return false;
-
-    */
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-    $username = $data['username'];
-    $password = $data['password'];
-
-    $sql = "SELECT * FROM users WHERE username = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $stmt->store_result();
-
-    // Check if user exists
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($user, $hashedPassword, $auth);
-        if ($stmt->fetch() && password_verify($password, $hashedPassword)) {
-            echo json_encode(["status" => "success", "message" => "User verified"]);
-        }
-        else {
-            echo json_encode(["status" => "error", "message" => "User not found"]);
-        }
-    } 
-    else {
-        echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
-    }
-
-    // Close connections
-    $stmt->close();
-    $conn->close();
+// Check connection
+if ($conn->connect_error) {
+    die(json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]));
 }
 
-verifyUser($conn, $data);
+// Read JSON input
+$data = json_decode(file_get_contents("php://input"), true);
+$username = $data['username'] ?? null;
+$password = $data['password'] ?? null;
+
+// Validate input
+if (!$username || !$password) {
+    die(json_encode(["status" => "error", "message" => "Username and password required"]));
+}
+
+// Prepare and execute the SQL statement
+$sql = "SELECT username, hashed_password FROM users WHERE username = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$stmt->store_result();
+
+// Bind the results
+$stmt->bind_result($user, $hashedPassword);
+
+if ($stmt->num_rows > 0) {
+    $stmt->fetch(); // Fetch the result
+    if (password_verify($password, $hashedPassword)) {
+        // Generate a token (example using sha256 and uniqid)
+        $token = bin2hex(random_bytes(32));
+
+        // Set the token as a secure HttpOnly cookie
+        setcookie("auth_token", $token, time() + 3600, "/", "cse.buffalo.edu", true, true);
+
+        echo json_encode(["status" => "success", "message" => "User verified", "token" => $token]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid password"]);
+    }
+} else {
+    echo json_encode(["status" => "error", "message" => "Invalid username"]);
+}
+
+// Close connections
+$stmt->close();
+$conn->close();
 ?>

@@ -247,9 +247,6 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     // Handle card effects
     handleCardEffect($conn, $gameID, $placedCard, $gameState);
 
-    // Move to the next player
-    moveToNextPlayer($conn, $gameID, $gameState);
-
     return ['success' => true];
 }
 

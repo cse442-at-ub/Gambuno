@@ -10,7 +10,6 @@ function validatePassword($password)
         '"', "'", '*', '+', ',', '.', '/', ':', ';', '<', '>', '?', '[', '\\', ']', '`', '{', '|', '}', '~', ' ', "\n", "\t", "\r", "\f", "\v"
     ];
     $includeChars = ['!', '@', '#', '$', '%', '^', '&', '(', ')', '-', '_', '='];
-    
 
     if (strlen($password) < 8) {
         return false;
@@ -24,27 +23,18 @@ function validatePassword($password)
     for ($i = 0; $i < strlen($password); $i++) {
         $char = $password[$i];
 
-        // Check if the character is in the exclude list
         if (in_array($char, $excludeChars)) {
             return false;
         }
-
-        // Check for uppercase letters
         if (ctype_upper($char)) {
             $containsUpper = true;
         }
-
-        // Check for lowercase letters
         if (ctype_lower($char)) {
             $containsLower = true;
         }
-
-        // Check for numbers
         if (ctype_digit($char)) {
             $containsNumber = true;
         }
-
-        // Check for special characters
         if (in_array($char, $includeChars)) {
             $containsSpecial = true;
         }
@@ -52,9 +42,8 @@ function validatePassword($password)
     return $containsLower && $containsNumber && $containsSpecial && $containsUpper;
 }
 
-
 function checkAuthDetails($username, $password){
-    if (!isset($username) || !isset($password)) {// null check
+    if (!isset($username) || !isset($password)) {
         echo json_encode(["status" => "error", "message" => "Username and password are required"]);
         return false;
     }
@@ -62,66 +51,44 @@ function checkAuthDetails($username, $password){
         echo json_encode(["status" => "error", "message" => "Invalid password"]);
         return false;
     }
-
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
         echo json_encode(["status" => "error", "message" => "Invalid username"]);
         return false;
     }
-    return True;
+    return true;
 }
 
 function genAuth($password){
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-    $authToken = bin2hex(random_bytes(16)); // 80 bits of entropy
+    $authToken = bin2hex(random_bytes(16));
     $hashedAuthToken = password_hash($authToken, PASSWORD_BCRYPT);
     return [$hashedPassword, $authToken, $hashedAuthToken];
 }
 
-
 function verifyUser($conn, $username, $password) {
-    /*
-    $sql = "SELECT * FROM users WHERE username = 'kurianvadakara'";
-    $result = $conn->query($sql);
-    $user = $result->fetch_assoc();
-
-    if ($user && password_verify($password, $user['hashed_password'])) {
-        return true;
-    }
-    return false;
-
-    */
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    $sql = "SELECT * FROM users WHERE username = ?";
+    $sql = "SELECT id, username, hashed_password FROM users WHERE username = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
 
-    // Check if user exists
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id, $username, $hashedPassword, $auth);
+        $stmt->bind_result($id, $username, $hashedPassword);
         if ($stmt->fetch() && password_verify($password, $hashedPassword)) {
-            echo json_encode(["status" => "success", "message" => "User verified"]);
+            list($hashedPassword, $authToken, $hashedAuthToken) = genAuth($password);
+            setcookie("auth_token", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
+            echo json_encode(["status" => "success", "message" => "User verified", "token" => $authToken]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Invalid credentials"]);
         }
-        else {
-            echo json_encode(["status" => "error", "message" => "User not found"]);
-        }
-    } 
-    else {
+    } else {
         echo json_encode(["status" => "error", "message" => "Invalid username or password"]);
     }
 
-    // Close connections
     $stmt->close();
     $conn->close();
 }
-
-
-
-

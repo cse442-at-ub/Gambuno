@@ -10,8 +10,45 @@ const HostGameLobby = () => {
   const [error, setError] = useState("");
 
   // Extract bet amount from navigation state
-  const betAmount = location.state?.betAmount || 0;
   const username = localStorage.getItem("username");
+
+  const betAmount = Number(localStorage.getItem('bet'));
+
+  const handleStartGame = async () => {
+    try {
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/startGame.php", {
+        method: "POST",
+          headers: { 
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({
+          gameID: gameCode,
+          action: "start",
+          bet: betAmount
+        })
+      });
+      if(!response.ok){
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+
+      const text = await response.text();
+
+      if (!text || text.trim() === ''){
+        throw new Error(`Server returned an empty response`);
+      }
+
+      const result = JSON.parse(text);
+      
+      if (result.success) {
+        navigate(`/`);
+      } else {
+        alert("Error: " + result.error);
+      }
+    } catch (error) {
+      console.error("Join failed:", error);
+      alert("Network error while joining the game.");
+    }
+  };
 
   // Create the lobby initially (only the host)
   useEffect(() => {
@@ -94,17 +131,6 @@ const HostGameLobby = () => {
     return () => clearInterval(interval);
   }, [gameCode, username]);
 
-  // Toggle local readiness (not persisted yet)
-  const toggleReady = (id) => {
-    setPlayers((prev) =>
-      prev.map((player) =>
-        player.id === id ? { ...player, ready: !player.ready } : player
-      )
-    );
-  };
-
-  const allReady = players.length > 0 && players.every((p) => p.ready);
-
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
       {/* Back Button */}
@@ -152,22 +178,14 @@ const HostGameLobby = () => {
             <span className="text-lg font-semibold">
               {player.name} {player.isHost && "(Host)"}
             </span>
-            <button
-              className={`px-4 py-1 rounded-md font-semibold text-white ${
-                player.ready ? "bg-green-500" : "bg-red-500"
-              }`}
-              onClick={() => toggleReady(player.id)}
-            >
-              {player.ready ? "Ready" : "Waiting"}
-            </button>
           </div>
         ))}
       </div>
 
       {/* Start Game Button */}
       <button
-        className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12`}
-        disabled={!allReady}
+        className={"px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 bg-red-500 text-white"}
+        onClick={handleStartGame}
       >
         Start Game
       </button>

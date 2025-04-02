@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
  */
 function fetchGameState($conn, $gameID, $playerID = null) {
     // Get lobby information
-    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder FROM lobby WHERE gameID = ?";
+    $lobbyQuery = "SELECT curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($lobbyQuery);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -106,7 +106,8 @@ function fetchGameState($conn, $gameID, $playerID = null) {
             'curPlayer' => $lobbyData['curPlayer'],
             'cardEffect' => $lobbyData['cardEffect'],
             'playerList' => $playerList,
-            'gameOrder' => $gameOrder
+            'gameOrder' => $gameOrder,
+            'gameStatus' => $lobbyData['gameStatus'] ?? 'active'
         ],
         'players' => $players,
         'yourTurn' => ($playerID && $lobbyData['curPlayer'] === $playerID)
@@ -152,7 +153,7 @@ function skipCheck($conn, $gameID, $gameState) {
 /**
  * Handle card placement and card effects
  */
-function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {// update when doing color/number stacking
+function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState) {
     // Check if it's this player's turn
     if ($gameState['lobby']['curPlayer'] !== $playerID) {
         return ['error' => 'Not your turn'];
@@ -176,16 +177,6 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     $playerCards = $gameState['players'][$playerID]['cardList'];
     $cardIndex = array_search($placedCard, $playerCards);
 
-    if (isset($_GET['placedCard']) && $playerID) {
-        $placedCard = $conn->real_escape_string($_GET['placedCard']);
-        $result = handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState);
-
-        if (isset($result['error'])) {
-            echo json_encode($result);
-            exit;
-        }
-    }
-
     // Remove the card from player's hand
     array_splice($playerCards, $cardIndex, 1);
     $updatedCardList = json_encode($playerCards);
@@ -201,13 +192,66 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     $stmt->bind_param("ss", $placedCard, $gameID);
     $stmt->execute();
 
+    // Check if player has won (no cards left)
+    if (empty($playerCards)) {
+        handleGameEnd($conn, $gameID, $playerID, $gameState);
+        return ['success' => true, 'gameEnded' => true, 'winner' => $playerID];
+    }
+
     // Handle card effects
     handleCardEffect($conn, $gameID, $placedCard, $gameState);
 
-    // Move to the next player
-    moveToNextPlayer($conn, $gameID, $gameState);
-
     return ['success' => true];
+}
+
+/**
+ * Handle game end when a player wins
+ */
+function handleGameEnd($conn, $gameID, $winnerID, $gameState) {
+    // Update game status to completed
+    $updateGameStatusQuery = "UPDATE lobby SET gameStatus = 'completed', winner = ? WHERE gameID = ?";
+    $stmt = $conn->prepare($updateGameStatusQuery);
+    $stmt->bind_param("ss", $winnerID, $gameID);
+    $stmt->execute();
+
+    // Update statistics for all players
+    $playerList = $gameState['lobby']['playerList'];
+
+    foreach ($playerList as $playerID) {
+        // Increment total games for all players
+        updatePlayerStats($conn, $playerID, 'totalGames', 1);
+
+        // Increment wins for the winner
+        if ($playerID === $winnerID) {
+            updatePlayerStats($conn, $playerID, 'wins', 1);
+        }
+    }
+}
+
+/**
+ * Update player statistics
+ */
+function updatePlayerStats($conn, $playerID, $statField, $increment) {
+    // Check if player stats record exists
+    $checkQuery = "SELECT playerID FROM player_stats WHERE playerID = ?";
+    $stmt = $conn->prepare($checkQuery);
+    $stmt->bind_param("s", $playerID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        // Create new stats record if it doesn't exist
+        $createQuery = "INSERT INTO player_stats (playerID, $statField) VALUES (?, ?)";
+        $stmt = $conn->prepare($createQuery);
+        $stmt->bind_param("si", $playerID, $increment);
+        $stmt->execute();
+    } else {
+        // Update existing stats record
+        $updateQuery = "UPDATE player_stats SET $statField = $statField + ? WHERE playerID = ?";
+        $stmt = $conn->prepare($updateQuery);
+        $stmt->bind_param("is", $increment, $playerID);
+        $stmt->execute();
+    }
 }
 
 /**
@@ -389,3 +433,5 @@ function parseCard($cardString) {
 // Close the database connection
 $conn->close();
 ?>
+
+

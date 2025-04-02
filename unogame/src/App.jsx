@@ -19,7 +19,9 @@ import React from 'react';
             import SettingsPopup from "./components/SettingsPopup";
             import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
             import Leaderboard from './components/leaderbroad';
-            import { GameBoard } from './components/gameplay/game-board';
+            import { GameBoard } from './components/gameLayout/game-board';
+            // @ts-ignore
+            import { GameBoard2 } from './components/gameLayout/game-boardM';
 
             function App() {
               const { isMobile } = useDeviceDetect();
@@ -47,7 +49,7 @@ import React from 'react';
                     <Route path="/waiting-host" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
                     <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
-                    <Route path="/game-board" element={<GameBoard />} />
+                    <Route path="/game-board" element={isMobile ? (<GameBoard2 />) : (<GameBoard />)} />
                   </Routes>
                 </Router>
               );

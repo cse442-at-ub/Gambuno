@@ -69,47 +69,6 @@ useEffect(() => {
   fetchUserMoney();
   }, [username]);
 
-  if(isMobile){
-    return(
-      <main className="p-main-screen">
-      <section className="container">
-      <header className="header">
-      {username ? (
-                        <span className="username-display">{username}</span>
-                    ) : (
-                        <button className="login-button" onClick={() => navigate('/Login')}>Log In</button>
-                    )}
-          {/* <button className="login-button" onClick={() => navigate('/Login')}>Log In</button> */}
-        </header>
-        
-        <div className="logo-container">
-          <div className="logo-border">
-            <img className="NEXT-GEN" alt="Next GEN" src={NEXTGen} />
-            <img className="UNO" alt="Uno" src={UNO} />
-          </div>
-        </div>
-        <nav className="menu">
-          <button className= "menu-button" onClick={() => navigate('/select-game')}>Play</button>
-          <button className= "menu-button" onClick={toggleSettings} >Settings</button>
-        </nav>
-
-        <footer className="footer">
-          <button className="icon-button">...</button>
-          <img 
-          className="help-icon" 
-          src={tutorialCircle} 
-          alt="Help tutorial circle"
-          onClick={() => setShowPopup(true)}
-           />
-        </footer>
-      </section>
-      <SettingsPopup isOpen={isSettingsOpen} onClose={toggleSettings} />
-      {showPopup && <MobilePopup onClose={() => setShowPopup(false)} />}
-    </main>
-    )
-  }
-
-
 
   return (
     <div className={styles.MainMenu_1_2}>

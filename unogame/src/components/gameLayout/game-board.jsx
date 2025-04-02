@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { UnoCard, WildCard, CardBack } from "./cards/cards"
-import { canPlayCard, applyCardEffect } from "../../lib/game-logic"
+import { useState, useEffect, useRef } from "react"
+import { UnoCard, WildCard, CardBack} from "./cards/cards"
+import { createDeck, dealCards, canPlayCard, applyCardEffect } from "../../lib/game-logic"
 import { motion, AnimatePresence } from "framer-motion"
 import { ColorPicker } from "./cards/cards"
-import axios from "axios"
 
-export function GameBoard({ numPlayers = 6 }) {
+export function GameBoard({ numPlayers = 5 }) {
   const [gameState, setGameState] = useState(null)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [pendingWildCard, setPendingWildCard] = useState(null)
@@ -29,27 +28,27 @@ export function GameBoard({ numPlayers = 6 }) {
     height: typeof window !== "undefined" ? window.innerHeight : 800,
   })
 
-  const [gameID, setGameID] = useState("game1") // Replace with actual game ID
-  const [playerID, setPlayerID] = useState("player1") // Replace with actual player ID
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
-
   // Initialize game
-  const initGame = async () => {
-    try {
-      setIsLoading(true)
-      // In a real implementation, you would have an endpoint to initialize a game
-      // For now, we'll just fetch the current game state
-      await fetchGameState()
-      setWinner(null)
-      setGameStarted(true)
-      setAnimations([])
-      setIsLoading(false)
-    } catch (err) {
-      console.error("Error initializing game:", err)
-      setError("Failed to initialize game")
-      setIsLoading(false)
-    }
+  const initGame = () => {
+    const deck = createDeck()
+    const { hands, deck: newDeck, discardPile } = dealCards(deck, numPlayers)
+
+    setGameState({
+      players: hands,
+      drawPile: newDeck,
+      discardPile,
+      currentPlayer: 0,
+      direction: 1,
+      currentColor: discardPile[0].color,
+      lastCard: discardPile[0],
+      sayUno: false,
+      visibleDiscardPile: [discardPile[0]], // Track visible cards in the discard pile
+    })
+
+    setWinner(null)
+    setGameStarted(true)
+    setAnimations([])
+    setIsDrawing(false)
   }
 
   // Update window size on resize
@@ -93,110 +92,56 @@ export function GameBoard({ numPlayers = 6 }) {
     }, 800) // Slightly longer animation for smoother feel
   }
 
-  // Fetch game state from the server
-  const fetchGameState = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const response = await axios.get(`/api/game.php?gameID=${gameID}&playerID=${playerID}`)
-
-      if (response.data.error) {
-        setError(response.data.error)
-        return
-      }
-
-      // Transform the server response to match our local game state structure
-      const serverState = response.data
-
-      // Update the game state with data from the server
-      setGameState({
-        players: serverState.players[playerID]?.cardList
-            ? [
-              serverState.players[playerID].cardList,
-              ...Object.keys(serverState.players)
-                  .filter((id) => id !== playerID)
-                  .map((id) =>
-                      Array(serverState.players[id].cardCount).fill({
-                        id: `unknown-${Date.now()}`,
-                        color: "unknown",
-                        value: "unknown",
-                        type: "unknown",
-                      }),
-                  ),
-            ]
-            : [],
-        drawPile: [], // Server manages the draw pile
-        discardPile: [parseServerCard(serverState.lobby.curCard)],
-        currentPlayer: serverState.yourTurn ? 0 : 1, // 0 for player's turn, 1+ for others
-        direction: 1,
-        currentColor: parseServerCard(serverState.lobby.curCard).color,
-        lastCard: parseServerCard(serverState.lobby.curCard),
-        visibleDiscardPile: [parseServerCard(serverState.lobby.curCard)],
-        sayUno: false,
-      })
-
-      // Check for game end
-      if (serverState.lobby.gameStatus === "completed") {
-        setWinner(serverState.lobby.winner === playerID ? 0 : 1)
-      }
-
-      setIsLoading(false)
-    } catch (err) {
-      console.error("Error fetching game state:", err)
-      setError("Failed to connect to the server")
-      setIsLoading(false)
-    }
-  }, [gameID, playerID])
-
-  // Parse server card format to client format
-  const parseServerCard = (serverCard) => {
-    if (!serverCard) return { id: "unknown", color: "red", value: "0", type: "number" }
-
-    const [color, value] = serverCard.split("_")
-
-    // Handle special cards
-    if (value === "Draw2" || value === "Skip" || value === "Reverse") {
-      return {
-        id: `${color}_${value}_${Date.now()}`,
-        color,
-        value,
-        type: "special",
-      }
-    } else if (value === "Draw4" || value === "Wild") {
-      return {
-        id: `wild_${value}_${Date.now()}`,
-        color: "wild",
-        value,
-        type: "special",
-      }
-    }
-
-    // Regular number cards
-    return {
-      id: `${color}_${value}_${Date.now()}`,
-      color,
-      value,
-      type: "number",
-    }
-  }
-
   // Handle drawing a card with animation
-  const handleDrawCard = async () => {
-    if (gameState.currentPlayer !== 0 || winner || isLoading) return
+  const handleDrawCard = () => {
+    // Prevent drawing if not player's turn, there's a winner, or already drawing
+    if (gameState.currentPlayer !== 0 || winner || isDrawing) return
 
-    setIsLoading(true)
+    // Set drawing state to prevent multiple draws
+    setIsDrawing(true)
 
-    try {
-      // In a real implementation, you would have an endpoint to draw a card
-      // For now, we'll just fetch the updated game state which should include any drawn cards
-      await axios.get(`/api/game.php?gameID=${gameID}&playerID=${playerID}&action=draw`)
+    // Check if the player already has a valid card to play
+    const hasPlayableCard = gameState.players[0].some(
+        (card) =>
+            card.type === "special" ||
+            card.color === gameState.currentColor ||
+            (gameState.lastCard && card.value === gameState.lastCard.value),
+    )
 
-      // Fetch updated game state
-      await fetchGameState()
-    } catch (err) {
-      console.error("Error drawing card:", err)
-      setError("Failed to draw card")
-      setIsLoading(false)
-    }
+    // Generate a new random card instead of taking from the deck
+    const newCard = generateRandomCard()
+
+    // Add the card to the player's hand
+    setGameState((prev) => {
+      const newState = { ...prev }
+      newState.players[0] = [...newState.players[0], newCard]
+      return newState
+    })
+
+    // Add draw animation
+    addAnimation("draw", newCard, "drawPile", "player", () => {
+      // If player already had playable cards, only draw one card
+      if (hasPlayableCard) {
+        setIsDrawing(false) // Reset drawing state after drawing one card
+      } else {
+        // Check if the newly drawn card is playable
+        const isNewCardPlayable =
+            newCard.type === "special" ||
+            newCard.color === gameState.currentColor ||
+            (gameState.lastCard && newCard.value === gameState.lastCard.value)
+
+        // If not playable, draw another card automatically after a short delay
+        if (!isNewCardPlayable) {
+          setTimeout(() => {
+            setIsDrawing(false) // Reset drawing state before drawing again
+            handleDrawCard()
+          }, 300) // Short delay for better visual flow
+        } else {
+          // Card is playable, reset drawing state
+          setIsDrawing(false)
+        }
+      }
+    })
   }
 
   // Generate a random card for infinite deck
@@ -228,20 +173,9 @@ export function GameBoard({ numPlayers = 6 }) {
     }
   }
 
-  // Format client card to server format
-  const formatCardForServer = (card) => {
-    if (card.type === "special") {
-      if (card.value === "Wild" || card.value === "Wild4") {
-        return `${card.color === "wild" ? "wild" : card.color}_${card.value}`
-      }
-      return `${card.color}_${card.value}`
-    }
-    return `${card.color}_${card.value}`
-  }
-
   // Handle playing a card with animation
-  const handlePlayCard = async (card, index) => {
-    if (gameState.currentPlayer !== 0 || winner || isLoading) return
+  const handlePlayCard = (card, index) => {
+    if (gameState.currentPlayer !== 0 || winner || isDrawing) return
 
     // Check if the card can be played
     if (!canPlayCard(card, gameState.lastCard, gameState.currentColor)) {
@@ -249,7 +183,7 @@ export function GameBoard({ numPlayers = 6 }) {
     }
 
     // Handle wild cards
-    if (card.type === "special" && (card.value === "Wild" || card.value === "Wild4")) {
+    if (card.type === "special") {
       setPendingWildCard({ card, index })
       setShowColorPicker(true)
       return
@@ -258,27 +192,20 @@ export function GameBoard({ numPlayers = 6 }) {
     // First visually remove the card from the hand
     setGameState((prev) => {
       const newState = { ...prev }
+      // Create a temporary copy without the card to be played
+      // This makes it visually disappear from the hand
       const tempHand = [...newState.players[0]]
       tempHand.splice(index, 1)
       newState.players[0] = tempHand
       return newState
     })
 
-    // Format the card for the server
-    const serverCardFormat = formatCardForServer(card)
-
-    // Send the card placement to the server
-    try {
-      setIsLoading(true)
-      await axios.get(`/api/game.php?gameID=${gameID}&playerID=${playerID}&placedCard=${serverCardFormat}`)
-
-      // Fetch updated game state
-      await fetchGameState()
-    } catch (err) {
-      console.error("Error playing card:", err)
-      setError("Failed to play card")
-      setIsLoading(false)
-    }
+    // Then add play animation
+    setTimeout(() => {
+      addAnimation("play", card, "player", "discardPile", () => {
+        playCard(card, index, card.color)
+      })
+    }, 50) // Small delay to ensure the card is visually removed first
   }
 
   // Play a card with the selected color (for wild cards)
@@ -329,7 +256,7 @@ export function GameBoard({ numPlayers = 6 }) {
 
       // AI players will play automatically
       setTimeout(() => {
-        //playAITurn()
+        playAITurn()
       }, 2)
 
       return newState
@@ -337,35 +264,26 @@ export function GameBoard({ numPlayers = 6 }) {
   }
 
   // Handle color selection for wild cards
-  const handleColorSelect = async (color) => {
+  const handleColorSelect = (color) => {
     setShowColorPicker(false)
-
     if (pendingWildCard) {
       // First visually remove the card from the hand
       setGameState((prev) => {
         const newState = { ...prev }
+        // Create a temporary copy without the card to be played
         const tempHand = [...newState.players[0]]
         tempHand.splice(pendingWildCard.index, 1)
         newState.players[0] = tempHand
         return newState
       })
 
-      // Format the wild card with the selected color for the server
-      const serverCardFormat = `${color}_${pendingWildCard.card.value}`
-
-      // Send the card placement to the server
-      try {
-        setIsLoading(true)
-        await axios.get(`/api/game.php?gameID=${gameID}&playerID=${playerID}&placedCard=${serverCardFormat}`)
-
-        // Fetch updated game state
-        await fetchGameState()
-        setPendingWildCard(null)
-      } catch (err) {
-        console.error("Error playing wild card:", err)
-        setError("Failed to play wild card")
-        setIsLoading(false)
-      }
+      // Then add play animation
+      setTimeout(() => {
+        addAnimation("play", pendingWildCard.card, "player", "discardPile", () => {
+          playCard(pendingWildCard.card, pendingWildCard.index, color)
+          setPendingWildCard(null)
+        })
+      }, 50)
     }
   }
 
@@ -603,24 +521,20 @@ export function GameBoard({ numPlayers = 6 }) {
 
   // Start a new game
   useEffect(() => {
-    // Initialize the game when component mounts
-    initGame()
-
-    // Set up polling for game state updates
-    const intervalId = setInterval(() => {
-      if (!winner) {
-        fetchGameState()
-      }
-    }, 3000) // Poll every 3 seconds
-
-    return () => clearInterval(intervalId)
-  }, [fetchGameState, winner])
+    if (!gameStarted) {
+      initGame()
+    }
+  }, [gameStarted])
 
   if (!gameState) {
     return (
         <div className="flex items-center justify-center h-screen bg-[#3E8914]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4 text-center font-medium text-white">Loading game...</p>
+          <button
+              className="px-6 py-3 bg-black text-white rounded-lg text-xl font-bold shadow-lg hover:bg-gray-800 transition-colors"
+              onClick={initGame}
+          >
+            Start Game
+          </button>
         </div>
     )
   }
@@ -858,12 +772,7 @@ export function GameBoard({ numPlayers = 6 }) {
                             />
                         )
                     ) : (
-                        <CardBack
-                            isDark={true}
-                            className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                            onClick={() => {}}
-                        />
-                    )}
+                        <CardBack isDark={true} className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40" onClick={() => {}} />                    )}
                   </div>
               )
             })}
@@ -989,25 +898,9 @@ export function GameBoard({ numPlayers = 6 }) {
               </div>
             </div>
         )}
-        {error && (
-            <div className="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
-              {error}
-              <button className="ml-2 font-bold" onClick={() => setError(null)}>
-                ×
-              </button>
-            </div>
-        )}
-        {isLoading && (
-            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40">
-              <div className="bg-white p-6 rounded-xl shadow-xl">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3E8914] mx-auto"></div>
-                <p className="mt-4 text-center font-medium">Loading...</p>
-              </div>
-            </div>
-        )}
+
         {/* Color picker for wild cards */}
-        {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} onClose={() => setShowColorPicker(false)} />}{" "}
-        {/* Game board */}
+        {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} onClose={() => setShowColorPicker(false)} />}        {/* Game board */}
         <div className="relative w-full h-[calc(100vh-8rem)]">
           {/* Render all player hands */}
           {Array.from({ length: numPlayers }).map((_, index) => renderPlayerHand(index))}
@@ -1086,4 +979,3 @@ export function GameBoard({ numPlayers = 6 }) {
       </div>
   )
 }
-

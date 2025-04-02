@@ -27,6 +27,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'leaderboard') {
     exit;
 }
 
+if (isset($_GET['action']) && $_GET['action'] == 'getBet') {
+    $gameId = $_GET['gameID'];
+    $bet = getBet($conn, $gameId);
+    echo json_encode(["status" => "success", "bet" => $bet]);
+    $conn->close();
+    exit;
+}
+
 // Handle money request (your existing code)
 $username = isset($_GET['username']) ? $_GET['username'] : '';
 if (!empty($username)) {
@@ -76,5 +84,24 @@ function create_leaderboard($conn, $sort_by = 'money') {
     return ($leaderboard);
 }
 
+function getBet($conn, $gameID){
+    $query = "SELECT betting_amt FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $gameID); // "i" indicates integer type
+    $stmt->execute();
+
+    // Bind result variable
+    $stmt->bind_result($betting_amt);
+
+    // Fetch the result
+    if ($stmt->fetch()) {
+        return $betting_amt;
+    } else {
+        echo "No game found with ID: " . $gameID;
+    }   
+}
+
 create_leaderboard($conn);
+
+
 ?>

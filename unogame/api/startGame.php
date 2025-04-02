@@ -33,9 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $gameID = $conn->real_escape_string(trim($postData['gameID']));
     $act = $postData["action"];
+    $bets = $postData["bet"];
 
     if ($act == "start"){
-        $result = startGame($conn, $gameID);
+        $result = startGame($conn, $gameID, $bets);
         echo json_encode($result); // Add this line to output the JSON response
     }
     else{
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-function startGame($conn, $gameID) {
+function startGame($conn, $gameID, $bets) {
     // Check if there are at least 2 players
     $checkPlayersQuery = "SELECT playerList FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($checkPlayersQuery);
@@ -58,7 +59,7 @@ function startGame($conn, $gameID) {
     $row = $result->fetch_assoc();
     $playerList = json_decode($row['playerList'], true);
     
-    if (count($playerList) < 2) {
+    if (count($playerList) <= 2) {
         return ['error' => 'Need at least 2 players to start'];
     }
     
@@ -207,6 +208,25 @@ function getPlayerName($conn, $username) {
         return $row['username'];
     }
     
+    // Return the username as fallback if not found in database
+    return $username;
+}
+
+function removeMoney($conn, $playerList, $bets){
+    for($x= 1; $x < count($playerList); $x++){
+        $query = "UPDATE users SET betting_amt = ? WHERE username = ?";
+        $stmt = $conn->prepare($query);
+
+        $money = 
+        $stmt->bind_param("ds", $money, $playerList[$x]);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return $row['username'];
+        }
+    }
     // Return the username as fallback if not found in database
     return $username;
 }

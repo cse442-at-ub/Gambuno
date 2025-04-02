@@ -23,7 +23,8 @@ const HostGameLobby = () => {
         },
         body: JSON.stringify({
           gameID: gameCode,
-          action: "start"
+          action: "start",
+          bet: betAmount
         })
       });
       if(!response.ok){

@@ -52,7 +52,6 @@ const JoinGameMenu = () => {
       }
     } catch (error) {
       console.error("Join failed:", error);
-      alert("Network error while joining the game.");
     }
 
     const username = localStorage.getItem("username");

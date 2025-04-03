@@ -16,6 +16,14 @@ function getPlayerCardList($conn, $playerID)
     return $stmt->get_result()->fetch_assoc()["CardList"];
 }
 
+function getGame($conn, $gameID){
+    $stmt = $conn->prepare("SELECT * FROM lobby WHERE gameId = $gameID");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    return $stmt->get_result();
+
+}
+
 function getMoney($conn, $playerID){
     $stmt = $conn->prepare("SELECT money FROM users WHERE playerID = ?");
     $stmt->bind_param("d", $playerID);
@@ -199,6 +207,7 @@ function updateCardEffect($conn, $playerID, $effect)
     $stmt->bind_param("si", $effect, $playerID);
     return $stmt->execute();
 }
+
 
 
 function getDatabaseConnection()

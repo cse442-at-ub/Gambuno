@@ -1,218 +1,132 @@
 <?php
 
-function getPlayers($conn, $lobbyID)
-{
-    $stmt = $conn->prepare("SELECT * FROM players WHERE gameID = ?");
-    $stmt->bind_param("s", $lobbyID);
-    $stmt->execute();
-    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-}
+const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/';
 
-function getPlayerCardList($conn, $playerID)
-{
-    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-    $stmt->bind_param("s", $playerID);
-    $stmt->execute();
-    return $stmt->get_result()->fetch_assoc()["cardList"];
-}
+    function callApi($url, $method, $data = null) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
 
-function getGame($conn, $gameID){
-    $stmt = $conn->prepare("SELECT gameID FROM lobby WHERE gameID = $gameID");
-    $stmt->bind_param("s", $gameID);
-    $stmt->execute();
-    return $stmt->get_result();
+        if ($data) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        }
 
-}
+        $response = curl_exec($ch);
+        curl_close($ch);
 
-function getMoney($conn, $username){
-    $stmt = $conn->prepare("SELECT money FROM users WHERE username = ?");
-    $stmt->bind_param("d", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($row = $result->fetch_assoc()) {
-        return $row['money']; // Return the money value
+        return json_decode($response, true);
     }
-    return 0;
-}
 
-function getPlayerName($conn, $playerID){
-    $stmt = $conn->prepare("SELECT playerName FROM players WHERE playerID = ?");
-    $stmt->bind_param("s", $playerID);
-    $stmt->execute();
-    return $stmt->get_result();
-}
-
-function getCurrentPlayer($conn, $gameID){
-    $stmt = $conn->prepare("SELECT curPlayer FROM lobby WHERE gameID = ?");
-    $stmt->bind_param("s", $gameID)
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['curPlayer']; 
+    function getBettingAmount($gameID) {
+        $url = API_URL . "getBettingAmount.php?action=getBettingAmount&gameID=$gameID";
+        return callApi($url, 'GET');
     }
-    return null; 
-}
 
-function getCurrentCard($conn, $gameID){
-    $stmt = $conn->prepare("SELECT curCard FROM lobby WHERE gameID = ?");
-    $stmt->bind_param("s", $gameID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['curCard'];
+    function getCurrentCard($gameID) {
+        $url = API_URL . "getCurrentCard.php?action=getCurrentCard&gameID=$gameID";
+        return callApi($url, 'GET');
     }
-    
-    return null;
-}
-function getCardList($conn, $gameID,$playerID){
-    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-    $stmt->bind_param("ss", $playerID, $gameID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['cardList']; 
+
+    function getCurrentPlayer($lobbyID) {
+        $url = API_URL . "getCurrentPlayer.php?action=getCurrentPlayer&lobbyID=$lobbyID";
+        return callApi($url, 'GET');
     }
-}
 
-function getPlayerList($conn,$gameID){
-    $stmt = $conn->prepare("SELECT playerList FROM lobby WHERE gameID = ?");
-    $stmt->bind_param("s", $gameID);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['playerList']; 
+    function getGame($gameID) {
+        $url = API_URL . "getGame.php?action=getGame&gameID=$gameID";
+        return callApi($url, 'GET');
     }
-    
-    return "";
-}
-function getBettingAmount($conn, $gameID) {
-    $query = "SELECT betting_amt FROM lobby WHERE gameID = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $gameID);
-    $stmt->execute();
-    
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['betting_amt'];
+
+    function getHost($gameID) {
+        $url = API_URL . "getHost.php?action=getHost&gameID=$gameID";
+        return callApi($url, 'GET');
     }
-    
-    return 0;
-}
 
-function setPlacedCard($conn, $gameID, $playerID, $card){
-    $stmt = $conn->prepare("UPDATE players SET placedCard = ? WHERE playerID = ? AND gameID = ?");
-    $stmt->bind_param("sss", $card, $playerID, $gameID);
-    return $stmt->execute();
-}
-
-function setCardList($conn, $gameID, $playerID, $newCardList){
-    $stmt = $conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ? AND gameID = ?");
-    $stmt->bind_param("sss", $newCardList, $playerID, $gameID);
-    return $stmt->execute();
-}
-
-function setCurrentCard($conn, $gameID, $card){
-    $stmt = $conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
-    $stmt->bind_param("ss", $card, $gameID);
-    return $stmt->execute();
-}
-
-function setGameStatus($conn, $gameID, $gameStatus){
-    $allowedStatuses = ["finished", "waiting", "inProgress"];
-    if (!in_array($gameStatus, $allowedStatuses)) {
-        return false;
+    function getMoney($username) {
+        $url = API_URL . "getMoney.php?action=getMoney&username=$username";
+        return callApi($url, 'GET');
     }
-    $stmt = $conn->prepare("UPDATE lobby SET gameStatus = ? WHERE gameID = ?");
-    $stmt->bind_param("ss", $gameStatus, $gameID);
-    return $stmt->execute();
-}
-function setMoney($conn, $playerID, $newMoney){
-    $stmt = $conn->prepare("UPDATE users SET money = ? WHERE username = ?");
-    $stmt->bind_param("sd", $playerID, $newMoney);
-    return $stmt->execute();
-}
 
-function setCurrentPlayer($conn, $gameID, $newCurPlayer){
-    $stmt = $conn->prepare("SELECT curPlayer FROM lobby WHERE gameID = ?");
-    $stmt->bind_param("ss", $gameID, $newCurPlayer)
-    return $stmt->execute();
-}
-function updatePlayerWins($conn,$gameID, $playerID){
-    $stmt = $conn->prepare("UPDATE players SET wins = wins + 1 WHERE playerID = ? AND gameID");
-    $stmt->bind_param("s", $playerID, $gameID);
-    return $stmt->execute();
-}
-
-function updatePlayersStats($conn,$gameID, $playerID) {
-    $stmt = $conn->prepare("UPDATE players SET total_games= total_games+ 1 WHERE playerID = ? AND gameID");
-    $stmt->bind_param("s", $playerID,$gameID);
-    return $stmt->execute();
-}
-
-//====May have bugs
-function updatePlayerCardList($conn, $playerID, $newCardList)
-{
-    $stmt = $conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ?");
-    $stmt->bind_param("ss", $newCardList, $playerID);
-    return $stmt->execute();
-}
-
-function updatePlacedCard($conn, $playerID, $card)
-{
-    $stmt = $conn->prepare("UPDATE players SET placedCard = ? WHERE playerID = ?");
-    $stmt->bind_param("ss", $card, $playerID);
-    return $stmt->execute();
-}
-
-function updateSkipStatus($conn, $playerID, $skipStatus)
-{
-    $stmt = $conn->prepare("UPDATE players SET skipped = ? WHERE playerID = ?");
-    $stmt->bind_param("is", $skipStatus, $playerID);
-    return $stmt->execute();
-}
-
-function updateGameOrder($conn, $lobbyID, $newOrder)
-{
-    $stmt = $conn->prepare("UPDATE lobby SET gameOrder = ? WHERE gameID = ?");
-    $stmt->bind_param("ss", $newOrder, $lobbyID);
-    return $stmt->execute();
-}
-
-function updateCurrentCard($conn, $lobbyID, $card)
-{
-    $stmt = $conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
-    $stmt->bind_param("ss", $card, $lobbyID);
-    return $stmt->execute();
-}
-
-function updateCurrentPlayer($conn, $lobbyID, $playerID)
-{
-    $stmt = $conn->prepare("UPDATE lobby SET curPlayer = ? WHERE gameID = ?");
-    $stmt->bind_param("ss", $playerID, $lobbyID);
-    return $stmt->execute();
-}
-
-
-function getDatabaseConnection()
-{
-    $host = "localhost";
-    $user = "kurianva";
-    $pass = "50554678";
-    $dbname = "cse442_2025_spring_team_c_db";
-
-    $conn = new mysqli($host, $user, $pass, $dbname);
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+    function getPlayerCardList($playerID) {
+        $url = API_URL . "getPlayerCardList.php?action=getPlayerCardList&playerID=$playerID";
+        return callApi($url, 'GET');
     }
-    return $conn;
-}
 
+    function getPlayerList($playerID) {
+        $url = API_URL . "getPlayerList.php?action=getPlayerList&playerID=$playerID";
+        return callApi($url, 'GET');
+    }
+
+    function getPlayerName($playerID) {
+        $url = API_URL . "getPlayerName.php?action=getPlayerName&playerID=$playerID";
+        return callApi($url, 'GET');
+    }
+
+    function getPlayers($lobbyID) {
+        $url = API_URL . "getPlayers.php?action=getPlayers&lobbyID=$lobbyID";
+        return callApi($url, 'GET');
+    }
+
+    function setCardList($gameID, $playerID, $newCardList) {
+        $url = API_URL . "setCardList.php";
+        $data = [
+            'action' => 'setCardList',
+            'gameID' => $gameID,
+            'playerID' => $playerID,
+            'cardList' => $newCardList
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setCurrentCard($gameID, $card) {
+        $url = API_URL . "setCurrentCard.php";
+        $data = [
+            'action' => 'setCurrentCard',
+            'gameID' => $gameID,
+            'card' => $card
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setGameStatus($gameID, $gameStatus) {
+        $url = API_URL . "setGameStatus.php";
+        $data = [
+            'action' => 'setGameStatus',
+            'gameID' => $gameID,
+            'gameStatus' => $gameStatus
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setHost($gameID, $playerID) {
+        $url = API_URL . "setHost.php";
+        $data = [
+            'action' => 'setHost',
+            'gameID' => $gameID,
+            'playerID' => $playerID
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setMoney($playerID, $newMoney) {
+        $url = API_URL . "setMoney.php";
+        $data = [
+            'action' => 'setMoney',
+            'playerID' => $playerID,
+            'newMoney' => $newMoney
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function updatePlayerWins($playerID, $gameID) {
+        $url = API_URL . "updatePlayerWins.php";
+        $data = [
+            'action' => 'updatePlayerWins',
+            'playerID' => $playerID,
+            'gameID' => $gameID
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    ?>

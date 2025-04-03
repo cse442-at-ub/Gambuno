@@ -6,7 +6,6 @@ function testingFuntion()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-
     echo getBettingAmount($conn, '01ZQLH');
 }
 

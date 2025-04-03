@@ -6,7 +6,6 @@ function testingFuntion()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-
     echo getPlayerList($conn, '2LWOTB');
 }
 

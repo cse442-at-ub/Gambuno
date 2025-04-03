@@ -3,8 +3,10 @@ require_once 'util.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // For development - restrict in production
-header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+
+//header('Access-Control-Allow-Origin: your-frontend-domain.com');
 
 // Check if a player's turn is valid
 function isPlayerTurn($gameID, $playerID): bool
@@ -630,29 +632,29 @@ if ($requestMethod === 'POST') {
     $gameID = $data['gameID'] ?? null;
 
     switch ($action) {
-//        case 'create_game':
-//            if (!isset($data['bettingAmount'])) {
-//                echo json_encode(['success' => false, 'message' => 'Betting amount required']);
-//                break;
-//            }
-//            echo createGame($playerID, $data['bettingAmount']);
-//            break;
-//
-//        case 'join_game':
-//            if (!$gameID) {
-//                echo json_encode(['success' => false, 'message' => 'Game ID required']);
-//                break;
-//            }
-//            echo joinGame($gameID, $playerID);
-//            break;
-//
-//        case 'start_game':
-//            if (!$gameID) {
-//                echo json_encode(['success' => false, 'message' => 'Game ID required']);
-//                break;
-//            }
-//            echo startGame($gameID, $playerID);
-//            break;
+        case 'create_game':
+            if (!isset($data['bettingAmount'])) {
+                echo json_encode(['success' => false, 'message' => 'Betting amount required']);
+                break;
+            }
+            echo createGame($playerID, $data['bettingAmount']);
+            break;
+
+        case 'join_game':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo joinGame($gameID, $playerID);
+            break;
+
+        case 'start_game':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo startGame($gameID, $playerID);
+            break;
 
         case 'place_card':
             if (!$gameID || !isset($data['card'])) {

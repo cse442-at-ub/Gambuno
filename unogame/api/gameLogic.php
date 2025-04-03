@@ -202,10 +202,10 @@ function handleGameWin($conn, $gameID, $playerID) {
 
     updatePlayersStats($conn, $gameID, $playerID);
 
-
     $bettingAmt = getBettingAmount($conn, $gameID);
     $players = explode(',', getPlayerList($conn, $gameID));
     $totalPot = $bettingAmt * count($players);
+
 
     // Add winnings to player's account
     $currentMoney = getMoney($conn, $playerID);

@@ -1,127 +1,194 @@
-// Card types
-export const CARD_COLORS = ["red", "blue", "green", "yellow"]
-export const CARD_NUMBERS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-export const CARD_SPECIAL = ["Wild", "Wild4"]
+/**
+ * game-logic.js - Core game logic for UNO using the GameAPI
+ */
 
-// Create a new deck of cards
+import { GameAPI } from './game-api';
+
+/**
+ * Creates a standard UNO deck
+ * @returns {Array} The generated deck
+ */
 export function createDeck() {
-    const deck = []
+    // This is a local implementation for offline play
+    // For online play, we'll use the server deck
 
-    // Add number cards (0-9)
-    CARD_COLORS.forEach((color) => {
-        // Add one '0' card for each color
-        deck.push({ id: `${color}-0`, color, value: "0", type: "number" })
+    const colors = ["red", "blue", "green", "yellow"];
+    const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    const specialTypes = ["Wild", "Wild4"];
 
-        // Add two of each 1-9 for each color
-        CARD_NUMBERS.slice(1).forEach((value) => {
-            deck.push({ id: `${color}-${value}-1`, color, value, type: "number" })
-            deck.push({ id: `${color}-${value}-2`, color, value, type: "number" })
-        })
-    })
+    let deck = [];
+    let id = 0;
 
-    // Add special cards (Wild, Wild4)
-    CARD_SPECIAL.forEach((value) => {
+    // Add colored number cards
+    colors.forEach(color => {
+        values.forEach(value => {
+            // Add two of each card except 0's (UNO rules)
+            deck.push({
+                id: `${color}-${value}-${id++}`,
+                color,
+                value,
+                type: "number"
+            });
+
+            if (value !== "0") {
+                deck.push({
+                    id: `${color}-${value}-${id++}`,
+                    color,
+                    value,
+                    type: "number"
+                });
+            }
+        });
+    });
+
+    // Add special cards (wild and +4)
+    specialTypes.forEach(value => {
         for (let i = 0; i < 4; i++) {
-            deck.push({ id: `special-${value}-${i}`, color: "wild", value, type: "special" })
+            deck.push({
+                id: `special-${value}-${id++}`,
+                color: "wild",
+                value,
+                type: "special"
+            });
         }
-    })
+    });
 
-    return shuffleDeck(deck)
+    // Shuffle the deck
+    return shuffleDeck(deck);
 }
 
-// Shuffle the deck
-export function shuffleDeck(deck) {
-    const newDeck = [...deck]
-
-    // Fisher-Yates shuffle algorithm
+/**
+ * Shuffles a deck of cards
+ * @param {Array} deck The deck to shuffle
+ * @returns {Array} The shuffled deck
+ */
+function shuffleDeck(deck) {
+    const newDeck = [...deck];
     for (let i = newDeck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]]
+        const j = Math.floor(Math.random() * (i + 1));
+        [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
     }
-
-    // Second pass for better randomization
-    for (let i = newDeck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]]
-    }
-
-    return newDeck
+    return newDeck;
 }
 
-// Deal initial cards to players
-export function dealCards(deck, numPlayers, cardsPerPlayer = 7) {
-    const hands = Array(numPlayers)
-        .fill()
-        .map(() => [])
-    const newDeck = [...deck]
+/**
+ * Deals cards to players
+ * @param {Array} deck The deck to deal from
+ * @param {Number} numPlayers Number of players
+ * @returns {Object} Object containing hands, remaining deck, and discard pile
+ */
+export function dealCards(deck, numPlayers) {
+    const hands = Array(numPlayers).fill().map(() => []);
+    const newDeck = [...deck];
 
-    // Deal cards to each player
-    for (let i = 0; i < cardsPerPlayer; i++) {
+    // Deal 7 cards to each player
+    for (let i = 0; i < 7; i++) {
         for (let j = 0; j < numPlayers; j++) {
             if (newDeck.length > 0) {
-                hands[j].push(newDeck.pop())
+                hands[j].push(newDeck.pop());
             }
         }
     }
 
-    // Get the first card for the discard pile
-    const discardPile = []
-    let firstCard
+    // First card for discard pile
+    // If it's a wild card, we need a non-wild card for the initial discard
+    let discardPile = [];
+    let initialCard;
 
-    // Keep drawing until we get a number card (not a special card)
     do {
-        firstCard = newDeck.pop()
-        if (firstCard.type === "special") {
-            // Put it back in the deck and shuffle
-            newDeck.push(firstCard)
-            shuffleDeck(newDeck)
+        initialCard = newDeck.pop();
+        if (initialCard.type !== "special") {
+            discardPile.push(initialCard);
+            break;
         } else {
-            discardPile.push(firstCard)
+            // Put the wild card back and shuffle
+            newDeck.push(initialCard);
+            shuffleDeck(newDeck);
         }
-    } while (firstCard.type === "special")
+    } while (true);
 
-    return { hands, deck: newDeck, discardPile }
+    return { hands, deck: newDeck, discardPile };
 }
 
-// Check if a card can be played on top of the current card
-export function canPlayCard(card, currentCard, currentColor) {
+/**
+ * Checks if a card can be played on top of another
+ * @param {Object} card The card to play
+ * @param {Object} topCard The card on top of the discard pile
+ * @param {String} currentColor The current active color
+ * @returns {Boolean} Whether the card can be played
+ */
+export function canPlayCard(card, topCard, currentColor) {
     // Wild cards can always be played
     if (card.type === "special") {
-        return true
+        return true;
     }
 
     // Match color or value
-    return card.color === currentColor || card.value === currentCard.value
+    return (
+        card.color === currentColor ||
+        (topCard && card.value === topCard.value)
+    );
 }
 
-// Apply card effects
+/**
+ * Applies the effect of a played card to the game state
+ * @param {Object} gameState Current game state
+ * @param {Object} card The card being played
+ * @returns {Object} Updated game info (nextPlayer, direction, drawCount)
+ */
 export function applyCardEffect(gameState, card) {
-    const { currentPlayer, direction, players } = gameState
-    let nextPlayer = getNextPlayer(currentPlayer, direction, players.length)
-    let drawCount = 0
+    const { currentPlayer, direction, players } = gameState;
+    const totalPlayers = players.length;
 
-    // Only Wild4 has a draw effect now
-    if (card.value === "Wild4") {
-        // Next player draws 4 cards and loses their turn
-        drawCount = 4
-        nextPlayer = getNextPlayer(nextPlayer, direction, players.length)
+    // Default values
+    let nextPlayer = (currentPlayer + direction) % totalPlayers;
+    if (nextPlayer < 0) nextPlayer += totalPlayers; // Handle negative values for reverse
+    let newDirection = direction;
+    let drawCount = 0;
+
+    // Handle special cards
+    if (card.type === "special") {
+        // Wild+4: Next player draws 4 cards and loses their turn
+        if (card.value === "Wild4") {
+            drawCount = 4;
+            nextPlayer = (nextPlayer + direction) % totalPlayers;
+            if (nextPlayer < 0) nextPlayer += totalPlayers;
+        }
     }
 
-    return { nextPlayer, direction, drawCount }
+    return {
+        nextPlayer,
+        direction: newDirection,
+        drawCount
+    };
 }
 
-// Get the next player based on direction
-export function getNextPlayer(currentPlayer, direction, numPlayers) {
-    return (currentPlayer + direction + numPlayers) % numPlayers
+/**
+ * For online play, we would use these functions to call the server API
+ */
+export async function fetchGameState(gameID, playerID) {
+    try {
+        return await GameAPI.getGameState(gameID, playerID);
+    } catch (error) {
+        console.error("Failed to fetch game state:", error);
+        return null;
+    }
 }
 
-// Check if a player has won
-export function checkWinner(playerHand) {
-    return playerHand.length === 0
+export async function playCardOnline(gameID, playerID, card) {
+    try {
+        return await GameAPI.placeCard(gameID, playerID, card);
+    } catch (error) {
+        console.error("Failed to play card:", error);
+        return null;
+    }
 }
 
-// Check if a player needs to say "UNO"
-export function shouldSayUno(playerHand) {
-    return playerHand.length === 1
+export async function drawCardOnline(gameID, playerID) {
+    try {
+        return await GameAPI.drawCard(gameID, playerID);
+    } catch (error) {
+        console.error("Failed to draw card:", error);
+        return null;
+    }
 }
-

@@ -356,7 +356,7 @@ function handleJoinGame($conn, $gameID, $postData) {
  * Handle creating a new game
  */
 function handleCreateGame($conn, $postData) {
-    if (empty($postData['gameID']) || empty($postData['playerID']) || empty($postData['playerName']) || empty($postData['bet_amount'])) {
+    if (empty($postData['gameID']) || empty($postData['playerID']) || empty($postData['playerName'])) {
         return ['error' => $postData['gameID'] . " ". $postData['playerID'] . "   ". $postData['playerName']];
     }
     

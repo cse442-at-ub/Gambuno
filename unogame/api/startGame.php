@@ -153,10 +153,10 @@ function startGame($conn, $gameID, $bets) {
  * Based on your database example, cards appear to be in format like "color_value"
  */
 function generateDeck() {
-    $colors = ['red', 'blue', 'green', 'yellow'];
+    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    $specials = ['Skip', 'Reverse', 'Draw2'];
-    $wilds = ['wild', 'wild_Draw4'];
+    //$specials = ['Skip', 'Reverse', 'Draw2'];
+    //$wilds = ['wild', 'wild_Draw4'];
     
     $deck = [];
     
@@ -168,26 +168,16 @@ function generateDeck() {
         
         // Add two of each 1-9 card per color
         foreach ($values as $value) {
-            if ($value !== '0') { // Skip 0 since we already added it
+            if ($value !== '0' && $color !== 'wild') { // Skip 0 since we already added it
                 $deck[] = "{$color}_{$value}";
                 $deck[] = "{$color}_{$value}";
             }
         }
         
-        // Add special cards (Skip, Reverse, Draw2) - two of each per color
-        foreach ($specials as $special) {
-            $deck[] = "{$color}_{$special}";
-            $deck[] = "{$color}_{$special}";
-        }
     }
     
-    // Add wild cards (4 of each type)
-    for ($i = 0; $i < 4; $i++) {
-        foreach ($wilds as $wild) {
-            $deck[] = $wild;
-        }
-    }
-    
+    // Add wild cards (4 of each type
+
     return $deck;
 }
 

@@ -18,6 +18,16 @@ if ($conn->connect_error) {
     die(json_encode(['error' => "Connection failed: " . $conn->connect_error]));
 }
 
+if (php_sapi_name() == 'cli') {
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    // Check if there's a command-line argument
+    if (isset($argv[1])) {
+        parse_str($argv[1], $_GET);
+    } else {
+        // Still check stdin as fallback
+        parse_str(file_get_contents('php://stdin'), $_GET);
+    }
+}
 // Handle leaderboard request
 if (isset($_GET['action']) && $_GET['action'] == 'leaderboard') {
     $sort_by = isset($_GET['sort_by']) ? $_GET['sort_by'] : 'money';
@@ -30,8 +40,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'leaderboard') {
 if (isset($_GET['action']) && $_GET['action'] == 'getBet') {
     $gameId = $_GET['gameID'];
     $bet = getBet($conn, $gameId);
-    echo json_encode(["status" => "success", "bet" => $bet]);
-    $conn->close();
+    echo $bet;
     exit;
 }
 
@@ -84,10 +93,25 @@ function create_leaderboard($conn, $sort_by = 'money') {
     return ($leaderboard);
 }
 
+function getPlayerName($conn, $username) {
+    // Since playerID appears to be the username directly based on your DB structure
+    $query = "SELECT money FROM users WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $money= $row['money'];
+        return $money;
+    }
+}
+
 function getBet($conn, $gameID){
     $query = "SELECT betting_amt FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $gameID); // "i" indicates integer type
+    $stmt->bind_param("s", $gameID); 
     $stmt->execute();
 
     // Bind result variable
@@ -95,13 +119,12 @@ function getBet($conn, $gameID){
 
     // Fetch the result
     if ($stmt->fetch()) {
-        return $betting_amt;
+        return json_encode(["success" => true, "bet" => $betting_amt]);
     } else {
-        echo "No game found with ID: " . $gameID;
+        return json_encode(["success" => false, "message" => "error"]);
     }   
 }
 
 create_leaderboard($conn);
-
 
 ?>

@@ -7,9 +7,54 @@ const JoinGameMenu = () => {
   const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState(null);
   const [bet_amount, setBetAmount] = useState(null);
   
   // Fetch available lobbies
+  const getAuth = async() =>{
+    try{
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+      const result = await response.json();
+
+      if (result.status){
+        console.log(result.cookie);
+        setCookie(result.cookie);
+      }
+      else{
+        console.log("nope");
+      }
+    }
+    catch{
+      console.log("9");
+    }
+  }
+
+  const getMeta = async() =>{
+    try{
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookie}`);
+      const result = await response.json();
+
+      if (result.status){
+        setUsername(result.username);
+        console.log("Username: " ,  username);
+        setMoney(result.money);
+
+        console.log("Money: " ,  money);
+      }
+      else{
+        console.log("nope");
+      }
+    }
+    catch{
+      console.log("9");
+    }
+  }
+   
+  getAuth();
+  getMeta();
+
   const fetchLobbies = async () => {
     setLoading(true);
     setError("");
@@ -41,10 +86,10 @@ const JoinGameMenu = () => {
   // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}`, )
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}&playerID=${username}`, )
       const result = await response.json();
 
-      if (result.success) {
+      if (result.success.bet.success) {
         setBetAmount(result.bet);
 
       } else {
@@ -54,8 +99,6 @@ const JoinGameMenu = () => {
       console.error("Join failed:", error);
       alert("Network error while joining the game.");
     }
-
-    const username = localStorage.getItem("username");
 
 
     if (!username || !gameID) {

@@ -10,6 +10,7 @@ import tutorialCircle from "./Assets/tutorial-circle.svg"
 import SettingsPopup from "./SettingsPopup";
 import MobilePopup from "../MobilePopup";
 import Tutorial from './Tutorial';
+import Cookies from 'js-cookie';
 
 
 function MainMenu() {
@@ -29,10 +30,11 @@ const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 const [showPopup, setShowPopup] = useState(false)
 
-const [username, setUsername] = useState(localStorage.getItem("username"));
-const [money, setMoney] = useState(null);
 const [isLoading, setIsLoading] = useState(null);
 
+const [username, setUsername] = useState("");
+const [money, setMoney] = useState(null);
+const [cookie, setCookie] = useState(null);
 const [isTutOpen, setIsTutOpen] = useState(false)
 
 
@@ -41,33 +43,50 @@ const toggleSettings = () => {
 };
 
 useEffect(() => {
-  const fetchUserMoney = async () => {
-    if (!username) {
-      setIsLoading(false);
-      return;
-    }
+  const getAuth = async() =>{
+    try{
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+      const result = await response.json();
 
-    try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?username=${username}`);
-      const data = await response.json();
-
-      if (data.money !== undefined) {
-        localStorage.setItem('money', parseFloat(data.money).toFixed(2));
-        setMoney(parseFloat(data.money).toFixed(2));
-        console.log(data.money);
-      } else {
-        setMoney('0.00');
+      if (result.status){
+        console.log(result.cookie);
+        setCookie(result.cookie);
       }
-    } catch (error) {
-      console.error("Failed to fetch money:", error);
-      setMoney('0.00');
-    } finally {
-      setIsLoading(false);
+      else{
+        console.log("nope");
+      }
     }
-  };  
+    catch{
+      console.log("9");
+    }
+  }
 
-  fetchUserMoney();
-  }, [username]);
+  const getMeta = async() =>{
+    try{
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookie}`);
+      const result = await response.json();
+
+      if (result.status){
+        setUsername(result.username);
+        console.log("Username: " ,  username);
+        setMoney(result.money);
+
+        console.log("Money: " ,  money);
+      }
+      else{
+        console.log("nope");
+      }
+    }
+    catch{
+      console.log("9");
+    }
+  }
+   
+getAuth();
+getMeta();
+});
+
+
 
   if(isMobile){
     return(
@@ -157,8 +176,6 @@ useEffect(() => {
         <path d="M24.6186 24.75C25.2553 22.9121 26.5121 21.3623 28.1664 20.3751C29.8206 19.3879 31.7656 19.0271 33.6568 19.3565C35.548 19.6858 37.2633 20.6842 38.499 22.1747C39.7347 23.6652 40.411 25.5517 40.4082 27.5C40.4082 33 32.2832 35.75 32.2832 35.75M32.4998 46.75H32.5269M59.5832 33C59.5832 48.1878 47.4575 60.5 32.4998 60.5C17.5421 60.5 5.4165 48.1878 5.4165 33C5.4165 17.8122 17.5421 5.5 32.4998 5.5C47.4575 5.5 59.5832 17.8122 59.5832 33Z" stroke="#1E1E1E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
-
-
       
       <div className={styles.LoginButton_14_8}>
         </div><span>

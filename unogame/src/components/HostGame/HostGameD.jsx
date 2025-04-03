@@ -4,8 +4,52 @@ import { useNavigate } from "react-router-dom";
 const HostGame = () => {
   const navigate = useNavigate();
   const [betAmount, setBetAmount] = useState(""); // Move useState to the component level
-  const [currentBalance, setCurrentBalance] = useState(Number(localStorage.getItem("money")));
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState(null);
   
+  const getAuth = async() =>{
+    try{
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+      const result = await response.json();
+
+      if (result.status){
+        console.log(result.cookie);
+        setCookie(result.cookie);
+      }
+      else{
+        console.log("nope");
+      }
+    }
+    catch{
+      console.log("9");
+    }
+  }
+
+  const getMeta = async() =>{
+    try{
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookie}`);
+      const result = await response.json();
+
+      if (result.status){
+        setUsername(result.username);
+        console.log("Username: " ,  username);
+        setMoney(result.money);
+
+        console.log("Money: " ,  money);
+      }
+      else{
+        console.log("nope");
+      }
+    }
+    catch{
+      console.log("9");
+    }
+  }
+   
+  getAuth();
+  getMeta();
+
   const generateGameCode = async () => {
     try {
       const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
@@ -31,17 +75,15 @@ const HostGame = () => {
       alert("Please enter a betting amount.")
       return
     }
-    if (Number(betAmount) > currentBalance) {
+    if (Number(betAmount) > money) {
       alert("You do not have enough money to bet that amount.")
       return
     }
     let gameCode = await generateGameCode(); // Call the function to generate game code
     // If game code generation fails
     // Calculate new balance
-    const newBalance = currentBalance - Number(betAmount);
-    setCurrentBalance(newBalance);
-    localStorage.setItem("money", newBalance.toString());
-    localStorage.setItem("bet", betAmount);
+    const newBalance = money - Number(betAmount);
+    setMoney(newBalance);
 
     // Update money in database
     const updateMoneyInDatabase = async (username, money) => {
@@ -70,7 +112,6 @@ const HostGame = () => {
     };
     
     // Get username and update money
-    let username = localStorage.getItem("username");
     await updateMoneyInDatabase(username, newBalance);
   
     // Navigate to game lobby with game code and bet amount

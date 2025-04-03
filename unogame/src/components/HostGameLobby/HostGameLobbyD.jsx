@@ -5,14 +5,73 @@ const HostGameLobby = () => {
   const { gameCode } = useParams(); // Read game code from URL
   const location = useLocation();
   const navigate = useNavigate();
-
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState(null);
+  const [bet, setBet] = useState(null);
+    
+    const getAuth = async() =>{
+      try{
+        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+        const result = await response.json();
+  
+        if (result.status){
+          console.log(result.cookie);
+          setCookie(result.cookie);
+        }
+        else{
+          console.log("nope");
+        }
+      }
+      catch{
+        console.log("9");
+      }
+    }
+  
+    const getMeta = async() =>{
+      try{
+        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookie}`);
+        const result = await response.json();
+  
+        if (result.status){
+          setUsername(result.username);
+          console.log("Username: " ,  username);
+          setMoney(result.money);
+  
+          console.log("Money: " ,  money);
+        }
+        else{
+          console.log("nope");
+        }
+      }
+      catch{
+        console.log("9");
+      }
+    }
 
-  // Extract bet amount from navigation state
-  const username = localStorage.getItem("username");
-
-  const betAmount = Number(localStorage.getItem('bet'));
+    const getBet = async() =>{
+      try{
+        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameCode}`);
+        const result = await response.json();
+  
+        if (result.status){
+          setBet(result.bet);
+          console.log("Bet: " ,  bet);
+        }
+        else{
+          console.log("nope");
+        }
+      }
+      catch{
+        console.log("9");
+      }
+    }
+     
+    getAuth();
+    getMeta();
+    getBet();
 
   const handleStartGame = async () => {
     try {
@@ -24,7 +83,7 @@ const HostGameLobby = () => {
         body: JSON.stringify({
           gameID: gameCode,
           action: "start",
-          bet: betAmount
+          bet: bet
         })
       });
       if(!response.ok){
@@ -57,6 +116,7 @@ const HostGameLobby = () => {
         console.error("Missing username or game code");
         return;
       }
+      
 
       try {
         const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
@@ -65,9 +125,9 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             gameID: gameCode,
             action: "create",
-            playerID: username,
+            playerID: cookie,
             playerName: username,
-            bet_amount: betAmount,
+            bet_amount: bet,
           }),
         });
 
@@ -94,7 +154,7 @@ const HostGameLobby = () => {
     };
 
     createLobby();
-  }, [gameCode, betAmount, username]);
+  }, [gameCode, bet, username]);
 
   // Fetch players in the lobby (polling every 3 seconds)
   useEffect(() => {
@@ -162,7 +222,7 @@ const HostGameLobby = () => {
 
       {/* Bet Amount */}
       <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${betAmount}
+        Bet Amount: ${bet}
       </div>
 
       {/* Error Message */}

@@ -1,4 +1,13 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json");
+
+if (isset($_GET['action']) && $_GET['action'] == 'cookie') {
+    $userVal = getCookies();
+    echo json_encode(["status" => true, "cookie" => $userVal]);
+    exit;
+}
 
 function getPlayers($conn, $lobbyID)
 {
@@ -77,5 +86,14 @@ function getDatabaseConnection()
         die("Connection failed: " . $conn->connect_error);
     }
     return $conn;
+}
+
+function getCookies(){
+    if (isset($_COOKIE['auth'])){
+        $cookie = $_COOKIE['auth'];
+        return $cookie;
+    }
+
+    
 }
 

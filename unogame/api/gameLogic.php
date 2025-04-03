@@ -10,8 +10,11 @@ header('Access-Control-Allow-Headers: Content-Type');
 function isPlayerTurn($gameID, $playerID): bool
 {
     $currentPlayerData = getCurrentPlayer($gameID);
-    $currentPlayerJson = json_decode($currentPlayerData, true);
-    $currentPlayer = trim($currentPlayerJson['currentPlayer'], '"');
+    // Ensure we're working with an array
+    $currentPlayerData = is_string($currentPlayerData) ? json_decode($currentPlayerData, true) : $currentPlayerData;
+    $currentPlayer = $currentPlayerData['currentPlayer'] ?? '';
+    // Remove quotes if they exist
+    $currentPlayer = is_string($currentPlayer) ? trim($currentPlayer, '"') : $currentPlayer;
     return $currentPlayer === $playerID;
 }
 
@@ -54,7 +57,8 @@ function placeCard($gameID, $playerID, $card) {
 
     // Get current card in play
     $currentCardJson = getCurrentCard($gameID);
-    $currentCardData = json_decode($currentCardJson, true);
+    // Ensure we have an array
+    $currentCardData = is_string($currentCardJson) ? json_decode($currentCardJson, true) : $currentCardJson;
     $currentCard = $currentCardData['curCard'] ?? '';
 
     // Check if card is valid to play
@@ -63,8 +67,21 @@ function placeCard($gameID, $playerID, $card) {
     }
 
     // Check if player has this card
-    $playerCards = getCardList($gameID, $playerID);
-    $playerCardsArray = json_decode($playerCards, true);
+    $playerCards = getPlayerCardList($playerID);
+    // Ensure we have an array of cards
+    $playerCardsArray = [];
+    if (is_string($playerCards)) {
+        // Try JSON decode first
+        $decoded = json_decode($playerCards, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $playerCardsArray = $decoded;
+        } else {
+            // Fall back to comma separation if not JSON
+            $playerCardsArray = explode(',', $playerCards);
+        }
+    } else {
+        $playerCardsArray = $playerCards;
+    }
 
     if (!in_array($card, $playerCardsArray)) {
         return json_encode(['success' => false, 'message' => 'You do not have this card']);
@@ -72,7 +89,8 @@ function placeCard($gameID, $playerID, $card) {
 
     // Remove card from player's hand
     $playerCardsArray = array_diff($playerCardsArray, [$card]);
-    setCardList($gameID, $playerID, json_encode($playerCardsArray));
+    // Ensure we save as JSON
+    setCardList($gameID, $playerID, json_encode(array_values($playerCardsArray)));
 
     // Update current card in play
     setCurrentCard($gameID, $card);
@@ -97,6 +115,8 @@ function processCardEffect($gameID, $card) {
     list($color, $value) = explode('_', $card);
     $effect = null;
     $gameData = getGame($gameID);
+    // Ensure we have an array
+    $gameData = is_string($gameData) ? json_decode($gameData, true) : $gameData;
     $nextPlayer = getNextPlayer($gameID);
 
     // Determine card effect based on value
@@ -106,9 +126,20 @@ function processCardEffect($gameID, $card) {
         $effect = 'reverse';
         // Reverse the game order
         $gameOrder = $gameData['gameOrder'];
-        $gameOrderArray = explode(',', $gameOrder);
+        // Handle both JSON and comma-separated strings
+        $gameOrderArray = [];
+        if (is_string($gameOrder)) {
+            $decoded = json_decode($gameOrder, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $gameOrderArray = $decoded;
+            } else {
+                $gameOrderArray = explode(',', $gameOrder);
+            }
+        } else {
+            $gameOrderArray = $gameOrder;
+        }
         $gameOrderArray = array_reverse($gameOrderArray);
-        setGameOrder($gameID, implode(',', $gameOrderArray));
+        setGameOrder($gameID, json_encode($gameOrderArray));
     } else if ($value === 'draw2') {
         $effect = 'draw2';
         // Give next player 2 cards
@@ -135,8 +166,22 @@ function processCardEffect($gameID, $card) {
 // Helper function to add a random card to a player's hand
 function addCardToPlayer($gameID, $playerID) {
     // Get player's current cards
-    $playerCards = getCardList($gameID, $playerID);
-    $playerCardsArray = explode(',', $playerCards);
+    $playerCards = getPlayerCardList($playerID);
+
+    // Ensure we have an array of cards
+    $playerCardsArray = [];
+    if (is_string($playerCards)) {
+        // Try JSON decode first
+        $decoded = json_decode($playerCards, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $playerCardsArray = $decoded;
+        } else {
+            // Fall back to comma separation if not JSON
+            $playerCardsArray = explode(',', $playerCards);
+        }
+    } else {
+        $playerCardsArray = $playerCards;
+    }
 
     // Generate a random card
     //TODO: add stuff for plus 5 wild cards,(wild_5)
@@ -153,16 +198,31 @@ function addCardToPlayer($gameID, $playerID) {
 
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
-    setCardList(gameID, $playerID, implode(',', $playerCardsArray));
+    // Always save as JSON
+    setCardList($gameID, $playerID, json_encode($playerCardsArray));
 
     return $newCard;
 }
 
 // Helper function to get the next player
-function getNextPlayer( $gameID) {
-    $gameData = getGame( $gameID);
+function getNextPlayer($gameID) {
+    $gameData = getGame($gameID);
+    // Ensure we have an array
+    $gameData = is_string($gameData) ? json_decode($gameData, true) : $gameData;
     $currentPlayer = $gameData['curPlayer'];
-    $gameOrderArray = explode(',', $gameData['gameOrder']);
+
+    // Handle gameOrder in both formats
+    $gameOrderArray = [];
+    if (is_string($gameData['gameOrder'])) {
+        $decoded = json_decode($gameData['gameOrder'], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $gameOrderArray = $decoded;
+        } else {
+            $gameOrderArray = explode(',', $gameData['gameOrder']);
+        }
+    } else {
+        $gameOrderArray = $gameData['gameOrder'];
+    }
 
     // Find current player index
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
@@ -176,9 +236,22 @@ function getNextPlayer( $gameID) {
 // Move to the next player's turn
 function moveToNextPlayer($gameID) {
     $gameDataJson = getGame($gameID);
-    $gameData = json_decode($gameDataJson, true);
+    $gameData = is_string($gameDataJson) ? json_decode($gameDataJson, true) : $gameDataJson;
     $currentPlayer = $gameData['curPlayer'];
-    $gameOrderArray = explode(',', $gameData['gameOrder']);
+
+    // Handle gameOrder in both formats
+    $gameOrderArray = [];
+    if (is_string($gameData['gameOrder'])) {
+        $decoded = json_decode($gameData['gameOrder'], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $gameOrderArray = $decoded;
+        } else {
+            $gameOrderArray = explode(',', $gameData['gameOrder']);
+        }
+    } else {
+        $gameOrderArray = $gameData['gameOrder'];
+    }
+
     $cardEffect = $gameData['cardEffect'];
 
     // Find current player index
@@ -197,7 +270,6 @@ function moveToNextPlayer($gameID) {
     // Set next player
     setCurrentPlayer($gameID, $gameOrderArray[$nextIndex]);
 }
-
 
 function drawCard($gameID, $playerID) {
     // Check if it's player's turn
@@ -223,12 +295,27 @@ function handleGameWin($gameID, $playerID) {
     updatePlayerWins($gameID, $playerID);
     updatePlayersStats($gameID, $playerID);
 
-    $bettingAmt = json_decode(getBettingAmount($gameID), true);
-    $players = json_decode(getPlayerList($gameID), true);
+    $bettingAmtData = getBettingAmount($gameID);
+    $bettingAmt = is_string($bettingAmtData) ? json_decode($bettingAmtData, true) : $bettingAmtData;
+
+    $playersData = getPlayerList($gameID);
+    $players = [];
+    if (is_string($playersData)) {
+        $decoded = json_decode($playersData, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $players = $decoded;
+        } else {
+            $players = explode(',', $playersData);
+        }
+    } else {
+        $players = $playersData;
+    }
+
     $totalPot = $bettingAmt * count($players);
 
     // Add winnings to player's account
-    $currentMoney = json_decode(getMoney($playerID), true);
+    $currentMoneyData = getMoney($playerID);
+    $currentMoney = is_string($currentMoneyData) ? json_decode($currentMoneyData, true) : $currentMoneyData;
     setMoney($playerID, $currentMoney + $totalPot);
 }
 
@@ -239,7 +326,7 @@ function createGame($playerID, $bettingAmount) {
 
     // Check if player has enough money
     $playerMoneyJson = getMoney($playerID);
-    $playerMoney = json_decode($playerMoneyJson, true);
+    $playerMoney = is_string($playerMoneyJson) ? json_decode($playerMoneyJson, true) : $playerMoneyJson;
 
     if ($playerMoney < $bettingAmount) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
@@ -253,22 +340,22 @@ function createGame($playerID, $bettingAmount) {
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
 
-
     $conn = getDatabaseConnection();
 
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '')");
+    // Store as JSON strings
     $playerList = json_encode([$playerID]);
     $gameOrder = json_encode([$playerID]);
     $stmt->bind_param("sssssi", $gameID, $initialCard, $playerID, $playerList, $gameOrder, $bettingAmount);
     $stmt->execute();
 
     // Set host for the game
-    setHost( $gameID, $playerID);
+    setHost($gameID, $playerID);
 
     // Create player entry
-    $playerNameJson = getPlayerName( $playerID);
-    $playerName = json_decode($playerNameJson, true);
+    $playerNameData = getPlayerName($playerID);
+    $playerName = is_string($playerNameData) ? json_decode($playerNameData, true) : $playerNameData;
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -278,9 +365,10 @@ function createGame($playerID, $bettingAmount) {
 }
 
 // Join an existing game
-function joinGame( $gameID, $playerID) {
+function joinGame($gameID, $playerID) {
     // Check if game exists and is waiting
-    $gameData = getGame( $gameID);
+    $gameData = getGame($gameID);
+    $gameData = is_string($gameData) ? json_decode($gameData, true) : $gameData;
 
     if (!$gameData) {
         return json_encode(['success' => false, 'message' => 'Game not found']);
@@ -291,34 +379,48 @@ function joinGame( $gameID, $playerID) {
     }
 
     // Check if player has enough money
-    $playerMoney = getMoney( $playerID);
+    $playerMoneyData = getMoney($playerID);
+    $playerMoney = is_string($playerMoneyData) ? json_decode($playerMoneyData, true) : $playerMoneyData;
+
     if ($playerMoney < $gameData['betting_amt']) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
     }
 
     // Check if player already in the game
-    $players = explode(',', $gameData['playerList']);
+    $players = [];
+    if (is_string($gameData['playerList'])) {
+        $decoded = json_decode($gameData['playerList'], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $players = $decoded;
+        } else {
+            $players = explode(',', $gameData['playerList']);
+        }
+    } else {
+        $players = $gameData['playerList'];
+    }
+
     if (in_array($playerID, $players)) {
         return json_encode(['success' => false, 'message' => 'Already in game']);
     }
 
     // Deduct betting amount
-    setMoney( $playerID, $playerMoney - $gameData['betting_amt']);
+    setMoney($playerID, $playerMoney - $gameData['betting_amt']);
 
     // Add player to game
     $players[] = $playerID;
-    $playerList = implode(',', $players);
+    // Always store as JSON
+    $playerList = json_encode($players);
     $gameOrder = $playerList; // Simple order for now
 
     $conn = getDatabaseConnection();
-
 
     $stmt = $conn->prepare("UPDATE lobby SET playerList = ?, gameOrder = ? WHERE gameID = ?");
     $stmt->bind_param("sss", $playerList, $gameOrder, $gameID);
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName( $playerID);
+    $playerNameData = getPlayerName($playerID);
+    $playerName = is_string($playerNameData) ? json_decode($playerNameData, true) : $playerNameData;
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -343,19 +445,22 @@ function generateInitialCards() {
         }
     }
 
-    return implode(',', $cards);
+    // Return as JSON string consistently
+    return json_encode($cards);
 }
 
 // Start the game if enough players have joined
-function startGame( $gameID, $playerID) {
+function startGame($gameID, $playerID) {
     // Check if requester is game creator
-    $host = getHost( $gameID);
+    $hostData = getHost($gameID);
+    $host = is_string($hostData) ? json_decode($hostData, true) : $hostData;
 
     if ($host !== $playerID) {
         return json_encode(['success' => false, 'message' => 'Only the host can start the game']);
     }
 
-    $gameData = getGame( $gameID);
+    $gameData = getGame($gameID);
+    $gameData = is_string($gameData) ? json_decode($gameData, true) : $gameData;
 
     if (!$gameData) {
         return json_encode(['success' => false, 'message' => 'Game not found']);
@@ -365,19 +470,31 @@ function startGame( $gameID, $playerID) {
         return json_encode(['success' => false, 'message' => 'Game already started or finished']);
     }
 
-    $players = explode(',', $gameData['playerList']);
+    // Get player list in consistent format
+    $players = [];
+    if (is_string($gameData['playerList'])) {
+        $decoded = json_decode($gameData['playerList'], true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $players = $decoded;
+        } else {
+            $players = explode(',', $gameData['playerList']);
+        }
+    } else {
+        $players = $gameData['playerList'];
+    }
+
     if (count($players) < 2) {
         return json_encode(['success' => false, 'message' => 'Need at least 2 players to start']);
     }
 
     // Update game status
-    setGameStatus( $gameID, 'inProgress');
+    setGameStatus($gameID, 'inProgress');
 
     return json_encode(['success' => true, 'message' => 'Game started successfully']);
 }
 
 // Set card effect in the database
-function setCardEffect( $gameID, $effect) {
+function setCardEffect($gameID, $effect) {
     $conn = getDatabaseConnection();
     $stmt = $conn->prepare("UPDATE lobby SET cardEffect = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $effect, $gameID);
@@ -385,7 +502,19 @@ function setCardEffect( $gameID, $effect) {
 }
 
 // Set game order in the database
-function setGameOrder( $gameID, $gameOrder) {
+function setGameOrder($gameID, $gameOrder) {
+    // Ensure gameOrder is stored as JSON string
+    if (!is_string($gameOrder)) {
+        $gameOrder = json_encode($gameOrder);
+    } else {
+        // Check if it's already a JSON string
+        json_decode($gameOrder);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Not a valid JSON, convert it
+            $gameOrder = json_encode(explode(',', $gameOrder));
+        }
+    }
+
     $conn = getDatabaseConnection();
     $stmt = $conn->prepare("UPDATE lobby SET gameOrder = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $gameOrder, $gameID);
@@ -393,9 +522,10 @@ function setGameOrder( $gameID, $gameOrder) {
 }
 
 // Get game state for a player
-function getGameState( $gameID, $playerID) {
+function getGameState($gameID, $playerID) {
     // Check if game exists
-    $gameData = getGame( $gameID);
+    $gameData = getGame($gameID);
+    $gameData = is_string($gameData) ? json_decode($gameData, true) : $gameData;
 
     if (!$gameData) {
         return json_encode(['success' => false, 'message' => 'Game not found']);
@@ -410,14 +540,51 @@ function getGameState( $gameID, $playerID) {
 
     $players = [];
     while ($playerData = $playerResult->fetch_assoc()) {
-        // Only include card count for other players, not their actual cards
-        if ($playerData['playerID'] !== $playerID) {
-            $cardCount = count(explode(',', $playerData['cardList']));
-            $playerData['cardCount'] = $cardCount;
-            unset($playerData['cardList']);
+        // Ensure card list is in consistent format
+        if (isset($playerData['cardList'])) {
+            $cardList = $playerData['cardList'];
+            $cardArray = [];
+
+            // Try to decode as JSON first
+            $decoded = json_decode($cardList, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $cardArray = $decoded;
+            } else {
+                // Fall back to comma separation if not JSON
+                $cardArray = explode(',', $cardList);
+            }
+
+            // Only include card count for other players, not their actual cards
+            if ($playerData['playerID'] !== $playerID) {
+                $playerData['cardCount'] = count($cardArray);
+                unset($playerData['cardList']);
+            } else {
+                // Update the card list to be an array
+                $playerData['cardList'] = $cardArray;
+            }
         }
+
         $players[] = $playerData;
     }
+
+    // Parse game order consistently
+    $gameOrder = [];
+    if (isset($gameData['gameOrder'])) {
+        if (is_string($gameData['gameOrder'])) {
+            $decoded = json_decode($gameData['gameOrder'], true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $gameOrder = $decoded;
+            } else {
+                $gameOrder = explode(',', $gameData['gameOrder']);
+            }
+        } else {
+            $gameOrder = $gameData['gameOrder'];
+        }
+    }
+
+    // Get host consistently
+    $hostData = getHost($gameID);
+    $host = is_string($hostData) ? json_decode($hostData, true) : $hostData;
 
     // Create game state response
     $gameState = [
@@ -429,9 +596,9 @@ function getGameState( $gameID, $playerID) {
         'gameStatus' => $gameData['gameStatus'],
         'cardEffect' => $gameData['cardEffect'],
         'players' => $players,
-        'gameOrder' => explode(',', $gameData['gameOrder']),
+        'gameOrder' => $gameOrder,
         'bettingAmount' => $gameData['betting_amt'],
-        'host' => getHost( $gameID)
+        'host' => $host
     ];
 
     return json_encode($gameState);
@@ -468,7 +635,7 @@ if ($requestMethod === 'POST') {
 //                echo json_encode(['success' => false, 'message' => 'Betting amount required']);
 //                break;
 //            }
-//            echo createGame( $playerID, $data['bettingAmount']);
+//            echo createGame($playerID, $data['bettingAmount']);
 //            break;
 //
 //        case 'join_game':
@@ -476,7 +643,7 @@ if ($requestMethod === 'POST') {
 //                echo json_encode(['success' => false, 'message' => 'Game ID required']);
 //                break;
 //            }
-//            echo joinGame( $gameID, $playerID);
+//            echo joinGame($gameID, $playerID);
 //            break;
 //
 //        case 'start_game':
@@ -484,7 +651,7 @@ if ($requestMethod === 'POST') {
 //                echo json_encode(['success' => false, 'message' => 'Game ID required']);
 //                break;
 //            }
-//            echo startGame( $gameID, $playerID);
+//            echo startGame($gameID, $playerID);
 //            break;
 
         case 'place_card':
@@ -492,7 +659,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID and card required']);
                 break;
             }
-            echo placeCard( $gameID, $playerID, $data['card']);
+            echo placeCard($gameID, $playerID, $data['card']);
             break;
 
         case 'draw_card':
@@ -500,7 +667,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo drawCard( $gameID, $playerID);
+            echo drawCard($gameID, $playerID);
             break;
 
         default:
@@ -523,7 +690,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo getGameState( $gameID, $playerID);
+            echo getGameState($gameID, $playerID);
             break;
 
         default:

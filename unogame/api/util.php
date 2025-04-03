@@ -129,4 +129,14 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         return callApi($url, 'POST', $data);
     }
 
+    function updatePlayersStats($gameID, $winnerID) {
+        $url = API_URL . "updatePlayersStats.php";
+        $data = [
+            'action' => 'updatePlayersStats',
+            'gameID' => $gameID,
+            'winnerID' => $winnerID
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
     ?>

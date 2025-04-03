@@ -28,6 +28,14 @@ export function GameBoard({ gameID, playerID }) {
     height: typeof window !== "undefined" ? window.innerHeight : 800,
   })
 
+  const DEBUG = {
+    NONE: 0,
+    ERROR: 1,
+    WARN: 2,
+    INFO: 3,
+    DEBUG: 4
+  };
+
   // Initialize game when gameID and playerID are provided
   useEffect(() => {
     if (gameID && playerID) {
@@ -40,8 +48,12 @@ export function GameBoard({ gameID, playerID }) {
   // Fetch game state at regular intervals
   useEffect(() => {
     if (!lobbyID || !playerIdentifier) return
+    GameService.setDebugLevel(DEBUG.INFO);
+
 
     const fetchGameState = async () => {
+      console.log("lobbyID: " + lobbyID)
+      console.log("playerID: " + playerIdentifier)
       try {
         const response = await GameService.fetchGameState(lobbyID, playerIdentifier)
         if (response.success) {

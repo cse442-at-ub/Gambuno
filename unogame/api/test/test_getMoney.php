@@ -6,7 +6,7 @@ function testingFuntion()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-    
+
     echo getMoney($conn, 'hellouser');
 }
 

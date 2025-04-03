@@ -7,7 +7,7 @@ function testingFuntion()
         return "Failed to connect to the database.";
     }
 
- echo getPlayerName($conn, 'player_1284');
+    echo getPlayerName($conn, 'player_1284');
 }
 
 ?>

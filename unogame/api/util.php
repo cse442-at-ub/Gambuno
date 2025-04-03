@@ -16,6 +16,141 @@ function getPlayerCardList($conn, $playerID)
     return $stmt->get_result()->fetch_assoc()["CardList"];
 }
 
+function getMoney($conn, $playerID){
+    $stmt = $conn->prepare("SELECT money FROM users WHERE playerID = ?");
+    $stmt->bind_param("d", $playerID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        return $row['money']; // Return the money value
+    }
+    return 0;
+}
+
+function getPlayerName($conn, $playerID){
+    $stmt = $conn->prepare("SELECT playerName FROM players WHERE playerID = ?");
+    $stmt->bind_param("s", $playerID);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+function getCurrentPlayer($conn, $gameID){
+    $stmt = $conn->prepare("SELECT curPlayer FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID)
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['curPlayer']; 
+    }
+    return null; 
+}
+
+function getCurrentCard($conn, $gameID){
+    $stmt = $conn->prepare("SELECT curCard FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['curCard'];
+    }
+    
+    return null;
+}
+function getCardList($conn, $gameID,$playerID){
+    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
+    $stmt->bind_param("ss", $playerID, $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['cardList']; 
+    }
+}
+
+function getPlayerList($conn,$gameID){
+    $stmt = $conn->prepare("SELECT playerList FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("i", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['playerList']; 
+    }
+    
+    return "";
+}
+function getBettingAmount($conn, $gameID) {
+    $query = "SELECT betting_amt FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['betting_amt'];
+    }
+    
+    return 0;
+}
+
+function setPlacedCard($conn, $gameID, $playerID, $card){
+    $stmt = $conn->prepare("UPDATE players SET placedCard = ? WHERE playerID = ? AND gameID = ?");
+    $stmt->bind_param("sii", $card, $playerID, $gameID);
+    return $stmt->execute();
+}
+
+function setCardList($conn, $gameID, $playerID, $newCardList){
+    $stmt = $conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ? AND gameID = ?");
+    $stmt->bind_param("sii", $newCardList, $playerID, $gameID);
+    return $stmt->execute();
+}
+
+function setCurrentCard($conn, $gameID, $card){
+    $stmt = $conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
+    $stmt->bind_param("si", $card, $gameID);
+    return $stmt->execute();
+}
+
+function setGameStatus($conn, $gameID, $gameStatus){
+    $allowedStatuses = ["finished", "waiting", "inProgress"];
+    if (!in_array($gameStatus, $allowedStatuses)) {
+        return false;
+    }
+    $stmt = $conn->prepare("UPDATE lobby SET status = ? WHERE gameID = ?");
+    $stmt->bind_param("si", $gameStatus, $gameID);
+    return $stmt->execute();
+}
+function setMoney($conn, $playerID, $newMoney){
+    $stmt = $conn->prepare("UPDATE players SET money = ? WHERE playerID = ?");
+    $stmt->bind_param("si", $playerID, $newMoney);
+    return $stmt->execute();
+}
+
+function setCurrentPlayer($conn, $gameID, $newCurPlayer){
+    $stmt = $conn->prepare("SELECT curPlayer FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID, $newCurPlayer)
+    return $stmt->execute();
+}
+function updatePlayerWins($conn,$gameID, $playerID){
+    $stmt = $conn->prepare("UPDATE players SET wins = wins + 1 WHERE playerID = ?");
+    $stmt->bind_param("i", $playerID);
+    return $stmt->execute();
+}
+
+function updatePlayersStats($conn,$gameID, $playerID) {
+    $stmt = $conn->prepare("UPDATE players SET total= total+ 1 WHERE playerID = ?");
+    $stmt->bind_param("i", $playerID);
+    return $stmt->execute();
+}
+
+
 function updatePlayerCardList($conn, $playerID, $newCardList)
 {
     $stmt = $conn->prepare("UPDATE Player SET CardList = ? WHERE playerID = ?");
@@ -64,6 +199,7 @@ function updateCardEffect($conn, $playerID, $effect)
     $stmt->bind_param("si", $effect, $playerID);
     return $stmt->execute();
 }
+
 
 function getDatabaseConnection()
 {

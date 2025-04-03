@@ -202,10 +202,6 @@ function updateCurrentPlayer($conn, $lobbyID, $playerID)
 }
 
 
-
-
-
-
 function getDatabaseConnection()
 {
     $host = "localhost";

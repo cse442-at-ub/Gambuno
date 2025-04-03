@@ -6,7 +6,8 @@ function testingFuntion()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-     echo getCurrentPlayer($conn, '1B1P8A');
+
+    echo getCurrentPlayer($conn, '1B1P8A');
 }
 
 ?>

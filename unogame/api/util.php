@@ -17,16 +17,16 @@ function getPlayerCardList($conn, $playerID)
 }
 
 function getGame($conn, $gameID){
-    $stmt = $conn->prepare("SELECT * FROM lobby WHERE gameId = $gameID");
+    $stmt = $conn->prepare("SELECT gameID FROM lobby WHERE gameId = $gameID");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     return $stmt->get_result();
 
 }
 
-function getMoney($conn, $playerID){
-    $stmt = $conn->prepare("SELECT money FROM users WHERE playerID = ?");
-    $stmt->bind_param("d", $playerID);
+function getMoney($conn, $username){
+    $stmt = $conn->prepare("SELECT money FROM users WHERE username = ?");
+    $stmt->bind_param("d", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 

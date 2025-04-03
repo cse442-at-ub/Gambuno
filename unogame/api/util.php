@@ -93,7 +93,5 @@ function getCookies(){
         $cookie = $_COOKIE['auth'];
         return $cookie;
     }
-
-    
 }
 

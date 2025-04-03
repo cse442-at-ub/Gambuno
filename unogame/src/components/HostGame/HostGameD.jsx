@@ -1,54 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const HostGame = () => {
   const navigate = useNavigate();
-  const [betAmount, setBetAmount] = useState(""); // Move useState to the component level
+  const [betAmount, setBetAmount] = useState(null);
   const [username, setUsername] = useState("");
   const [money, setMoney] = useState(null);
-  const [cookie, setCookie] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   
-  const getAuth = async() =>{
-    try{
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
-      const result = await response.json();
-
-      if (result.status){
-        console.log(result.cookie);
-        setCookie(result.cookie);
+  // Use useEffect for API calls
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        setIsLoading(true);
+        const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+        const cookieResult = await cookieResponse.json();
+        
+        if (cookieResult.status) {
+          console.log("Cookie acquired:", cookieResult.cookie);
+          setCookie(cookieResult.cookie);
+          
+          // Get user metadata with the cookie
+          const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+          const metaResult = await metaResponse.json();
+          
+          if (metaResult.status) {
+            setUsername(metaResult.username);
+            setMoney(metaResult.money);
+            console.log("Username:", metaResult.username, "Money:", metaResult.money);
+          } else {
+            console.error("Failed to get user metadata:", metaResult);
+          }
+        } else {
+          console.error("Failed to get cookie:", cookieResult);
+        }
+      } catch (error) {
+        console.error("Error during initialization:", error);
+      } finally {
+        setIsLoading(false);
       }
-      else{
-        console.log("nope");
-      }
-    }
-    catch{
-      console.log("9");
-    }
-  }
-
-  const getMeta = async() =>{
-    try{
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookie}`);
-      const result = await response.json();
-
-      if (result.status){
-        setUsername(result.username);
-        console.log("Username: " ,  username);
-        setMoney(result.money);
-
-        console.log("Money: " ,  money);
-      }
-      else{
-        console.log("nope");
-      }
-    }
-    catch{
-      console.log("9");
-    }
-  }
-   
-  getAuth();
-  getMeta();
+    };
+    
+    initializeAuth();
+  }, []); // Empty dependency array means this runs once on component mount
 
   const generateGameCode = async () => {
     try {

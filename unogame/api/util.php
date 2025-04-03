@@ -2,7 +2,7 @@
 
 function getPlayers($conn, $lobbyID)
 {
-    $stmt = $conn->prepare("SELECT * FROM Player WHERE lobbyID = ?");
+    $stmt = $conn->prepare("SELECT * FROM players WHERE gameID = ?");
     $stmt->bind_param("s", $lobbyID);
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -10,14 +10,14 @@ function getPlayers($conn, $lobbyID)
 
 function getPlayerCardList($conn, $playerID)
 {
-    $stmt = $conn->prepare("SELECT CardList FROM Player WHERE playerID = ?");
+    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
     $stmt->bind_param("s", $playerID);
     $stmt->execute();
-    return $stmt->get_result()->fetch_assoc()["CardList"];
+    return $stmt->get_result()->fetch_assoc()["cardList"];
 }
 
 function getGame($conn, $gameID){
-    $stmt = $conn->prepare("SELECT gameID FROM lobby WHERE gameId = $gameID");
+    $stmt = $conn->prepare("SELECT gameID FROM lobby WHERE gameID = $gameID");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     return $stmt->get_result();
@@ -131,12 +131,12 @@ function setGameStatus($conn, $gameID, $gameStatus){
     if (!in_array($gameStatus, $allowedStatuses)) {
         return false;
     }
-    $stmt = $conn->prepare("UPDATE lobby SET status = ? WHERE gameID = ?");
+    $stmt = $conn->prepare("UPDATE lobby SET gameStatus = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $gameStatus, $gameID);
     return $stmt->execute();
 }
 function setMoney($conn, $playerID, $newMoney){
-    $stmt = $conn->prepare("UPDATE players SET money = ? WHERE playerID = ?");
+    $stmt = $conn->prepare("UPDATE users SET money = ? WHERE username = ?");
     $stmt->bind_param("sd", $playerID, $newMoney);
     return $stmt->execute();
 }
@@ -147,66 +147,62 @@ function setCurrentPlayer($conn, $gameID, $newCurPlayer){
     return $stmt->execute();
 }
 function updatePlayerWins($conn,$gameID, $playerID){
-    $stmt = $conn->prepare("UPDATE players SET wins = wins + 1 WHERE playerID = ?");
-    $stmt->bind_param("s", $playerID);
+    $stmt = $conn->prepare("UPDATE players SET wins = wins + 1 WHERE playerID = ? AND gameID");
+    $stmt->bind_param("s", $playerID, $gameID);
     return $stmt->execute();
 }
 
 function updatePlayersStats($conn,$gameID, $playerID) {
-    $stmt = $conn->prepare("UPDATE players SET total= total+ 1 WHERE playerID = ?");
-    $stmt->bind_param("s", $playerID);
+    $stmt = $conn->prepare("UPDATE players SET total_games= total_games+ 1 WHERE playerID = ? AND gameID");
+    $stmt->bind_param("s", $playerID,$gameID);
     return $stmt->execute();
 }
 
-
+//====May have bugs
 function updatePlayerCardList($conn, $playerID, $newCardList)
 {
-    $stmt = $conn->prepare("UPDATE Player SET CardList = ? WHERE playerID = ?");
+    $stmt = $conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ?");
     $stmt->bind_param("ss", $newCardList, $playerID);
     return $stmt->execute();
 }
 
 function updatePlacedCard($conn, $playerID, $card)
 {
-    $stmt = $conn->prepare("UPDATE Player SET PlacedCard = ? WHERE playerID = ?");
+    $stmt = $conn->prepare("UPDATE players SET placedCard = ? WHERE playerID = ?");
     $stmt->bind_param("ss", $card, $playerID);
     return $stmt->execute();
 }
 
 function updateSkipStatus($conn, $playerID, $skipStatus)
 {
-    $stmt = $conn->prepare("UPDATE Player SET Skip = ? WHERE playerID = ?");
+    $stmt = $conn->prepare("UPDATE players SET skipped = ? WHERE playerID = ?");
     $stmt->bind_param("is", $skipStatus, $playerID);
     return $stmt->execute();
 }
 
 function updateGameOrder($conn, $lobbyID, $newOrder)
 {
-    $stmt = $conn->prepare("UPDATE Lobby SET GameOrder = ? WHERE lobbyID = ?");
+    $stmt = $conn->prepare("UPDATE lobby SET gameOrder = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $newOrder, $lobbyID);
     return $stmt->execute();
 }
 
 function updateCurrentCard($conn, $lobbyID, $card)
 {
-    $stmt = $conn->prepare("UPDATE Lobby SET CurrentCard = ? WHERE lobbyID = ?");
+    $stmt = $conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $card, $lobbyID);
     return $stmt->execute();
 }
 
 function updateCurrentPlayer($conn, $lobbyID, $playerID)
 {
-    $stmt = $conn->prepare("UPDATE Lobby SET CurrentPlayer = ? WHERE lobbyID = ?");
+    $stmt = $conn->prepare("UPDATE lobby SET curPlayer = ? WHERE gameID = ?");
     $stmt->bind_param("ss", $playerID, $lobbyID);
     return $stmt->execute();
 }
 
-function updateCardEffect($conn, $playerID, $effect)
-{
-    $stmt = $conn->prepare("UPDATE Player SET CardEffect = ? WHERE playerID = ?");
-    $stmt->bind_param("ss", $effect, $playerID);
-    return $stmt->execute();
-}
+
+
 
 
 

@@ -1,688 +1,488 @@
 <?php
 require_once 'util.php';
 
-/**
- * GameLogic Class
- *
- * Implements core game mechanics for a multiplayer UNO game
- * Handles game state management, turn progression, card effects, and win conditions
- * Updated to align with the actual database schema
- */
-class GameLogic {
-    // Private properties for game state
-    private $conn;
-    private $lobbyID;
-    private $currentCard;
-    private $currentPlayer;
-    private $gameOrder; // 1 for normal, -1 for reversed
-    private $gameStatus; // 'waiting', 'active', 'ended'
-    private $players = [];
-    private $activeEffects = [];
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // For development - restrict in production
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
+//TODO:
+// isValidCardPlay: add code  for +5 and +2
+// processCardEffect : add code for drawing cards and handling special effects
+// moveToNextPlayer: add code for handling skip and reverse effects
 
-    // Constants for card types
-    const CARD_SKIP = 'Skip';
-    const CARD_REVERSE = 'Reverse';
-    const CARD_DRAW_TWO = 'Draw2';
-    const CARD_WILD = 'Wild';
-    const CARD_WILD_DRAW_FOUR = 'Wild_Draw4';
 
-    /**
-     * Constructor
-     *
-     * @param int $lobbyID The ID of the game lobby
-     */
-    public function __construct($lobbyID) {
-        $this->conn = getDatabaseConnection();
-        $this->lobbyID = $lobbyID;
-        $this->initializeGameState();
+
+// Check if a player's turn is valid
+function isPlayerTurn($conn, $gameID, $playerID): bool
+{
+    $currentPlayer = getCurrentPlayer($conn, $gameID);
+    return $currentPlayer === $playerID;
+}
+
+// Validate if a card can be played based on current card in play
+function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 0 as false
+    if (empty($currentCard) || empty($playedCard)) {
+        return false; // If either card is empty, invalid play
+    }
+    $currentCard = htmlspecialchars($currentCard, ENT_QUOTES, 'UTF-8');
+    $playedCard = htmlspecialchars($playedCard, ENT_QUOTES, 'UTF-8');
+
+    // Validate card format using regex to prevent injection
+    if (!preg_match('/^[a-z]+_[a-z0-9]+$/', $currentCard) || !preg_match('/^[a-z]+_[a-z0-9]+$/', $playedCard)) {
+        return false;
     }
 
-    /**
-     * Initialize game state from database
-     */
-    private function initializeGameState() {
-        // Get lobby information
-        $stmt = $this->conn->prepare("SELECT * FROM lobby WHERE gameID = ?");
-        $stmt->bind_param("i", $this->lobbyID);
-        $stmt->execute();
-        $lobbyData = $stmt->get_result()->fetch_assoc();
 
-        if (!$lobbyData) {
-            throw new Exception("Lobby not found");
-        }
+    // Extract color and number from both cards
+    list($currentColor, $currentValue) = explode('_', $currentCard);//explode = split
+    list($playedColor, $playedValue) = explode('_', $playedCard);
 
-        $this->currentCard = $lobbyData['curCard'];
-        $this->currentPlayer = $lobbyData['curPlayer'];
-        $this->gameOrder = $lobbyData['gameOrder'] ? $lobbyData['gameOrder'] : 1;
-        $this->gameStatus = $lobbyData['gameStatus'] ? $lobbyData['gameStatus'] : 'waiting';
+    // Wild card can always be played
+    if ($playedColor === 'wild') {
+        return true;
+    }
+    //add code here for +5 and +2
 
-        // Get players in lobby
-        $stmt = $this->conn->prepare("SELECT * FROM players WHERE gameID = ?");
-        $stmt->bind_param("i", $this->lobbyID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        while ($player = $result->fetch_assoc()) {
-            $this->players[] = $player;
-
-            // Load active effects
-            if (!empty($player['cardEffect'])) {
-                $this->activeEffects[$player['playerID']] = $player['cardEffect'];
-            }
-        }
+    // Same color or same value is a valid play
+    if ($currentColor === $playedColor || $currentValue === $playedValue) {
+        return true;
     }
 
-    /**
-     * Fetch the current game state
-     *
-     * @param int $requestingPlayerID ID of player requesting the state
-     * @return array Game state data
-     */
-    public function fetchGameState($requestingPlayerID) {
-        $gameState = [
-            'currentCard' => $this->currentCard,
-            'currentPlayer' => $this->currentPlayer,
-            'activeEffects' => $this->activeEffects,
-            'gameOrder' => $this->gameOrder,
-            'gameStatus' => $this->gameStatus,
-            'players' => []
-        ];
+    return false;
+}
 
-        foreach ($this->players as $player) {
-            $playerCards = json_decode($player['cardList'], true);
+// Handle card placement
+function placeCard($conn, $gameID, $playerID, $card) {
 
-            $playerData = [
-                'playerID' => $player['playerID'],
-                'username' => $player['playerName'],
-                'cardCount' => count($playerCards),
-                'isSkipped' => (bool)$player['skipped']
-            ];
-
-            // Only include full hand for the requesting player
-            if ($player['playerID'] == $requestingPlayerID) {
-                $playerData['hand'] = $playerCards;
-            }
-
-            $gameState['players'][] = $playerData;
-        }
-
-        return $gameState;
+    if (!isPlayerTurn($conn, $gameID, $playerID)) {// if player not in turn dont play
+        return json_encode(['success' => false, 'message' => 'Not your turn']);
+        //returns: {"success":false,"message":"Not your turn"}
     }
 
-    /**
-     * Handle a card played by a player
-     *
-     * @param int $playerID The ID of the player playing the card
-     * @param string $card The card being played
-     * @param string|null $chosenColor Color chosen for wild cards
-     * @return array Result of the action
-     */
-    public function handleCardPlacement($playerID, $card, $chosenColor = null) {
-        // Verify it's the player's turn
-        if ($playerID != $this->currentPlayer) {
-            return ['success' => false, 'message' => 'Not your turn'];
-        }
+    // Get current card in play
+    $currentCard = getCurrentCard($conn, $gameID);
 
-        // Get player's hand from database
-        $stmt = $this->conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-        $stmt->bind_param("i", $playerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $playerData = $result->fetch_assoc();
-
-        if (!$playerData) {
-            return ['success' => false, 'message' => 'Player not found'];
-        }
-
-        $playerCards = json_decode($playerData['cardList'], true);
-
-        // Check if player has the card
-        if (!in_array($card, $playerCards)) {
-            return ['success' => false, 'message' => 'Card not in hand'];
-        }
-
-        // Validate the card play
-        if (!$this->validateCardPlay($card)) {
-            return ['success' => false, 'message' => 'Invalid card play'];
-        }
-
-        // Parse the card
-        $cardComponents = $this->parseCard($card);
-        $cardColor = $cardComponents['color'];
-        $cardValue = $cardComponents['value'];
-
-        // Handle wild cards
-        if ($cardColor === 'wild') {
-            if (!$chosenColor || !in_array($chosenColor, ['red', 'blue', 'green', 'yellow'])) {
-                return ['success' => false, 'message' => 'Must choose a valid color for wild card'];
-            }
-            $card = $card . '_' . $chosenColor;
-        }
-
-        // Remove card from player's hand
-        $playerCards = array_diff($playerCards, [$card]);
-
-        // Update database
-        $cardListJson = json_encode(array_values($playerCards));
-        $stmt = $this->conn->prepare("UPDATE players SET cardList = ?, placedCard = ? WHERE playerID = ?");
-        $stmt->bind_param("ssi", $cardListJson, $card, $playerID);
-        $stmt->execute();
-
-        // Update current card in lobby
-        $stmt = $this->conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
-        $stmt->bind_param("si", $card, $this->lobbyID);
-        $stmt->execute();
-
-        // Set current card
-        $this->currentCard = $card;
-
-        // Check win condition
-        if (count($playerCards) === 0) {
-            $this->gameStatus = 'ended';
-            $this->updateGameStatistics($playerID);
-            return [
-                'success' => true,
-                'message' => 'Player won',
-                'gameOver' => true,
-                'winner' => $playerID
-            ];
-        }
-
-        // Handle card effect
-        $effectResult = $this->handleCardEffect($cardValue, $chosenColor);
-
-        // Move to next player
-        $this->moveToNextPlayer();
-
-        return [
-            'success' => true,
-            'message' => 'Card played successfully',
-            'effectApplied' => $effectResult['effectApplied'],
-            'effectDetails' => $effectResult['details']
-        ];
+    // Check if card is valid to play
+    if (!isValidCardPlay($currentCard, $card)) {
+        return json_encode(['success' => false, 'message' => 'Invalid card play']);
+        //returns: {"success":false,"message":"Invalid card play"}
     }
 
-    /**
-     * Handle effects of special cards
-     *
-     * @param string $cardValue Value component of the card
-     * @param string|null $chosenColor Color chosen for wild cards
-     * @return array Result of effect application
-     */
-    private function handleCardEffect($cardValue, $chosenColor = null) {
-        $result = [
-            'effectApplied' => false,
-            'details' => []
-        ];
+    // Check if player has this card
+    $playerCards = getCardList($conn, $gameID, $playerID);
+    $playerCardsArray = explode(',', $playerCards);
 
-        switch ($cardValue) {
-            case self::CARD_SKIP:
-                $nextPlayer = $this->getNextPlayerId();
-                $this->setPlayerSkipped($nextPlayer);
-                $result['effectApplied'] = true;
-                $result['details'] = ['type' => 'skip', 'affectedPlayer' => $nextPlayer];
-                break;
-
-            case self::CARD_REVERSE:
-                $this->reverseGameOrder();
-                $result['effectApplied'] = true;
-                $result['details'] = ['type' => 'reverse', 'newOrder' => $this->gameOrder];
-                break;
-
-            case self::CARD_DRAW_TWO:
-                $nextPlayer = $this->getNextPlayerId();
-                $this->addCardsToPlayer($nextPlayer, 2);
-                $result['effectApplied'] = true;
-                $result['details'] = ['type' => 'draw2', 'affectedPlayer' => $nextPlayer];
-                break;
-
-            case self::CARD_WILD:
-                $result['effectApplied'] = true;
-                $result['details'] = ['type' => 'wild', 'chosenColor' => $chosenColor];
-                break;
-
-            case self::CARD_WILD_DRAW_FOUR:
-                $nextPlayer = $this->getNextPlayerId();
-                $this->addCardsToPlayer($nextPlayer, 4);
-                $result['effectApplied'] = true;
-                $result['details'] = [
-                    'type' => 'wild_draw4',
-                    'affectedPlayer' => $nextPlayer,
-                    'chosenColor' => $chosenColor
-                ];
-                break;
-        }
-
-        return $result;
+    if (!in_array($card, $playerCardsArray)) {
+        return json_encode(['success' => false, 'message' => 'You do not have this card']);
     }
 
-    /**
-     * Set a player to be skipped in the next turn cycle
-     *
-     * @param int $playerID The ID of the player to skip
-     */
-    private function setPlayerSkipped($playerID) {
-        $stmt = $this->conn->prepare("UPDATE players SET skipped = 1 WHERE playerID = ?");
-        $stmt->bind_param("i", $playerID);
-        $stmt->execute();
+    // Set the placed card
+    setPlacedCard($conn, $gameID, $playerID, $card);
 
-        // Update local state
-        foreach ($this->players as &$player) {
-            if ($player['playerID'] == $playerID) {
-                $player['skipped'] = 1;
-                break;
-            }
-        }
+    // Remove card from player's hand
+    $playerCardsArray = array_diff($playerCardsArray, [$card]);//returns array of cards without the played card
+    setCardList($conn, $gameID, $playerID, implode(',', $playerCardsArray));
+
+    // Update current card in play
+    setCurrentCard($conn, $gameID, $card);
+
+    // Process card effects if any
+//    processCardEffect($conn, $gameID, $card);
+
+    // Check if player has won (no cards left)
+    if (count($playerCardsArray) === 0) {
+        handleGameWin($conn, $gameID, $playerID);
+        return json_encode(['success' => true, 'message' => 'You win!', 'game_over' => true]);
     }
 
-    /**
-     * Reverse the game order
-     */
-    private function reverseGameOrder() {
-        $this->gameOrder *= -1;
-        $stmt = $this->conn->prepare("UPDATE lobby SET gameOrder = ? WHERE gameID = ?");
-        $stmt->bind_param("ii", $this->gameOrder, $this->lobbyID);
-        $stmt->execute();
+    // Move to next player's turn
+    moveToNextPlayer($conn, $gameID);
+
+    return json_encode(['success' => true, 'message' => 'Card played successfully']);
+}
+
+// Process special card effects
+function processCardEffect($conn, $gameID, $card) {
+    list($color, $value) = explode('_', $card);
+    $effect = null;
+
+    // Determine card effect based on value
+    if ($value === 'skip') {
+        $effect = 'skip';
+    } else if ($value === 'reverse') {
+        $effect = 'reverse';
+        // Reverse the game order
+        $gameOrder = getGameOrder($conn, $gameID);
+        $gameOrderArray = explode(',', $gameOrder);
+        $gameOrderArray = array_reverse($gameOrderArray);
+        setGameOrder($conn, $gameID, implode(',', $gameOrderArray));
+    } else if ($value === 'draw2') {
+        $effect = 'draw2';
+        // Implementation for drawing 2 cards will be added later
+    } else if ($color === 'wild') {
+        $effect = 'wild';
+        // Wild card effect handled by front-end choice
     }
 
-    /**
-     * Add cards to a player's hand
-     *
-     * @param int $playerID The ID of the player
-     * @param int $count Number of cards to add
-     */
-    private function addCardsToPlayer($playerID, $count) {
-        // Get current cards
-        $stmt = $this->conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-        $stmt->bind_param("i", $playerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $playerData = $result->fetch_assoc();
-
-        if (!$playerData) {
-            return;
-        }
-
-        $playerCards = json_decode($playerData['cardList'], true);
-
-        for ($i = 0; $i < $count; $i++) {
-            $playerCards[] = $this->drawRandomCard();
-        }
-
-        $cardListJson = json_encode($playerCards);
-        $stmt = $this->conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ?");
-        $stmt->bind_param("si", $cardListJson, $playerID);
-        $stmt->execute();
-    }
-
-    /**
-     * Move to the next player in turn order
-     */
-    public function moveToNextPlayer() {
-        $currentPlayerIndex = $this->getPlayerIndexById($this->currentPlayer);
-        $nextPlayerIndex = null;
-        $playerCount = count($this->players);
-        $direction = $this->gameOrder;
-
-        // Find the next non-skipped player
-        $i = 1;
-        while ($i <= $playerCount) {
-            $nextIndex = ($currentPlayerIndex + ($i * $direction) + $playerCount) % $playerCount;
-            $nextPlayer = $this->players[$nextIndex];
-
-            // If player is set to be skipped, clear their skip status and continue
-            if ($nextPlayer['skipped'] == 1) {
-                $stmt = $this->conn->prepare("UPDATE players SET skipped = 0 WHERE playerID = ?");
-                $stmt->bind_param("i", $nextPlayer['playerID']);
-                $stmt->execute();
-
-                $this->players[$nextIndex]['skipped'] = 0;
-                $i++;
-                continue;
-            }
-
-            $nextPlayerIndex = $nextIndex;
-            break;
-        }
-
-        if ($nextPlayerIndex !== null) {
-            $this->currentPlayer = $this->players[$nextPlayerIndex]['playerID'];
-            $stmt = $this->conn->prepare("UPDATE lobby SET curPlayer = ? WHERE gameID = ?");
-            $stmt->bind_param("ii", $this->currentPlayer, $this->lobbyID);
-            $stmt->execute();
-        }
-    }
-
-    /**
-     * Get the index of a player in the players array by ID
-     *
-     * @param int $playerID The ID of the player
-     * @return int Index of the player
-     */
-    private function getPlayerIndexById($playerID) {
-        foreach ($this->players as $index => $player) {
-            if ($player['playerID'] == $playerID) {
-                return $index;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Get the ID of the next player in turn order
-     *
-     * @return int The ID of the next player
-     */
-    private function getNextPlayerId() {
-        $currentPlayerIndex = $this->getPlayerIndexById($this->currentPlayer);
-        $nextIndex = ($currentPlayerIndex + $this->gameOrder + count($this->players)) % count($this->players);
-        return $this->players[$nextIndex]['playerID'];
-    }
-
-    /**
-     * Parse a card string into color and value components
-     *
-     * @param string $card The card string to parse
-     * @return array Associative array with color and value components
-     */
-    private function parseCard($card) {
-        // Handle wild cards with chosen color
-        if (strpos($card, 'wild') === 0 && strpos($card, '_') !== false) {
-            list($cardType, $chosenColor) = explode('_', $card, 2);
-            return [
-                'color' => 'wild',
-                'value' => $cardType,
-                'chosenColor' => $chosenColor
-            ];
-        }
-
-        // Regular cards: color_value format
-        $parts = explode('_', $card);
-
-        if (count($parts) < 2) {
-            return [
-                'color' => 'unknown',
-                'value' => 'unknown'
-            ];
-        }
-
-        return [
-            'color' => $parts[0],
-            'value' => $parts[1]
-        ];
-    }
-
-    /**
-     * Validate if a card can be played on the current card
-     *
-     * @param string $card The card to validate
-     * @return bool Whether the card play is valid
-     */
-    private function validateCardPlay($card) {
-        if (!$this->currentCard) {
-            // First card in the game
-            return true;
-        }
-
-        $playedCard = $this->parseCard($card);
-        $currentCard = $this->parseCard($this->currentCard);
-
-        // Wild cards can always be played
-        if ($playedCard['color'] === 'wild') {
-            return true;
-        }
-
-        // If current card was a wild, check against chosen color
-        if ($currentCard['color'] === 'wild' && isset($currentCard['chosenColor'])) {
-            return $playedCard['color'] === $currentCard['chosenColor'];
-        }
-
-        // Match by color or value
-        return $playedCard['color'] === $currentCard['color'] ||
-            $playedCard['value'] === $currentCard['value'];
-    }
-
-    /**
-     * Check win condition
-     *
-     * @param int $playerID The ID of the player to check
-     * @return bool Whether the player has won
-     */
-    public function checkWinCondition($playerID) {
-        $stmt = $this->conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-        $stmt->bind_param("i", $playerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $playerData = $result->fetch_assoc();
-
-        if (!$playerData) {
-            return false;
-        }
-
-        $playerCards = json_decode($playerData['cardList'], true);
-        return count($playerCards) === 0;
-    }
-
-    /**
-     * Update game statistics when a player wins
-     *
-     * @param int $winnerID The ID of the winning player
-     */
-    private function updateGameStatistics($winnerID) {
-        // Update lobby status
-        $stmt = $this->conn->prepare("UPDATE lobby SET gameStatus = 'ended', Winner = ? WHERE gameID = ?");
-        $stmt->bind_param("ii", $winnerID, $this->lobbyID);
-        $stmt->execute();
-
-        // Get winner username
-        $stmt = $this->conn->prepare("SELECT playerName FROM players WHERE playerID = ?");
-        $stmt->bind_param("i", $winnerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $winnerData = $result->fetch_assoc();
-
-        if ($winnerData) {
-            $winnerUsername = $winnerData['playerName'];
-
-            // Update player statistics in users table
-            $stmt = $this->conn->prepare("UPDATE users SET wins = wins + 1, total_games = total_games + 1 WHERE username = ?");
-            $stmt->bind_param("s", $winnerUsername);
-            $stmt->execute();
-
-            // Update other players' statistics
-            foreach ($this->players as $player) {
-                if ($player['playerID'] != $winnerID && !empty($player['playerName'])) {
-                    $stmt = $this->conn->prepare("UPDATE users SET total_games = total_games + 1 WHERE username = ?");
-                    $stmt->bind_param("s", $player['playerName']);
-                    $stmt->execute();
-                }
-            }
-        }
-    }
-
-    /**
-     * Draw a random card from the deck
-     *
-     * @return string Random card
-     */
-    private function drawRandomCard() {
-        $colors = ['red', 'blue', 'green', 'yellow'];
-        $numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        $specials = [self::CARD_SKIP, self::CARD_REVERSE, self::CARD_DRAW_TWO];
-        $wilds = [self::CARD_WILD, self::CARD_WILD_DRAW_FOUR];
-
-        $cardType = rand(1, 10);
-
-        if ($cardType <= 7) {
-            // Number card (70%)
-            return $colors[array_rand($colors)] . '_' . $numbers[array_rand($numbers)];
-        } elseif ($cardType <= 9) {
-            // Special card (20%)
-            return $colors[array_rand($colors)] . '_' . $specials[array_rand($specials)];
-        } else {
-            // Wild card (10%)
-            return 'wild_' . $wilds[array_rand($wilds)];
-        }
-    }
-
-    /**
-     * Process color selection for wild cards
-     *
-     * @param int $playerID The ID of the player choosing the color
-     * @param string $color The chosen color
-     * @return array Result of the action
-     */
-    public function chooseColor($playerID, $color) {
-        if ($playerID != $this->currentPlayer) {
-            return ['success' => false, 'message' => 'Not your turn to choose color'];
-        }
-
-        $validColors = ['red', 'blue', 'green', 'yellow'];
-        if (!in_array($color, $validColors)) {
-            return ['success' => false, 'message' => 'Invalid color choice'];
-        }
-
-        $currentCard = $this->parseCard($this->currentCard);
-
-        if ($currentCard['color'] !== 'wild') {
-            return ['success' => false, 'message' => 'Current card is not a wild card'];
-        }
-
-        $newCardString = $currentCard['value'] . '_' . $color;
-
-        $stmt = $this->conn->prepare("UPDATE lobby SET curCard = ? WHERE gameID = ?");
-        $stmt->bind_param("si", $newCardString, $this->lobbyID);
-        $stmt->execute();
-
-        $this->currentCard = $newCardString;
-
-        return ['success' => true, 'message' => 'Color chosen successfully'];
-    }
-
-    /**
-     * Create a test game with simulated players
-     *
-     * @param int $numPlayers Number of test players
-     * @return int Lobby ID of the test game
-     */
-    public static function createTestGame($numPlayers = 4) {
-        $conn = getDatabaseConnection();
-
-        // Create a new lobby
-        $stmt = $conn->prepare("INSERT INTO lobby (gameStatus, gameOrder) VALUES ('waiting', 1)");
-        $stmt->execute();
-        $lobbyID = $conn->insert_id;
-
-        // Create test players
-        $playerIDs = [];
-
-        for ($i = 1; $i <= $numPlayers; $i++) {
-            $username = "TestPlayer" . $i;
-            $initialCards = [];
-
-            // Give each player 7 random cards
-            for ($j = 0; $j < 7; $j++) {
-                $colors = ['red', 'blue', 'green', 'yellow'];
-                $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw2'];
-
-                $color = $colors[array_rand($colors)];
-                $value = $values[array_rand($values)];
-                $initialCards[] = $color . '_' . $value;
-            }
-
-            $cardsJson = json_encode($initialCards);
-
-            $stmt = $conn->prepare("INSERT INTO players (gameID, playerName, cardList) VALUES (?, ?, ?)");
-            $stmt->bind_param("iss", $lobbyID, $username, $cardsJson);
-            $stmt->execute();
-
-            $playerIDs[] = $conn->insert_id;
-        }
-
-        // Set initial game state
-        $initialCard = "red_5"; // Example starting card
-        $stmt = $conn->prepare("UPDATE lobby SET gameStatus = 'active', curCard = ?, curPlayer = ? WHERE gameID = ?");
-        $stmt->bind_param("sii", $initialCard, $playerIDs[0], $lobbyID);
-        $stmt->execute();
-
-        return $lobbyID;
-    }
-
-    /**
-     * Handle a player drawing a card from the deck
-     *
-     * @param int $playerID The ID of the player drawing a card
-     * @return array Result of the action
-     */
-    public function handleCardDraw($playerID) {
-        // Verify it's the player's turn
-        if ($playerID != $this->currentPlayer) {
-            return ['success' => false, 'message' => 'Not your turn'];
-        }
-
-        // Draw a card
-        $newCard = $this->drawRandomCard();
-
-        // Get current cards
-        $stmt = $this->conn->prepare("SELECT cardList FROM players WHERE playerID = ?");
-        $stmt->bind_param("i", $playerID);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $playerData = $result->fetch_assoc();
-
-        if (!$playerData) {
-            return ['success' => false, 'message' => 'Player not found'];
-        }
-
-        $playerCards = json_decode($playerData['cardList'], true);
-
-        // Add card to player's hand
-        $playerCards[] = $newCard;
-
-        // Update database
-        $cardListJson = json_encode($playerCards);
-        $stmt = $this->conn->prepare("UPDATE players SET cardList = ? WHERE playerID = ?");
-        $stmt->bind_param("si", $cardListJson, $playerID);
-        $stmt->execute();
-
-        // Check if drawn card can be played
-        $canPlay = $this->validateCardPlay($newCard);
-
-        // If player can't play, move to next player
-        if (!$canPlay) {
-            $this->moveToNextPlayer();
-        }
-
-        return [
-            'success' => true,
-            'message' => 'Card drawn successfully',
-            'drawnCard' => $newCard,
-            'canPlay' => $canPlay
-        ];
-    }
-
-    /**
-     * Get basic game information
-     *
-     * @return array Basic game information
-     */
-    public function getGameInfo() {
-        return [
-            'lobbyID' => $this->lobbyID,
-            'currentCard' => $this->currentCard,
-            'currentPlayer' => $this->currentPlayer,
-            'gameOrder' => $this->gameOrder,
-            'gameStatus' => $this->gameStatus,
-            'playerCount' => count($this->players)
-        ];
-    }
-
-    /**
-     * Close database connection
-     */
-    public function __destruct() {
-        if ($this->conn) {
-            $this->conn->close();
-        }
+    // Set card effect in the database
+    if ($effect) {
+        setCardEffect($conn, $gameID, $effect);
     }
 }
+
+// Move to the next player's turn
+function moveToNextPlayer($conn, $gameID) {
+    $currentPlayer = getCurrentPlayer($conn, $gameID);
+    $gameOrder = getGameOrder($conn, $gameID);
+    $gameOrderArray = explode(',', $gameOrder);
+
+    // Find current player index
+    $currentIndex = array_search($currentPlayer, $gameOrderArray);
+
+    // Get card effect if any
+//    $cardEffect = getCardEffect($conn, $gameID);
+
+    // Determine next player index
+    $nextIndex = ($currentIndex + 1) % count($gameOrderArray); // ensures circular ordering
+
+//    // Handle skip effect
+//    if ($cardEffect === 'skip') {
+//        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
+//        // Reset card effect after applying
+//        setCardEffect($conn, $gameID, '');
+//    }
+//
+    // Set next player
+    setCurrentPlayer($conn, $gameID, $gameOrderArray[$nextIndex]);
+
+    setGameOrder($conn, $gameID, implode(',', $gameOrderArray));
+}
+
+// Handle player drawing a card
+function drawCard($conn, $gameID, $playerID) {
+    // Check if it's player's turn
+    if (!isPlayerTurn($conn, $gameID, $playerID)) {
+        return json_encode(['success' => false, 'message' => 'Not your turn']);
+    }
+
+    // Get player's current cards
+    $playerCards = getCardList($conn, $gameID, $playerID);
+    $playerCardsArray = explode(',', $playerCards);
+
+    // Generate a random card (in a real game, you'd draw from a deck)
+    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];//, 'skip', 'reverse', 'draw2'
+
+    if (rand(0, 10) > 8) {  // 20% chance of wild card
+        $newCard = 'wild_' . rand(0, 0); // Only wild_0 for now
+    } else {
+        $color = $colors[rand(0, 3)]; // Exclude wild
+        $value = $values[rand(0, count($values) - 1)];
+        $newCard = $color . '_' . $value;
+    }
+
+    // Add card to player's hand
+    $playerCardsArray[] = $newCard;
+    setCardList($conn, $gameID, $playerID, implode(',', $playerCardsArray));
+
+    // Move to next player's turn
+    moveToNextPlayer($conn, $gameID);
+
+    return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
+}
+
+// Handle game win scenario
+function handleGameWin($conn, $gameID, $playerID) {
+    //should have the follow methods, updatePlayerWins($conn,$gameID, $playerID), updatePlayersStats($conn,$gameID, $playerID)
+    // Update game status
+    setGameStatus($conn, $gameID, 'finished');
+
+    // Update player stats
+    updatePlayerWins($conn, $gameID, $playerID);
+
+    updatePlayersStats($conn, $gameID, $playerID);
+
+
+    $bettingAmt = getBettingAmount($conn, $gameID);
+    $players = explode(',', getPlayerList($conn, $gameID));
+    $totalPot = $bettingAmt * count($players);
+
+    // Add winnings to player's account
+    $currentMoney = getMoney($conn, $playerID);
+    setMoney($conn, $playerID, $currentMoney + $totalPot);
+}
+
+// Create a new game
+function createGame($conn, $playerID, $bettingAmount) {
+    // Generate unique game ID
+    $gameID = uniqid();
+
+    // Check if player has enough money
+    $playerMoney = getMoney($conn, $playerID);
+    if ($playerMoney < $bettingAmount) {
+        return json_encode(['success' => false, 'message' => 'Not enough money']);
+    }
+
+    // Deduct betting amount
+    setMoney($conn, $playerID, $playerMoney - $bettingAmount);
+
+    // Generate initial card
+    $colors = ['red', 'blue', 'green', 'yellow'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
+
+    // Create lobby entry
+    $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '')");
+    $playerList = $playerID;
+    $gameOrder = $playerID;
+    $stmt->bind_param("sssssi", $gameID, $initialCard, $playerID, $playerList, $gameOrder, $bettingAmount);
+    $stmt->execute();
+
+    // Create player entry
+    $playerName = getPlayerName($conn, $playerID);
+    $initialCards = generateInitialCards();
+    $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
+    $stmt->execute();
+
+    return json_encode(['success' => true, 'message' => 'Game created successfully', 'gameID' => $gameID]);
+}
+
+// Join an existing game
+function joinGame($conn, $gameID, $playerID) {
+    // Check if game exists and is waiting
+    $stmt = $conn->prepare("SELECT gameStatus, betting_amt, playerList FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return json_encode(['success' => false, 'message' => 'Game not found']);
+    }
+
+    $row = $result->fetch_assoc();
+
+    if ($row['gameStatus'] !== 'waiting') {
+        return json_encode(['success' => false, 'message' => 'Game already in progress or finished']);
+    }
+
+    // Check if player has enough money
+    $playerMoney = getMoney($conn, $playerID);
+    if ($playerMoney < $row['betting_amt']) {
+        return json_encode(['success' => false, 'message' => 'Not enough money']);
+    }
+
+    // Check if player already in the game
+    $players = explode(',', $row['playerList']);
+    if (in_array($playerID, $players)) {
+        return json_encode(['success' => false, 'message' => 'Already in game']);
+    }
+
+    // Deduct betting amount
+    setMoney($conn, $playerID, $playerMoney - $row['betting_amt']);
+
+    // Add player to game
+    $players[] = $playerID;
+    $playerList = implode(',', $players);
+    $gameOrder = $playerList; // Simple order for now
+
+    $stmt = $conn->prepare("UPDATE lobby SET playerList = ?, gameOrder = ? WHERE gameID = ?");
+    $stmt->bind_param("sss", $playerList, $gameOrder, $gameID);
+    $stmt->execute();
+
+    // Create player entry
+    $playerName = getPlayerName($conn, $playerID);
+    $initialCards = generateInitialCards();
+    $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
+    $stmt->execute();
+
+    return json_encode(['success' => true, 'message' => 'Joined game successfully']);
+}
+
+// Generate initial cards for a player (7 random cards)
+function generateInitialCards() {
+//    $colors = ['red', 'blue', 'green', 'yellow'];
+//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
+//    $cards = [];
+//
+//    for ($i = 0; $i < 7; $i++) {
+//        if (rand(0, 10) > 8) {  // 20% chance of wild card
+//            $cards[] = 'wild_0';
+//        } else {
+//            $color = $colors[rand(0, 3)];
+//            $value = $values[rand(0, count($values) - 1)];
+//            $cards[] = $color . '_' . $value;
+//        }
+//    }
+//
+//    return implode(',', $cards);
+}
+
+// Start the game if enough players have joined
+function startGame($conn, $gameID, $playerID) {//just call
+    // Check if requester is game creator
+    //should be calling getHost($conn,$gameID)
+
+    $host = getHost($conn, $gameID);
+
+    if ($host !== $playerID) {
+        return json_encode(['success' => false, 'message' => 'Only the host can start the game']);
+    }
+
+    $stmt = $conn->prepare("SELECT playerList, gameStatus FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 0) {
+        return json_encode(['success' => false, 'message' => 'Game not found']);
+    }
+
+    $row = $result->fetch_assoc();
+
+
+    if ($row['gameStatus'] !== 'waiting') {
+        return json_encode(['success' => false, 'message' => 'Game already started or finished']);
+    }
+
+    $players = explode(',', $row['playerList']);
+    if (count($players) < 2) {
+        return json_encode(['success' => false, 'message' => 'Need at least 2 players to start']);
+    }
+
+    // Update game status
+    setGameStatus($conn, $gameID, 'inProgress');
+
+    return json_encode(['success' => true, 'message' => 'Game started successfully']);
+}
+
+// Get game state for a player
+function getGameState($conn, $gameID, $playerID) {
+    // Check if game exists
+
+    //call getGame($conn, $gameID)
+    $stmt = $conn->prepare("SELECT * FROM lobby WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $lobbyResult = $stmt->get_result();
+
+    if ($lobbyResult->num_rows === 0) {
+        return json_encode(['success' => false, 'message' => 'Game not found']);
+    }
+
+    $lobbyData = $lobbyResult->fetch_assoc();
+
+
+    // Get player data
+    $stmt = $conn->prepare("SELECT * FROM player WHERE gameID = ?");
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $playerResult = $stmt->get_result();
+
+    $players = [];//list of list
+    while ($playerData = $playerResult->fetch_assoc()) {
+        // Only include card count for other players, not their actual cards
+        if ($playerData['playerID'] !== $playerID) {
+            $cardCount = count(explode(',', $playerData['cardList']));
+            $playerData['cardCount'] = $cardCount;
+            unset($playerData['cardList']);
+        }
+        $players[] = $playerData;
+    }
+
+    // Create game state response
+    $gameState = [
+        'success' => true,
+        'gameID' => $gameID,
+        'currentCard' => $lobbyData['curCard'],
+        'currentPlayer' => $lobbyData['curPlayer'],
+        'isYourTurn' => ($lobbyData['curPlayer'] === $playerID),
+        'gameStatus' => $lobbyData['gameStatus'],
+        'cardEffect' => $lobbyData['cardEffect'],
+        'players' => $players,
+        'gameOrder' => explode(',', $lobbyData['gameOrder']),
+        'bettingAmount' => $lobbyData['betting_amt']
+    ];
+
+    return json_encode($gameState);
+}
+
+// Main request handler
+$requestMethod = $_SERVER['REQUEST_METHOD'];
+$conn = getDatabaseConnection();
+
+if ($requestMethod === 'POST') {
+    // Get request body
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+
+    // Check if request is valid
+    if (!isset($data['action']) || !isset($data['playerID'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid request']);
+        exit;
+    }
+
+    $action = $data['action'];
+    $playerID = $data['playerID'];
+    $gameID = $data['gameID'] ?? null;
+
+    switch ($action) {
+        case 'create_game':
+            if (!isset($data['bettingAmount'])) {
+                echo json_encode(['success' => false, 'message' => 'Betting amount required']);
+                break;
+            }
+            echo createGame($conn, $playerID, $data['bettingAmount']);
+            break;
+
+        case 'join_game':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo joinGame($conn, $gameID, $playerID);
+            break;
+
+        case 'start_game':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo startGame($conn, $gameID, $playerID);
+            break;
+
+        case 'place_card':
+            if (!$gameID || !isset($data['card'])) {
+                echo json_encode(['success' => false, 'message' => 'Game ID and card required']);
+                break;
+            }
+            echo placeCard($conn, $gameID, $playerID, $data['card']);
+            break;
+
+        case 'draw_card':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo drawCard($conn, $gameID, $playerID);
+            break;
+
+        case 'get_game_state':
+            if (!$gameID) {
+                echo json_encode(['success' => false, 'message' => 'Game ID required']);
+                break;
+            }
+            echo getGameState($conn, $gameID, $playerID);
+            break;
+
+        default:
+            echo json_encode(['success' => false, 'message' => 'Unknown action']);
+    }
+} else if ($requestMethod === 'GET') {
+    // Handle GET requests (if any)
+    echo json_encode(['success' => false, 'message' => 'Please use POST requests']);
+}
+
+$conn->close();
+?>

@@ -1,5 +1,5 @@
 <?php
-
+$_COOKIE['auth'];
 const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/';
 
     function callApi($url, $method, $data = null) {

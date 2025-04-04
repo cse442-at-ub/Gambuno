@@ -80,26 +80,6 @@ const JoinGameMenu = () => {
   // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}&playerID=${username}`, )
-      const result = await response.json();
-
-      if (result.success) {
-        setBetAmount(result.bet);
-
-      } else {
-        alert("Error: " + result.error);
-      }
-    } catch (error) {
-      console.error("Join failed:", error);
-    }
-
-
-    if (!username || !gameID) {
-      alert("Missing username or game code.");
-      return;
-    }
-
-    try {
       const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
         method: "POST",
         headers: {
@@ -195,7 +175,7 @@ const JoinGameMenu = () => {
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
                     <p className="italic">Host - {host}</p>
-                    <p>Players - {playerCount}</p>
+                    <p>Players - {playerCount - 1}</p>
                   </div>
                   <button
                     onClick={() => joinLobby(lobby.gameID)}

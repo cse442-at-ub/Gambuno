@@ -73,7 +73,13 @@ const WaitingRoomHost = () => {
           ready: info.ready, // adjust if your API returns a readiness flag
           // include other fields if needed
         }));
-        setPlayers(updatedPlayers);
+        const upPlayerList = [];
+        for (let i = 0; i < updatedPlayers.length; i++) {
+          if (updatedPlayers[i].name != "") {
+            upPlayerList.push(updatedPlayers[i]);
+          }
+        }
+        setPlayers(upPlayerList);
       } else {
         throw new Error("No players data returned.");
       }

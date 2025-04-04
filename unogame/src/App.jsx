@@ -37,7 +37,7 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                     <Route path="/select-game" element={isMobile ? (<GameTypeSelectMobile />) : (<GameTypeSelectDesktop />)} />
                     <Route path="/join-game-menu" element={isMobile ? (<JoinGameM />) : (<JoinGameD />)} />
                     <Route path="/host-game" element={isMobile ? (<HostGameM />) : (<HostGameD />)} />
-                    <Route path="/waiting-host" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
+                    <Route path="/waiting-host/:gameID" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
                     <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/game-board" element={isMobile ? (<GameBoard2 />) : (<GameBoard/>)} />

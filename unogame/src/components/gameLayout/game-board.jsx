@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+
+import { useState, useEffect, useRef} from "react"
+import {useParams} from "react-router-dom";
 import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
 import { motion, AnimatePresence } from "framer-motion"
 import * as gameAPI from "./../lib/api";
@@ -11,7 +13,9 @@ export function GameBoard({ numPlayers = 5 }) {
   const [pendingWildCard, setPendingWildCard] = useState(null)
   const [winner, setWinner] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
+  const { gameCode } = useParams(); 
   const [playerNames, setPlayerNames] = useState(
+    
       Array(numPlayers)
           .fill("")
           .map((_, i) => `Player ${i + 1}`),
@@ -43,7 +47,8 @@ export function GameBoard({ numPlayers = 5 }) {
       const text = await response.json();
       if(text.success){
         setIsLoading(true);
-        setGameStarted(true);
+        setGameStarted(false);
+        setGameState(false);
         console.log("Game Intialized: ", text.gameInfo);
       }
       else{

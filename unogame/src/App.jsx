@@ -20,7 +20,7 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
  import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
  import Leaderboard from './components/leaderbroad';
  import { GameBoard } from './components/gameLayout/game-board';
-// import { GameBoard2 } from './components/gameLayout/game-boardM';
+ import { GameBoard2 } from './components/gameLayout/game-boardM';
  import MainMenuMobile from './components/MainMenuM';
 
             function App() {
@@ -40,7 +40,7 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                     <Route path="/waiting-host" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
                     <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
-                    <Route path="/game-board" element={(<GameBoard/>)} />
+                    <Route path="/game-board" element={isMobile ? (<GameBoard2 />) : (<GameBoard/>)} />
                   </Routes>
                 </Router>
               );

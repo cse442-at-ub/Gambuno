@@ -86,7 +86,7 @@ const JoinGameMenu = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          gameID: gameID,
+          gameID,
           action: "join",
           playerID: cookie,
           playerName: username,
@@ -175,7 +175,7 @@ const JoinGameMenu = () => {
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
                     <p className="italic">Host - {host}</p>
-                    <p>Players - {playerCount}</p>
+                    <p>Players - {playerCount - 1}</p>
                   </div>
                   <button
                     onClick={() => joinLobby(lobby.gameID)}

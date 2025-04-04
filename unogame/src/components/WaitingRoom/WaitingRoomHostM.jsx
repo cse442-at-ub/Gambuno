@@ -100,7 +100,7 @@ const WaitingRoom = () => {
       </button>
 
       {/* Friend List */}
-      {showFriendList && <FriendList onClose={() => setShowFriendList(false)} />}
+      {showFriendList && <FriendList />}
     </div>
   );
 };

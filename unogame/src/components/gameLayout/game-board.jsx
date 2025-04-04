@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { UnoCard, WildCard, CardBack} from "./cards/cards"
-import { createDeck, dealCards, canPlayCard, applyCardEffect } from "../../lib/game-logic"
+import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
 import { motion, AnimatePresence } from "framer-motion"
-import { ColorPicker } from "./cards/cards"
+import * as gameAPI from "./../lib/api";
 
 export function GameBoard({ numPlayers = 5 }) {
   const [gameState, setGameState] = useState(null)
@@ -20,7 +19,9 @@ export function GameBoard({ numPlayers = 5 }) {
   const [animatingCard, setAnimatingCard] = useState(null)
   const [drawingPlayer, setDrawingPlayer] = useState(null)
   const [animations, setAnimations] = useState([])
-  const [isDrawing, setIsDrawing] = useState(false) // New state to track drawing status
+  const [isDrawing, setIsDrawing] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
   const tableRef = useRef(null)
   const animationIdRef = useRef(0)
   const windowSize = useRef({
@@ -29,27 +30,33 @@ export function GameBoard({ numPlayers = 5 }) {
   })
 
   // Initialize game
-  const initGame = () => {
-    const deck = createDeck()
-    const { hands, deck: newDeck, discardPile } = dealCards(deck, numPlayers)
-
-    setGameState({
-      players: hands,
-      drawPile: newDeck,
-      discardPile,
-      currentPlayer: 0,
-      direction: 1,
-      currentColor: discardPile[0].color,
-      lastCard: discardPile[0],
-      sayUno: false,
-      visibleDiscardPile: [discardPile[0]], // Track visible cards in the discard pile
-    })
-
-    setWinner(null)
-    setGameStarted(true)
-    setAnimations([])
-    setIsDrawing(false)
-  }
+  const initGame = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/game.php?action=intialize&gameID=045AMH");
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+  
+      // Check if there's content to parse
+      const text = await response.json();
+      if(text.success){
+        setIsLoading(true);
+        setGameStarted(true);
+        console.log("Game Intialized: ", text.gameInfo);
+      }
+      else{
+        console.log("Game Intialization Failed: ", text.error);
+      }
+      } 
+     catch (err) {
+      console.error("Failed to initialize game:", err);
+      setError("Failed to start the game. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Update window size on resize
   useEffect(() => {
@@ -93,184 +100,120 @@ export function GameBoard({ numPlayers = 5 }) {
   }
 
   // Handle drawing a card with animation
-  const handleDrawCard = () => {
+  const handleDrawCard = async () => {
     // Prevent drawing if not player's turn, there's a winner, or already drawing
-    if (gameState.currentPlayer !== 0 || winner || isDrawing) return
+    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
 
-    // Set drawing state to prevent multiple draws
-    setIsDrawing(true)
+    try {
+      // Set drawing state to prevent multiple draws
+      setIsDrawing(true)
+      setIsLoading(true)
+      setError(null)
 
-    // Check if the player already has a valid card to play
-    const hasPlayableCard = gameState.players[0].some(
-        (card) =>
-            card.type === "special" ||
-            card.color === gameState.currentColor ||
-            (gameState.lastCard && card.value === gameState.lastCard.value),
-    )
+      // Call the API to draw a card
+      const updatedGameState = await gameAPI.drawCard(0, gameState)
 
-    // Generate a new random card instead of taking from the deck
-    const newCard = generateRandomCard()
+      // Get the newly drawn card (last card in player's hand)
+      const newCard = updatedGameState.players[0][updatedGameState.players[0].length - 1]
 
-    // Add the card to the player's hand
-    setGameState((prev) => {
-      const newState = { ...prev }
-      newState.players[0] = [...newState.players[0], newCard]
-      return newState
-    })
+      // Add draw animation
+      addAnimation("draw", newCard, "drawPile", "player", () => {
+        setGameState(updatedGameState)
+        setIsDrawing(false)
 
-    // Add draw animation
-    addAnimation("draw", newCard, "drawPile", "player", () => {
-      // If player already had playable cards, only draw one card
-      if (hasPlayableCard) {
-        setIsDrawing(false) // Reset drawing state after drawing one card
-      } else {
-        // Check if the newly drawn card is playable
-        const isNewCardPlayable =
-            newCard.type === "special" ||
-            newCard.color === gameState.currentColor ||
-            (gameState.lastCard && newCard.value === gameState.lastCard.value)
-
-        // If not playable, draw another card automatically after a short delay
-        if (!isNewCardPlayable) {
+        // If it's AI's turn after drawing, trigger AI move
+        if (updatedGameState.currentPlayer !== 0) {
           setTimeout(() => {
-            setIsDrawing(false) // Reset drawing state before drawing again
-            handleDrawCard()
-          }, 300) // Short delay for better visual flow
-        } else {
-          // Card is playable, reset drawing state
-          setIsDrawing(false)
+            playAITurn()
+          }, 800)
         }
-      }
-    })
-  }
-
-  // Generate a random card for infinite deck
-  const generateRandomCard = () => {
-    const colors = ["red", "blue", "green", "yellow"]
-    const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    const specialTypes = ["Wild", "Wild4"]
-
-    // 20% chance of getting a special card
-    const isSpecial = Math.random() < 0.2
-
-    if (isSpecial) {
-      const specialValue = specialTypes[Math.floor(Math.random() * specialTypes.length)]
-      return {
-        id: `special-${specialValue}-${Date.now()}`,
-        color: "wild",
-        value: specialValue,
-        type: "special",
-      }
-    } else {
-      const color = colors[Math.floor(Math.random() * colors.length)]
-      const value = values[Math.floor(Math.random() * values.length)]
-      return {
-        id: `${color}-${value}-${Date.now()}`,
-        color,
-        value,
-        type: "number",
-      }
+      })
+    } catch (err) {
+      console.error("Failed to draw card:", err)
+      setError("Failed to draw a card. Please try again.")
+      setIsDrawing(false)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // Handle playing a card with animation
-  const handlePlayCard = (card, index) => {
-    if (gameState.currentPlayer !== 0 || winner || isDrawing) return
+  const handlePlayCard = async (card, index) => {
+    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
 
-    // Check if the card can be played
-    if (!canPlayCard(card, gameState.lastCard, gameState.currentColor)) {
-      return
-    }
+    try {
+      setIsLoading(true)
+      setError(null)
 
-    // Handle wild cards
-    if (card.type === "special") {
-      setPendingWildCard({ card, index })
-      setShowColorPicker(true)
-      return
-    }
+      // Check if the card can be played
+      const isPlayable = await gameAPI.checkCardPlayable(card, gameState.lastCard, gameState.currentColor)
 
-    // First visually remove the card from the hand
-    setGameState((prev) => {
-      const newState = { ...prev }
-      // Create a temporary copy without the card to be played
-      // This makes it visually disappear from the hand
-      const tempHand = [...newState.players[0]]
-      tempHand.splice(index, 1)
-      newState.players[0] = tempHand
-      return newState
-    })
-
-    // Then add play animation
-    setTimeout(() => {
-      addAnimation("play", card, "player", "discardPile", () => {
-        playCard(card, index, card.color)
-      })
-    }, 50) // Small delay to ensure the card is visually removed first
-  }
-
-  // Play a card with the selected color (for wild cards)
-  const playCard = (card, index, selectedColor) => {
-    setGameState((prev) => {
-      const newState = { ...prev }
-
-      // Remove the card from the player's hand
-      const playerHand = [...newState.players[newState.currentPlayer]]
-      playerHand.splice(index, 1)
-      newState.players[newState.currentPlayer] = playerHand
-
-      // Add the card to the discard pile
-      newState.discardPile = [...newState.discardPile, card]
-      newState.lastCard = card
-
-      // Update the visible discard pile (keep last 5 cards)
-      newState.visibleDiscardPile = [...(newState.visibleDiscardPile || []), card].slice(-5)
-
-      // Update the current color
-      newState.currentColor = selectedColor || card.color
-
-      // Apply card effects
-      const { nextPlayer, direction, drawCount } = applyCardEffect(newState, card)
-      newState.currentPlayer = nextPlayer
-      newState.direction = direction
-
-      // Handle draw cards
-      if (drawCount > 0) {
-        for (let i = 0; i < drawCount; i++) {
-          if (newState.drawPile.length === 0) {
-            // Reshuffle if needed
-            const topCard = newState.discardPile.pop()
-            newState.drawPile = [...newState.discardPile].sort(() => Math.random() - 0.5)
-            newState.discardPile = [topCard]
-          }
-
-          const drawnCard = newState.drawPile.pop()
-          newState.players[nextPlayer] = [...newState.players[nextPlayer], drawnCard]
-        }
+      if (!isPlayable) {
+        setIsLoading(false)
+        return
       }
 
-      // Check for winner
-      if (playerHand.length === 0) {
-        setWinner(newState.currentPlayer)
-        return newState
+      // Handle wild cards
+      if (card.type === "special") {
+        setPendingWildCard({ card, index })
+        setShowColorPicker(true)
+        setIsLoading(false)
+        return
       }
 
-      // AI players will play automatically
-      setTimeout(() => {
-        playAITurn()
-      }, 2)
-
-      return newState
-    })
-  }
-
-  // Handle color selection for wild cards
-  const handleColorSelect = (color) => {
-    setShowColorPicker(false)
-    if (pendingWildCard) {
       // First visually remove the card from the hand
       setGameState((prev) => {
         const newState = { ...prev }
         // Create a temporary copy without the card to be played
+        // This makes it visually disappear from the hand
+        const tempHand = [...newState.players[0]]
+        tempHand.splice(index, 1)
+        newState.players[0] = tempHand
+        return newState
+      })
+
+      // Then add play animation
+      setTimeout(() => {
+        addAnimation("play", card, "player", "discardPile", async () => {
+          // Call the API to play the card
+          const updatedGameState = await gameAPI.playCard(0, card, index, gameState)
+          setGameState(updatedGameState)
+
+          // Check for winner
+          if (updatedGameState.players[0].length === 0) {
+            setWinner(0)
+          } else if (updatedGameState.currentPlayer !== 0) {
+            // If it's AI's turn after playing, trigger AI move
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      }, 50) // Small delay to ensure the card is visually removed first
+    } catch (err) {
+      console.error("Failed to play card:", err)
+      setError("Failed to play the card. Please try again.")
+      setIsLoading(false)
+    }
+  }
+
+  // Handle color selection for wild cards
+  const handleColorSelect = async (color) => {
+    setShowColorPicker(false)
+
+    if (!pendingWildCard || isLoading) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // First visually remove the card from the hand
+      setGameState((prev) => {
+        const newState = { ...prev }
+        // Create a temporary copy without the card to be played
+        // This makes it visually disappear from the hand
         const tempHand = [...newState.players[0]]
         tempHand.splice(pendingWildCard.index, 1)
         newState.players[0] = tempHand
@@ -279,178 +222,118 @@ export function GameBoard({ numPlayers = 5 }) {
 
       // Then add play animation
       setTimeout(() => {
-        addAnimation("play", pendingWildCard.card, "player", "discardPile", () => {
-          playCard(pendingWildCard.card, pendingWildCard.index, color)
+        addAnimation("play", pendingWildCard.card, "player", "discardPile", async () => {
+          // Call the API to play the wild card with selected color
+          const updatedGameState = await gameAPI.playWildCard(
+              0,
+              pendingWildCard.card,
+              pendingWildCard.index,
+              color,
+              gameState,
+          )
+
+          setGameState(updatedGameState)
           setPendingWildCard(null)
+
+          // Check for winner
+          if (updatedGameState.players[0].length === 0) {
+            setWinner(0)
+          } else if (updatedGameState.currentPlayer !== 0) {
+            // If it's AI's turn after playing, trigger AI move
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
         })
       }, 50)
+    } catch (err) {
+      console.error("Failed to play wild card:", err)
+      setError("Failed to play the wild card. Please try again.")
+      setPendingWildCard(null)
+      setIsLoading(false)
     }
   }
 
   // AI player turn logic with animations
-  const playAITurn = () => {
-    if (!gameState || gameState.currentPlayer === 0 || winner) return
+  const playAITurn = async () => {
+    if (!gameState || gameState.currentPlayer === 0 || winner || isLoading) return
 
-    const currentPlayerIndex = gameState.currentPlayer
-    const playerHand = gameState.players[currentPlayerIndex]
+    try {
+      setIsLoading(true)
+      setError(null)
 
-    // Find playable cards
-    const playableCards = playerHand.filter(
-        (card) =>
-            card.type === "special" || card.color === gameState.currentColor || card.value === gameState.lastCard.value,
-    )
+      const currentPlayerIndex = gameState.currentPlayer
 
-    if (playableCards.length > 0) {
-      // Choose a card to play (simple AI strategy)
-      const cardToPlay = playableCards[Math.floor(Math.random() * playableCards.length)]
-      const cardIndex = playerHand.findIndex((c) => c.id === cardToPlay.id)
+      // Call the API to get the AI move
+      const aiMoveResult = await gameAPI.getAIMove(currentPlayerIndex, gameState)
 
-      // First visually remove the card from the AI hand
-      setGameState((prev) => {
-        const newState = { ...prev }
-        const tempHand = [...newState.players[currentPlayerIndex]]
-        tempHand.splice(cardIndex, 1)
-        newState.players[currentPlayerIndex] = tempHand
-        return newState
-      })
+      // Handle different AI move types
+      if (aiMoveResult.moveType === "draw") {
+        // AI is drawing a card
+        const drawnCard = aiMoveResult.drawnCard
 
-      // Then add play animation for AI
-      setTimeout(() => {
+        // Add draw animation for AI
         const playerPosition = getPlayerPosition(currentPlayerIndex).position
-        addAnimation("play", cardToPlay, playerPosition, "discardPile", () => {
-          setGameState((prev) => {
-            const newState = { ...prev }
+        addAnimation("draw", drawnCard, "drawPile", playerPosition, () => {
+          setGameState(aiMoveResult.gameState)
 
-            // Remove the card from the player's hand
-            const newPlayerHand = [...playerHand]
-            newPlayerHand.splice(cardIndex, 1)
-            newState.players[currentPlayerIndex] = newPlayerHand
+          // If AI can play the drawn card, it will be handled in the next AI turn
+          if (aiMoveResult.gameState.currentPlayer !== 0) {
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
 
-            // Add the card to the discard pile
-            newState.discardPile = [...newState.discardPile, cardToPlay]
-            newState.lastCard = cardToPlay
-
-            // Update the visible discard pile (keep last 5 cards)
-            newState.visibleDiscardPile = [...(newState.visibleDiscardPile || []), cardToPlay].slice(-5)
-
-            // Handle wild cards
-            if (cardToPlay.type === "special") {
-              // AI chooses a color (simple strategy: choose the most common color in hand)
-              const colorCounts = { red: 0, blue: 0, green: 0, yellow: 0 }
-              newPlayerHand.forEach((c) => {
-                if (c.color !== "wild") {
-                  colorCounts[c.color]++
-                }
-              })
-
-              let maxColor = "red"
-              let maxCount = 0
-              Object.entries(colorCounts).forEach(([color, count]) => {
-                if (count > maxCount) {
-                  maxColor = color
-                  maxCount = count
-                }
-              })
-
-              newState.currentColor = maxColor
-            } else {
-              newState.currentColor = cardToPlay.color
-            }
-
-            // Apply card effects
-            const { nextPlayer, direction, drawCount } = applyCardEffect(newState, cardToPlay)
-            newState.currentPlayer = nextPlayer
-            newState.direction = direction
-
-            // Handle draw cards with sequential animations
-            if (drawCount > 0) {
-              // Create a sequence of animations with proper timing
-              const animateDrawSequence = (index) => {
-                if (index >= drawCount) {
-                  // All animations complete, continue game
-                  if (newState.currentPlayer !== 0) {
-                    setTimeout(() => playAITurn(), 500)
-                  }
-                  return
-                }
-
-                // Generate a random card
-                const drawnCard = generateRandomCard()
-
-                // Add the card to the player's hand
-                newState.players[nextPlayer].push(drawnCard)
-
-                // Add draw animation with chained callback
-                addAnimation("draw", drawnCard, "drawPile", getPlayerPosition(nextPlayer).position, () => {
-                  // Chain to the next animation
-                  setTimeout(() => {
-                    animateDrawSequence(index + 1)
-                  }, 200) // Short delay between sequential draws
-                })
-              }
-
-              // Start the animation sequence
-              animateDrawSequence(0)
-
-              return newState
-            }
-
-            // Check for winner
-            if (newPlayerHand.length === 0) {
-              setWinner(currentPlayerIndex)
-              return newState
-            }
-
-            // Continue AI turns if the next player is also AI
-            if (newState.currentPlayer !== 0) {
-              setTimeout(() => {
-                playAITurn()
-              }, 800)
-            }
-
-            return newState
-          })
+          setIsLoading(false)
         })
-      }, 50)
-    } else {
-      // AI needs to draw a card
-      // Generate a random card instead of taking from the deck
-      const drawnCard = generateRandomCard()
+      } else if (aiMoveResult.moveType === "play") {
+        // AI is playing a card
+        const cardToPlay = aiMoveResult.playedCard
+        const playerPosition = getPlayerPosition(currentPlayerIndex).position
 
-      // Update state with the new card
-      setGameState((prev) => {
-        const newState = { ...prev }
-        // Add the card to the player's hand immediately
-        newState.players[currentPlayerIndex].push(drawnCard)
-        return newState
-      })
+        // Add play animation for AI
+        addAnimation("play", cardToPlay, playerPosition, "discardPile", () => {
+          setGameState(aiMoveResult.gameState)
 
-      // Add draw animation for AI with improved timing
-      const playerPosition = getPlayerPosition(currentPlayerIndex).position
-      addAnimation("draw", drawnCard, "drawPile", playerPosition, () => {
-        // Check if the drawn card can be played
-        if (canPlayCard(drawnCard, gameState.lastCard, gameState.currentColor)) {
-          // Recursively call AI turn to play the card
-          setTimeout(() => {
-            playAITurn()
-          }, 600)
-        } else {
-          // Draw another card since this one can't be played
-          setTimeout(() => {
-            playAITurn()
-          }, 600)
-        }
-      })
+          // Check for winner
+          if (aiMoveResult.gameState.players[currentPlayerIndex].length === 0) {
+            setWinner(currentPlayerIndex)
+          } else if (aiMoveResult.gameState.currentPlayer !== 0) {
+            // If it's still AI's turn, continue AI moves
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      }
+    } catch (err) {
+      console.error("Failed to process AI turn:", err)
+      setError("Failed to process AI turn. Please try again.")
+      setIsLoading(false)
     }
   }
 
   // Say UNO button handler
-  const handleSayUno = () => {
-    if (gameState.players[0].length === 1) {
-      setGameState((prev) => ({
-        ...prev,
-        sayUno: true,
-      }))
+  const handleSayUno = async () => {
+    if (gameState.players[0].length !== 1 || isLoading) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // Call the API to say UNO
+      const updatedGameState = await gameAPI.sayUno(0, gameState)
+
+      setGameState(updatedGameState)
+    } catch (err) {
+      console.error("Failed to say UNO:", err)
+      setError("Failed to say UNO. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -532,9 +415,11 @@ export function GameBoard({ numPlayers = 5 }) {
           <button
               className="px-6 py-3 bg-black text-white rounded-lg text-xl font-bold shadow-lg hover:bg-gray-800 transition-colors"
               onClick={initGame}
+              disabled={isLoading}
           >
-            Start Game
+            {isLoading ? "Starting Game..." : "Start Game"}
           </button>
+          {error && <div className="absolute bottom-10 bg-red-500 text-white p-4 rounded-lg">{error}</div>}
         </div>
     )
   }
@@ -759,7 +644,7 @@ export function GameBoard({ numPlayers = 5 }) {
                         card.type === "special" ? (
                             <WildCard
                                 onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay}
+                                disabled={!canPlay || isLoading}
                                 className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
                             />
                         ) : (
@@ -767,12 +652,17 @@ export function GameBoard({ numPlayers = 5 }) {
                                 color={card.color}
                                 number={card.value}
                                 onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay}
+                                disabled={!canPlay || isLoading}
                                 className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
                             />
                         )
                     ) : (
-                        <CardBack isDark={true} className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40" onClick={() => {}} />                    )}
+                        <CardBack
+                            isDark={true}
+                            className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
+                            onClick={() => {}}
+                        />
+                    )}
                   </div>
               )
             })}
@@ -872,18 +762,25 @@ export function GameBoard({ numPlayers = 5 }) {
     )
   }
 
-  // Function to shuffle the deck
-  const shuffleDeck = (deck) => {
-    const newDeck = [...deck]
-    for (let i = newDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]]
-    }
-    return newDeck
-  }
-
   return (
       <div className="min-h-screen bg-[#3E8914] relative overflow-hidden" ref={tableRef}>
+        {/* Loading overlay */}
+        {isLoading && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40 pointer-events-none">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <div className="animate-spin h-8 w-8 border-4 border-[#3E8914] border-t-transparent rounded-full mx-auto"></div>
+                <p className="mt-2 text-center">Processing...</p>
+              </div>
+            </div>
+        )}
+
+        {/* Error message */}
+        {error && (
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg z-50">
+              {error}
+            </div>
+        )}
+
         {/* Winner announcement */}
         {winner !== null && (
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -892,6 +789,7 @@ export function GameBoard({ numPlayers = 5 }) {
                 <button
                     className="px-6 py-3 bg-[#3E8914] text-white rounded-lg text-xl font-bold shadow-lg hover:bg-[#2d6610] transition-colors"
                     onClick={initGame}
+                    disabled={isLoading}
                 >
                   Play Again
                 </button>
@@ -900,7 +798,9 @@ export function GameBoard({ numPlayers = 5 }) {
         )}
 
         {/* Color picker for wild cards */}
-        {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} onClose={() => setShowColorPicker(false)} />}        {/* Game board */}
+        {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} onClose={() => setShowColorPicker(false)} />}
+
+        {/* Game board */}
         <div className="relative w-full h-[calc(100vh-8rem)]">
           {/* Render all player hands */}
           {Array.from({ length: numPlayers }).map((_, index) => renderPlayerHand(index))}
@@ -911,11 +811,11 @@ export function GameBoard({ numPlayers = 5 }) {
             <div className="relative">
               <CardBack
                   isDark={true}
-                  onClick={gameState.currentPlayer === 0 && !isDrawing ? handleDrawCard : undefined}
+                  onClick={gameState.currentPlayer === 0 && !isDrawing && !isLoading ? handleDrawCard : undefined}
                   className={`w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40 ${
-                      gameState.currentPlayer === 0 && !isDrawing
+                      gameState.currentPlayer === 0 && !isDrawing && !isLoading
                           ? "cursor-pointer hover:scale-105"
-                          : isDrawing
+                          : isDrawing || isLoading
                               ? "opacity-75"
                               : ""
                   }`}
@@ -967,6 +867,7 @@ export function GameBoard({ numPlayers = 5 }) {
                 <button
                     className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold shadow-md hover:bg-red-700"
                     onClick={handleSayUno}
+                    disabled={isLoading}
                 >
                   Say UNO!
                 </button>
@@ -979,3 +880,4 @@ export function GameBoard({ numPlayers = 5 }) {
       </div>
   )
 }
+

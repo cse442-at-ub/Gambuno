@@ -78,6 +78,15 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         ];
         return callApi($url, 'POST', $data);
     }
+    function setCurrentPlayer($gameID, $playerID) {
+        $url = API_URL . "setCurrentPlayer.php";
+        $data = [
+            'action' => 'setCurrentPlayer',
+            'gameID' => $gameID,
+            'playerID' => $playerID
+        ];
+        return callApi($url, 'POST', $data);
+    }
 
     function setCurrentCard($gameID, $card) {
         $url = API_URL . "setCurrentCard.php";
@@ -127,6 +136,19 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
             'gameID' => $gameID
         ];
         return callApi($url, 'POST', $data);
+    }
+    
+    function getCookies(){
+        if (isset($_COOKIE['auth'])){
+            $cookie = $_COOKIE['auth'];
+            return $cookie;
+        }
+    }
+    
+    if (isset($_GET['action']) && $_GET['action'] == 'cookie') {
+        $userVal = getCookies();
+        echo json_encode(["status" => true, "cookie" => $userVal]);
+        exit;
     }
 
     function updatePlayersStats($gameID, $winnerID) {

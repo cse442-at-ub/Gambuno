@@ -30,7 +30,15 @@ if (isset($_GET['action']) && $_GET['action'] == 'leaderboard') {
 if (isset($_GET['action']) && $_GET['action'] == 'getBet') {
     $gameId = $_GET['gameID'];
     $bet = getBet($conn, $gameId);
-    echo json_encode(["status" => "success", "bet" => $bet]);
+    echo json_encode(["success" => true, "bet" => $bet]);
+    $conn->close();
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] == 'getStatus') {
+    $gameId = $_GET['gameID'];
+    $bet = getStatus($conn, $gameId);
+    echo json_encode(["success" => true, "status" => $bet]);
     $conn->close();
     exit;
 }
@@ -96,6 +104,23 @@ function getBet($conn, $gameID){
     // Fetch the result
     if ($stmt->fetch()) {
         return $betting_amt;
+    } else {
+        echo "No game found with ID: " . $gameID;
+    }   
+}
+
+function getStatus($conn, $gameID){
+    $query = "SELECT gameStatus FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $gameID); // "i" indicates integer type
+    $stmt->execute();
+
+    // Bind result variable
+    $stmt->bind_result($status);
+
+    // Fetch the result
+    if ($stmt->fetch()) {
+        return $status;
     } else {
         echo "No game found with ID: " . $gameID;
     }   

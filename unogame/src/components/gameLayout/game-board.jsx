@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
 import { motion, AnimatePresence } from "framer-motion"
-import * as gameAPI from "./../../lib/api"
+import * as gameAPI from "./../lib/api";
 
 export function GameBoard({ numPlayers = 5 }) {
   const [gameState, setGameState] = useState(null)
@@ -32,24 +32,31 @@ export function GameBoard({ numPlayers = 5 }) {
   // Initialize game
   const initGame = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
-
-      // Call the API to initialize the game
-      const initialGameState = await gameAPI.initializeGame(numPlayers)
-
-      setGameState(initialGameState)
-      setWinner(null)
-      setGameStarted(true)
-      setAnimations([])
-      setIsDrawing(false)
-    } catch (err) {
-      console.error("Failed to initialize game:", err)
-      setError("Failed to start the game. Please try again.")
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/game.php?action=intialize&gameID=045AMH");
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
+      }
+  
+      // Check if there's content to parse
+      const text = await response.json();
+      if(text.success){
+        setIsLoading(true);
+        setGameStarted(true);
+        console.log("Game Intialized: ", text.gameInfo);
+      }
+      else{
+        console.log("Game Intialization Failed: ", text.error);
+      }
+      } 
+     catch (err) {
+      console.error("Failed to initialize game:", err);
+      setError("Failed to start the game. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Update window size on resize
   useEffect(() => {

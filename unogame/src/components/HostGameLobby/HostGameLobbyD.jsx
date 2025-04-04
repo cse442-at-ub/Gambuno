@@ -77,7 +77,7 @@ const HostGameLobby = () => {
       const result = JSON.parse(text);
       
       if (result.success) {
-        navigate(`/game-board`);
+        navigate(`/game-board/${gameCode}`);
       } else {
         alert("Error: " + result.error);
       }

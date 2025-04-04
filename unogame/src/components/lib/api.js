@@ -3,7 +3,7 @@
  * Handles all communication with the backend PHP game logic
  */
 
-const API_PATH = "/unogame/api/gameLogic.php";
+const API_PATH = "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php";
 
 /**
  * Initialize a new game with the specified number of players
@@ -18,7 +18,7 @@ export async function initializeGame(numPlayers) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                action: 'initGame',
+                action: 'start_game',
                 numPlayers
             }),
         });

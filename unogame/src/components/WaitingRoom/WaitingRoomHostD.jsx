@@ -6,9 +6,48 @@ const WaitingRoomHost = () => {
   const { gameID } = useParams();
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
-
-  // Retrieve username from localStorage if needed.
-  const username = localStorage.getItem("username");
+  const [bet, setBetAmount] = useState(null);
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+    
+    // Use useEffect for API calls
+    useEffect(() => {
+      const initializeAuth = async () => {
+        try {
+          setIsLoading(true);
+          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResult = await cookieResponse.json();
+          
+          if (cookieResult.status) {
+            console.log("Cookie acquired:", cookieResult.cookie);
+            setCookie(cookieResult.cookie);
+            
+            // Get user metadata with the cookie
+            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResult = await metaResponse.json();
+            
+            if (metaResult.status) {
+              setUsername(metaResult.username);
+              setMoney(metaResult.money);
+              console.log("Username:", metaResult.username, "Money:", metaResult.money);
+            } else {
+              console.error("Failed to get user metadata:", metaResult);
+            }
+          } else {
+            console.error("Failed to get cookie:", cookieResult);
+          }
+        } catch (error) {
+          console.error("Error during initialization:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      initializeAuth();
+    }, []);
 
   // Fetch players list from the server via POST to POST.php.
   const fetchPlayers = async () => {
@@ -21,7 +60,7 @@ const WaitingRoomHost = () => {
           body: JSON.stringify({
             action: "status",
             gameID: gameID,
-            playerID: username, // if needed on the backend
+            playerID: cookie, // if needed on the backend
           }),
         }
       );
@@ -44,10 +83,38 @@ const WaitingRoomHost = () => {
     }
   };
 
+
+    const checkGame = async () => {
+      try {
+          // Get user metadata with the cookie
+          const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getStatus&gameID=${gameID}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            if (data.status == "inProgress"){
+              setStatus(data.status);
+              console.log("Status:", data.status);
+              navigate(`/game-board/${gameID}`);
+            }
+          } 
+          else {
+            console.error("Failed to get game status:", response);
+          }
+        } 
+      catch (error){
+        console.error("Error during initialization:", error);
+      }
+      finally{
+        setIsLoading(false);
+      }
+    };
+
+
   // Poll every 3 seconds.
   useEffect(() => {
     if (gameID) {
       fetchPlayers();
+      checkGame();
       const interval = setInterval(fetchPlayers, 3000);
       return () => clearInterval(interval);
     }
@@ -95,10 +162,6 @@ const WaitingRoomHost = () => {
         )}
       </div>
 
-      {/* Start Game Button */}
-      <button className="mt-6 px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700">
-        Start Game
-      </button>
 
       {/* Bottom Icons */}
       <button className="absolute bottom-4 left-4 p-2">

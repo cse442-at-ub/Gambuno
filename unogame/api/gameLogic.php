@@ -13,9 +13,9 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 
 // Check if a player's turn is valid
-function isPlayerTurn($conn, $gameID, $playerID): bool
+function isPlayerTurn( $gameID, $playerID): bool
 {
-    $currentPlayer = getCurrentPlayer($conn, $gameID);
+    $currentPlayer = getCurrentPlayer($gameID);
     return $currentPlayer === $playerID;
 }
 
@@ -52,15 +52,15 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
 }
 
 // Handle card placement
-function placeCard($conn, $gameID, $playerID, $card) {
+function placeCard( $gameID, $playerID, $card) {
 
-    if (!isPlayerTurn($conn, $gameID, $playerID)) {// if player not in turn dont play
+    if (!isPlayerTurn( $gameID, $playerID)) {// if player not in turn dont play
         return json_encode(['success' => false, 'message' => 'Not your turn']);
         //returns: {"success":false,"message":"Not your turn"}
     }
 
     // Get current card in play
-    $currentCard = getCurrentCard($conn, $gameID);
+    $currentCard = getCurrentCard( $gameID);
 
     // Check if card is valid to play
     if (!isValidCardPlay($currentCard, $card)) {
@@ -69,7 +69,7 @@ function placeCard($conn, $gameID, $playerID, $card) {
     }
 
     // Check if player has this card
-    $playerCards = getCardList($conn, $gameID, $playerID);
+    $playerCards = getCardList( $gameID, $playerID);
     $playerCardsArray = explode(',', $playerCards);
 
     if (!in_array($card, $playerCardsArray)) {
@@ -77,32 +77,32 @@ function placeCard($conn, $gameID, $playerID, $card) {
     }
 
     // Set the placed card
-    setPlacedCard($conn, $gameID, $playerID, $card);
+    setPlacedCard($gameID, $playerID, $card);
 
     // Remove card from player's hand
     $playerCardsArray = array_diff($playerCardsArray, [$card]);//returns array of cards without the played card
-    setCardList($conn, $gameID, $playerID, implode(',', $playerCardsArray));
+    setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Update current card in play
-    setCurrentCard($conn, $gameID, $card);
+    setCurrentCard($gameID, $card);
 
     // Process card effects if any
-//    processCardEffect($conn, $gameID, $card);
+//    processCardEffect( $gameID, $card);
 
     // Check if player has won (no cards left)
     if (count($playerCardsArray) === 0) {
-        handleGameWin($conn, $gameID, $playerID);
+        handleGameWin( $gameID, $playerID);
         return json_encode(['success' => true, 'message' => 'You win!', 'game_over' => true]);
     }
 
     // Move to next player's turn
-    moveToNextPlayer($conn, $gameID);
+    moveToNextPlayer( $gameID);
 
     return json_encode(['success' => true, 'message' => 'Card played successfully']);
 }
 
 // Process special card effects
-function processCardEffect($conn, $gameID, $card) {
+function processCardEffect( $gameID, $card) {
     list($color, $value) = explode('_', $card);
     $effect = null;
 
@@ -112,10 +112,10 @@ function processCardEffect($conn, $gameID, $card) {
     } else if ($value === 'reverse') {
         $effect = 'reverse';
         // Reverse the game order
-        $gameOrder = getGameOrder($conn, $gameID);
+        $gameOrder = getGameOrder( $gameID);
         $gameOrderArray = explode(',', $gameOrder);
         $gameOrderArray = array_reverse($gameOrderArray);
-        setGameOrder($conn, $gameID, implode(',', $gameOrderArray));
+        setGameOrder($gameID, implode(',', $gameOrderArray));
     } else if ($value === 'draw2') {
         $effect = 'draw2';
         // Implementation for drawing 2 cards will be added later
@@ -126,21 +126,21 @@ function processCardEffect($conn, $gameID, $card) {
 
     // Set card effect in the database
     if ($effect) {
-        setCardEffect($conn, $gameID, $effect);
+        setCardEffect( $gameID, $effect);
     }
 }
 
 // Move to the next player's turn
-function moveToNextPlayer($conn, $gameID) {
-    $currentPlayer = getCurrentPlayer($conn, $gameID);
-    $gameOrder = getGameOrder($conn, $gameID);
+function moveToNextPlayer( $gameID) {
+    $currentPlayer = getCurrentPlayer( $gameID);
+    $gameOrder = getGameOrder( $gameID);
     $gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
 
     // Get card effect if any
-//    $cardEffect = getCardEffect($conn, $gameID);
+//    $cardEffect = getCardEffect( $gameID);
 
     // Determine next player index
     $nextIndex = ($currentIndex + 1) % count($gameOrderArray); // ensures circular ordering
@@ -149,24 +149,24 @@ function moveToNextPlayer($conn, $gameID) {
 //    if ($cardEffect === 'skip') {
 //        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
 //        // Reset card effect after applying
-//        setCardEffect($conn, $gameID, '');
+//        setCardEffect( $gameID, '');
 //    }
 //
     // Set next player
-    setCurrentPlayer($conn, $gameID, $gameOrderArray[$nextIndex]);
+    setCurrentPlayer( $gameID, $gameOrderArray[$nextIndex]);
 
-    setGameOrder($conn, $gameID, implode(',', $gameOrderArray));
+    setGameOrder( $gameID, implode(',', $gameOrderArray));
 }
 
 // Handle player drawing a card
-function drawCard($conn, $gameID, $playerID) {
+function drawCard( $gameID, $playerID) {
     // Check if it's player's turn
-    if (!isPlayerTurn($conn, $gameID, $playerID)) {
+    if (!isPlayerTurn( $gameID, $playerID)) {
         return json_encode(['success' => false, 'message' => 'Not your turn']);
     }
 
     // Get player's current cards
-    $playerCards = getCardList($conn, $gameID, $playerID);
+    $playerCards = getPlayerCardList( $gameID, $playerID);
     $playerCardsArray = explode(',', $playerCards);
 
     // Generate a random card (in a real game, you'd draw from a deck)
@@ -183,54 +183,55 @@ function drawCard($conn, $gameID, $playerID) {
 
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
-    setCardList($conn, $gameID, $playerID, implode(',', $playerCardsArray));
+    setCardList( $gameID, $playerID, implode(',', $playerCardsArray));
 
     // Move to next player's turn
-    moveToNextPlayer($conn, $gameID);
+    moveToNextPlayer( $gameID);
 
     return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
 }
 
 // Handle game win scenario
-function handleGameWin($conn, $gameID, $playerID) {
-    //should have the follow methods, updatePlayerWins($conn,$gameID, $playerID), updatePlayersStats($conn,$gameID, $playerID)
+function handleGameWin( $gameID, $playerID) {
+    //should have the follow methods, updatePlayerWins($gameID, $playerID), updatePlayersStats($gameID, $playerID)
     // Update game status
-    setGameStatus($conn, $gameID, 'finished');
+    setGameStatus( $gameID, 'finished');
 
     // Update player stats
-    updatePlayerWins($conn, $gameID, $playerID);
+    updatePlayerWins( $gameID, $playerID);
 
-    updatePlayersStats($conn, $gameID, $playerID);
+    updatePlayersStats( $gameID, $playerID);
 
-    $bettingAmt = getBettingAmount($conn, $gameID);
-    $players = explode(',', getPlayerList($conn, $gameID));
+    $bettingAmt = getBettingAmount( $gameID);
+    $players = explode(',', getPlayerList( $gameID));
     $totalPot = $bettingAmt * count($players);
 
 
     // Add winnings to player's account
-    $currentMoney = getMoney($conn, $playerID);
-    setMoney($conn, $playerID, $currentMoney + $totalPot);
+    $currentMoney = getMoney( $playerID);
+    setMoney( $playerID, $currentMoney + $totalPot);
 }
 
 // Create a new game
-function createGame($conn, $playerID, $bettingAmount) {
+function createGame( $playerID, $bettingAmount) {
     // Generate unique game ID
     $gameID = uniqid();
 
     // Check if player has enough money
-    $playerMoney = getMoney($conn, $playerID);
+    $playerMoney = getMoney( $playerID);
     if ($playerMoney < $bettingAmount) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
     }
 
     // Deduct betting amount
-    setMoney($conn, $playerID, $playerMoney - $bettingAmount);
+    setMoney( $playerID, $playerMoney - $bettingAmount);
 
     // Generate initial card
     $colors = ['red', 'blue', 'green', 'yellow'];
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
 
+    $conn = getDatabaseConnection();
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '')");
     $playerList = $playerID;
@@ -239,7 +240,7 @@ function createGame($conn, $playerID, $bettingAmount) {
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName($conn, $playerID);
+    $playerName = getPlayerName( $playerID);
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -249,8 +250,9 @@ function createGame($conn, $playerID, $bettingAmount) {
 }
 
 // Join an existing game
-function joinGame($conn, $gameID, $playerID) {
+function joinGame( $gameID, $playerID) {
     // Check if game exists and is waiting
+    $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT gameStatus, betting_amt, playerList FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -267,7 +269,7 @@ function joinGame($conn, $gameID, $playerID) {
     }
 
     // Check if player has enough money
-    $playerMoney = getMoney($conn, $playerID);
+    $playerMoney = getMoney( $playerID);
     if ($playerMoney < $row['betting_amt']) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
     }
@@ -279,7 +281,7 @@ function joinGame($conn, $gameID, $playerID) {
     }
 
     // Deduct betting amount
-    setMoney($conn, $playerID, $playerMoney - $row['betting_amt']);
+    setMoney( $playerID, $playerMoney - $row['betting_amt']);
 
     // Add player to game
     $players[] = $playerID;
@@ -291,7 +293,7 @@ function joinGame($conn, $gameID, $playerID) {
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName($conn, $playerID);
+    $playerName = getPlayerName( $playerID);
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -302,34 +304,34 @@ function joinGame($conn, $gameID, $playerID) {
 
 // Generate initial cards for a player (7 random cards)
 function generateInitialCards() {
-//    $colors = ['red', 'blue', 'green', 'yellow'];
-//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
-//    $cards = [];
-//
-//    for ($i = 0; $i < 7; $i++) {
-//        if (rand(0, 10) > 8) {  // 20% chance of wild card
-//            $cards[] = 'wild_0';
-//        } else {
-//            $color = $colors[rand(0, 3)];
-//            $value = $values[rand(0, count($values) - 1)];
-//            $cards[] = $color . '_' . $value;
-//        }
-//    }
-//
-//    return implode(',', $cards);
+    $colors = ['red', 'blue', 'green', 'yellow'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $cards = [];
+
+    for ($i = 0; $i < 7; $i++) {
+        if (rand(0, 10) > 8) {  // 20% chance of wild card
+            $cards[] = 'wild_0';
+        } else {
+            $color = $colors[rand(0, 3)];
+            $value = $values[rand(0, count($values) - 1)];
+            $cards[] = $color . '_' . $value;
+        }
+    }
+
+    return implode(',', $cards);
 }
 
 // Start the game if enough players have joined
-function startGame($conn, $gameID, $playerID) {//just call
+function startGame( $gameID, $playerID) {//just call
     // Check if requester is game creator
-    //should be calling getHost($conn,$gameID)
+    //should be calling getHost($gameID)
 
-    $host = getHost($conn, $gameID);
+    $host = getHost( $gameID);
 
     if ($host !== $playerID) {
         return json_encode(['success' => false, 'message' => 'Only the host can start the game']);
     }
-
+    $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT playerList, gameStatus FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -352,16 +354,17 @@ function startGame($conn, $gameID, $playerID) {//just call
     }
 
     // Update game status
-    setGameStatus($conn, $gameID, 'inProgress');
+    setGameStatus( $gameID, 'inProgress');
 
     return json_encode(['success' => true, 'message' => 'Game started successfully']);
 }
 
 // Get game state for a player
-function getGameState($conn, $gameID, $playerID) {
+function getGameState( $gameID, $playerID) {
     // Check if game exists
 
-    //call getGame($conn, $gameID)
+    //call getGame( $gameID)
+    $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT * FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
@@ -433,7 +436,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Betting amount required']);
                 break;
             }
-            echo createGame($conn, $playerID, $data['bettingAmount']);
+            echo createGame( $playerID, $data['bettingAmount']);
             break;
 
         case 'join_game':
@@ -441,7 +444,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo joinGame($conn, $gameID, $playerID);
+            echo joinGame( $gameID, $playerID);
             break;
 
         case 'start_game':
@@ -449,7 +452,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo startGame($conn, $gameID, $playerID);
+            echo startGame( $gameID, $playerID);
             break;
 
         case 'place_card':
@@ -457,7 +460,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID and card required']);
                 break;
             }
-            echo placeCard($conn, $gameID, $playerID, $data['card']);
+            echo placeCard( $gameID, $playerID, $data['card']);
             break;
 
         case 'draw_card':
@@ -465,7 +468,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo drawCard($conn, $gameID, $playerID);
+            echo drawCard( $gameID, $playerID);
             break;
 
         case 'get_game_state':
@@ -473,7 +476,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo getGameState($conn, $gameID, $playerID);
+            echo getGameState( $gameID, $playerID);
             break;
 
         default:

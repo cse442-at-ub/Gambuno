@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react"
+"use client"
 
-// Remove 'use client' directive as it's Next.js specific
+import { useState, useEffect } from "react"
+// Import Star icon from Material-UI
+import StarIcon from "@mui/icons-material/Star"
 
 export default function UnoGame() {
     // CSS-in-JS styles to ensure the game works without Tailwind
@@ -203,6 +205,12 @@ export default function UnoGame() {
         colorButtonText: {
             fontWeight: "bold",
             fontSize: "1.125rem",
+        },
+        // Star styles
+        star: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
         },
     }
 
@@ -542,15 +550,7 @@ export default function UnoGame() {
 
     // Card Components
     function UnoCard({ color, number, className, onClick, disabled }) {
-        // Map colors to their respective star images
-        const colorStarMap = {
-            red: "/images/unoLogoRed.png",
-            blue: "/images/unoLogoblue.png",
-            yellow: "/images/unoLogoYellow.png",
-            green: "/images/unoLogogreen.png",
-        }
-
-        // Map colors to exact hex color values from the reference
+        // Map colors to their respective hex color values
         const colorHexMap = {
             red: "#F42C04",
             blue: "#1789FC",
@@ -639,6 +639,12 @@ export default function UnoGame() {
                 textShadow: "0 0 3px rgba(255, 255, 255, 0.9)",
                 fontWeight: "900",
             },
+            star: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "absolute",
+            },
         }
 
         return (
@@ -675,21 +681,18 @@ export default function UnoGame() {
                             {starPositions.map((position, index) => (
                                 <div
                                     key={index}
-                                    className="absolute w-2 h-2 sm:w-3 sm:h-3"
                                     style={{
+                                        ...cardStyles.star,
                                         top: position.top,
                                         left: position.left,
                                         transform: position.transform,
-                                        width: "0.5rem",
-                                        height: "0.5rem",
-                                        position: "absolute",
                                     }}
                                 >
-                                    <img
-                                        src={colorStarMap[color] || "/placeholder.svg"}
-                                        alt={`${color} star`}
-                                        className="w-full h-full object-contain"
-                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                    <StarIcon
+                                        style={{
+                                            color: colorHexMap[color],
+                                            fontSize: "0.75rem",
+                                        }}
                                     />
                                 </div>
                             ))}
@@ -751,15 +754,17 @@ export default function UnoGame() {
                 position: "absolute",
                 top: "0.25rem",
                 left: "0.25rem",
-                width: "1rem",
-                height: "1rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
             },
             bottomRightStar: {
                 position: "absolute",
                 bottom: "0.25rem",
                 right: "0.25rem",
-                width: "1rem",
-                height: "1rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
             },
             centerOval: {
                 border: "3px solid black",
@@ -783,6 +788,20 @@ export default function UnoGame() {
             },
         }
 
+        // Rainbow gradient for wild card star
+        const wildStarStyle = {
+            background: "linear-gradient(45deg, #F42C04, #FFB30F, #3E8914, #1789FC)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            fontSize: "1.5rem",
+        }
+
+        // Smaller stars for corners
+        const cornerStarStyle = {
+            ...wildStarStyle,
+            fontSize: "1rem",
+        }
+
         return (
             <button
                 className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
@@ -798,23 +817,13 @@ export default function UnoGame() {
                         style={cardStyles.innerCard}
                     >
                         {/* Star in top left */}
-                        <div className="absolute top-1 left-1 w-4 h-4 sm:w-5 sm:h-5" style={cardStyles.topLeftStar}>
-                            <img
-                                src="/images/unoLogoWild.png"
-                                alt="Wild star"
-                                className="w-full h-full object-contain"
-                                style={{ width: "100%", height: "100%", objectFit: "contain", transform: "rotate(0deg)" }}
-                            />
+                        <div style={cardStyles.topLeftStar}>
+                            <StarIcon style={cornerStarStyle} />
                         </div>
 
                         {/* Star in bottom right */}
-                        <div className="absolute bottom-1 right-1 w-4 h-4 sm:w-5 sm:h-5" style={cardStyles.bottomRightStar}>
-                            <img
-                                src="/public/images/unoLogoWild.png"
-                                alt="Wild star"
-                                className="w-full h-full object-contain"
-                                style={{ width: "100%", height: "100%", objectFit: "contain", transform: "rotate(0deg)" }}
-                            />
+                        <div style={cardStyles.bottomRightStar}>
+                            <StarIcon style={cornerStarStyle} />
                         </div>
 
                         {/* Center oval with wild star */}
@@ -822,13 +831,8 @@ export default function UnoGame() {
                             className="border-[3px] sm:border-[4px] border-black rounded-[50%] flex items-center justify-center"
                             style={cardStyles.centerOval}
                         >
-                            <div className="w-3/4 h-3/4 flex items-center justify-center" style={cardStyles.centerStarContainer}>
-                                <img
-                                    src="/images/unoLogoWild.png"
-                                    alt="Wild star"
-                                    className="w-full h-full object-contain"
-                                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                                />
+                            <div style={cardStyles.centerStarContainer}>
+                                <StarIcon style={wildStarStyle} fontSize="large" />
                             </div>
                         </div>
                     </div>
@@ -839,7 +843,7 @@ export default function UnoGame() {
 
     function CardBack({ className, isDark = false, onClick }) {
         const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
-        const starImage = isDark ? "/images/unoLogoback.png" : "/images/unoLogoWild.png"
+        const starColor = isDark ? "#FFFFFF" : "#000000"
 
         // Add white border class only for dark mode cards
         const borderClass = isDark ? "border-[2px] border-white" : ""
@@ -877,8 +881,9 @@ export default function UnoGame() {
                 top: "50%",
                 left: "50%",
                 transform: "translate(-50%, -50%)",
-                width: "2.5rem",
-                height: "2.5rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
             },
         }
 
@@ -895,17 +900,9 @@ export default function UnoGame() {
                         className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}
                         style={cardStyles.innerCard}
                     >
-                        {/* Normal card back with single star - much bigger */}
-                        <div
-                            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12"
-                            style={cardStyles.starContainer}
-                        >
-                            <img
-                                src={starImage || "/placeholder.svg"}
-                                alt="UNO star"
-                                className="w-full h-full object-contain"
-                                style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                            />
+                        {/* Center star */}
+                        <div style={cardStyles.starContainer}>
+                            <StarIcon style={{ color: starColor, fontSize: "2rem" }} />
                         </div>
                     </div>
                 </div>

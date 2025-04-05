@@ -77,14 +77,14 @@ function placeCard( $gameID, $playerID, $card) {
     }
 
     // Set the placed card
-    setPlacedCard( $gameID, $playerID, $card);
+    setPlacedCard($gameID, $playerID, $card);
 
     // Remove card from player's hand
     $playerCardsArray = array_diff($playerCardsArray, [$card]);//returns array of cards without the played card
-    setCardList( $gameID, $playerID, implode(',', $playerCardsArray));
+    setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Update current card in play
-    setCurrentCard( $gameID, $card);
+    setCurrentCard($gameID, $card);
 
     // Process card effects if any
 //    processCardEffect( $gameID, $card);
@@ -115,7 +115,7 @@ function processCardEffect( $gameID, $card) {
         $gameOrder = getGameOrder( $gameID);
         $gameOrderArray = explode(',', $gameOrder);
         $gameOrderArray = array_reverse($gameOrderArray);
-        setGameOrder( $gameID, implode(',', $gameOrderArray));
+        setGameOrder($gameID, implode(',', $gameOrderArray));
     } else if ($value === 'draw2') {
         $effect = 'draw2';
         // Implementation for drawing 2 cards will be added later
@@ -166,7 +166,7 @@ function drawCard( $gameID, $playerID) {
     }
 
     // Get player's current cards
-    $playerCards = getCardList( $gameID, $playerID);
+    $playerCards = getPlayerCardList( $gameID, $playerID);
     $playerCardsArray = explode(',', $playerCards);
 
     // Generate a random card (in a real game, you'd draw from a deck)
@@ -304,21 +304,21 @@ function joinGame( $gameID, $playerID) {
 
 // Generate initial cards for a player (7 random cards)
 function generateInitialCards() {
-//    $colors = ['red', 'blue', 'green', 'yellow'];
-//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'skip', 'reverse', 'draw2'];
-//    $cards = [];
-//
-//    for ($i = 0; $i < 7; $i++) {
-//        if (rand(0, 10) > 8) {  // 20% chance of wild card
-//            $cards[] = 'wild_0';
-//        } else {
-//            $color = $colors[rand(0, 3)];
-//            $value = $values[rand(0, count($values) - 1)];
-//            $cards[] = $color . '_' . $value;
-//        }
-//    }
-//
-//    return implode(',', $cards);
+    $colors = ['red', 'blue', 'green', 'yellow'];
+    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $cards = [];
+
+    for ($i = 0; $i < 7; $i++) {
+        if (rand(0, 10) > 8) {  // 20% chance of wild card
+            $cards[] = 'wild_0';
+        } else {
+            $color = $colors[rand(0, 3)];
+            $value = $values[rand(0, count($values) - 1)];
+            $cards[] = $color . '_' . $value;
+        }
+    }
+
+    return implode(',', $cards);
 }
 
 // Start the game if enough players have joined

@@ -92,7 +92,7 @@ function MainMenuMobile () {
           </div>
         </div>
         <nav className="menu">
-          <button className= "menu-button" onClick={() => navigate('/uno-game')}>Play</button>
+          <button className= "menu-button" onClick={() => navigate('/select-game')}>Play</button>
           <button className= "menu-button" onClick={toggleSettings} >Settings</button>
         </nav>
 

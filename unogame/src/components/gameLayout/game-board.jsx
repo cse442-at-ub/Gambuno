@@ -1,26 +1,31 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
-import GameService from "../../lib/gameService"
-import { motion, AnimatePresence } from "framer-motion"
 
-export function GameBoard({ gameID, playerID }) {
-  // Remove the showJoinForm state and related functionality
-  const [lobbyID, setLobbyID] = useState(gameID || null)
-  const [playerIdentifier, setPlayerIdentifier] = useState(playerID || null)
+import { useState, useEffect, useRef} from "react"
+import {useParams} from "react-router-dom";
+import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
+import { motion, AnimatePresence } from "framer-motion"
+import * as gameAPI from "./../lib/api";
+
+export function GameBoard({ numPlayers = 5 }) {
   const [gameState, setGameState] = useState(null)
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [pendingWildCard, setPendingWildCard] = useState(null)
   const [winner, setWinner] = useState(null)
   const [gameStarted, setGameStarted] = useState(false)
-  const [playerNames, setPlayerNames] = useState([])
+  const { gameCode } = useParams(); 
+  const [playerNames, setPlayerNames] = useState(
+    
+      Array(numPlayers)
+          .fill("")
+          .map((_, i) => `Player ${i + 1}`),
+  )
   const [animatingCard, setAnimatingCard] = useState(null)
   const [drawingPlayer, setDrawingPlayer] = useState(null)
   const [animations, setAnimations] = useState([])
   const [isDrawing, setIsDrawing] = useState(false)
-  const [message, setMessage] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
   const tableRef = useRef(null)
   const animationIdRef = useRef(0)
   const windowSize = useRef({
@@ -28,105 +33,35 @@ export function GameBoard({ gameID, playerID }) {
     height: typeof window !== "undefined" ? window.innerHeight : 800,
   })
 
-  // Initialize game when gameID and playerID are provided
-  useEffect(() => {
-    if (gameID && playerID) {
-      setLobbyID(gameID)
-      setPlayerIdentifier(playerID)
-      setGameStarted(true)
-    }
-  }, [gameID, playerID])
-
-  // Fetch game state at regular intervals
-  useEffect(() => {
-    if (!lobbyID || !playerIdentifier) return
-
-    const fetchGameState = async () => {
-      try {
-        const response = await GameService.fetchGameState(lobbyID, playerIdentifier)
-        if (response.success) {
-          setGameState(transformApiGameState(response.gameState))
-
-          // Update player names if available
-          if (response.gameState.players) {
-            const names = response.gameState.players.map((player) => player.username || `Player ${player.playerID}`)
-            setPlayerNames(names)
-          }
-
-          // Check for winner
-          if (response.gameState.gameStatus === "ended") {
-            setWinner(response.gameState.winner || response.gameState.currentPlayer)
-          }
-        } else {
-          setMessage(response.message)
-        }
-      } catch (error) {
-        setMessage("Failed to fetch game state")
+  // Initialize game
+  const initGame = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/game.php?action=intialize&gameID=045AMH");
+      if (!response.ok) {
+        throw new Error(`Server responded with status: ${response.status}`);
       }
+  
+      // Check if there's content to parse
+      const text = await response.json();
+      if(text.success){
+        setIsLoading(true);
+        setGameStarted(false);
+        setGameState(false);
+        console.log("Game Intialized: ", text.gameInfo);
+      }
+      else{
+        console.log("Game Intialization Failed: ", text.error);
+      }
+      } 
+     catch (err) {
+      console.error("Failed to initialize game:", err);
+      setError("Failed to start the game. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-
-    // Initial fetch
-    fetchGameState()
-
-    // Set up polling
-    const interval = setInterval(fetchGameState, 2000)
-    return () => clearInterval(interval)
-  }, [lobbyID, playerIdentifier])
-
-  // Transform API game state to match our UI format
-  const transformApiGameState = (apiGameState) => {
-    if (!apiGameState) return null
-
-    // Parse current card
-    const currentCardParts = apiGameState.currentCard ? apiGameState.currentCard.split("_") : []
-    let currentColor = currentCardParts[0]
-    const currentValue = currentCardParts[1]
-
-    // Handle wild cards with chosen color
-    if (currentColor === "wild" && currentCardParts.length > 2) {
-      currentColor = currentCardParts[2]
-    }
-
-    // Transform player hands
-    const players = apiGameState.players.map((player) => {
-      // Transform cards to our format
-      const transformedHand = player.hand
-          ? player.hand.map((card) => {
-            const parts = card.split("_")
-            const color = parts[0]
-            const value = parts[1]
-
-            return {
-              id: `${color}-${value}-${Math.random()}`,
-              color,
-              value,
-              type: color === "wild" ? "special" : "number",
-            }
-          })
-          : []
-
-      return transformedHand
-    })
-
-    // Create a discard pile with the current card
-    const currentCardObj = {
-      id: `${currentColor}-${currentValue}-top`,
-      color: currentCardParts[0], // Original color (might be 'wild')
-      value: currentValue,
-      type: currentCardParts[0] === "wild" ? "special" : "number",
-    }
-
-    return {
-      players,
-      currentPlayer: apiGameState.currentPlayer,
-      direction: apiGameState.gameOrder || 1,
-      currentColor,
-      lastCard: currentCardObj,
-      discardPile: [currentCardObj],
-      visibleDiscardPile: [currentCardObj],
-      sayUno: false,
-    }
-  }
+  };
 
   // Update window size on resize
   useEffect(() => {
@@ -172,136 +107,243 @@ export function GameBoard({ gameID, playerID }) {
   // Handle drawing a card with animation
   const handleDrawCard = async () => {
     // Prevent drawing if not player's turn, there's a winner, or already drawing
-    if (!gameState || gameState.currentPlayer !== playerIdentifier || winner || isDrawing || loading) return
-
-    setIsDrawing(true)
-    setLoading(true)
+    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
 
     try {
-      const response = await GameService.drawCard(lobbyID, playerIdentifier)
-      setMessage(response.message)
+      // Set drawing state to prevent multiple draws
+      setIsDrawing(true)
+      setIsLoading(true)
+      setError(null)
 
-      if (response.success && response.drawnCard) {
-        // Parse the drawn card
-        const parts = response.drawnCard.split("_")
-        const color = parts[0]
-        const value = parts[1]
+      // Call the API to draw a card
+      const updatedGameState = await gameAPI.drawCard(0, gameState)
 
-        const newCard = {
-          id: `${color}-${value}-${Date.now()}`,
-          color,
-          value,
-          type: color === "wild" ? "special" : "number",
-        }
+      // Get the newly drawn card (last card in player's hand)
+      const newCard = updatedGameState.players[0][updatedGameState.players[0].length - 1]
 
-        // Add draw animation
-        addAnimation("draw", newCard, "drawPile", "player", () => {
-          // Update game state after animation completes
-          GameService.fetchGameState(lobbyID, playerIdentifier).then((stateResponse) => {
-            if (stateResponse.success) {
-              setGameState(transformApiGameState(stateResponse.gameState))
-            }
-            setIsDrawing(false)
-            setLoading(false)
-          })
-        })
-      } else {
+      // Add draw animation
+      addAnimation("draw", newCard, "drawPile", "player", () => {
+        setGameState(updatedGameState)
         setIsDrawing(false)
-        setLoading(false)
-      }
-    } catch (error) {
-      setMessage("Failed to draw card")
+
+        // If it's AI's turn after drawing, trigger AI move
+        if (updatedGameState.currentPlayer !== 0) {
+          setTimeout(() => {
+            playAITurn()
+          }, 800)
+        }
+      })
+    } catch (err) {
+      console.error("Failed to draw card:", err)
+      setError("Failed to draw a card. Please try again.")
       setIsDrawing(false)
-      setLoading(false)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // Handle playing a card with animation
-  const handlePlayCard = (card, index) => {
-    if (!gameState || gameState.currentPlayer !== playerIdentifier || winner || isDrawing || loading) return
+  const handlePlayCard = async (card, index) => {
+    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
 
-    // Check if it's a wild card
-    if (card.type === "special") {
-      setPendingWildCard({ card, index })
-      setShowColorPicker(true)
-      return
-    }
+    try {
+      setIsLoading(true)
+      setError(null)
 
-    playCardWithAnimation(card, index, null)
-  }
+      // Check if the card can be played
+      const isPlayable = await gameAPI.checkCardPlayable(card, gameState.lastCard, gameState.currentColor)
 
-  // Play a card with animation
-  const playCardWithAnimation = async (card, index, selectedColor) => {
-    setLoading(true)
-
-    // First visually remove the card from the hand
-    setGameState((prev) => {
-      if (!prev) return prev
-      const newState = { ...prev }
-      // Create a temporary copy without the card to be played
-      const tempHand = [...newState.players[0]]
-      tempHand.splice(index, 1)
-      newState.players[0] = tempHand
-      return newState
-    })
-
-    // Format the card for the API
-    let cardString
-    if (card.type === "special") {
-      cardString = `wild_${card.value}`
-    } else {
-      cardString = `${card.color}_${card.value}`
-    }
-
-    // Add play animation
-    addAnimation("play", card, "player", "discardPile", async () => {
-      try {
-        const response = await GameService.playCard(lobbyID, playerIdentifier, cardString, selectedColor)
-        setMessage(response.message)
-
-        if (response.success) {
-          // Update game state after successful play
-          const stateResponse = await GameService.fetchGameState(lobbyID, playerIdentifier)
-          if (stateResponse.success) {
-            setGameState(transformApiGameState(stateResponse.gameState))
-
-            // Check for winner
-            if (stateResponse.gameState.gameStatus === "ended") {
-              setWinner(stateResponse.gameState.winner || stateResponse.gameState.currentPlayer)
-            }
-          }
-        }
-      } catch (error) {
-        setMessage("Failed to play card")
+      if (!isPlayable) {
+        setIsLoading(false)
+        return
       }
-      setLoading(false)
-    })
+
+      // Handle wild cards
+      if (card.type === "special") {
+        setPendingWildCard({ card, index })
+        setShowColorPicker(true)
+        setIsLoading(false)
+        return
+      }
+
+      // First visually remove the card from the hand
+      setGameState((prev) => {
+        const newState = { ...prev }
+        // Create a temporary copy without the card to be played
+        // This makes it visually disappear from the hand
+        const tempHand = [...newState.players[0]]
+        tempHand.splice(index, 1)
+        newState.players[0] = tempHand
+        return newState
+      })
+
+      // Then add play animation
+      setTimeout(() => {
+        addAnimation("play", card, "player", "discardPile", async () => {
+          // Call the API to play the card
+          const updatedGameState = await gameAPI.playCard(0, card, index, gameState)
+          setGameState(updatedGameState)
+
+          // Check for winner
+          if (updatedGameState.players[0].length === 0) {
+            setWinner(0)
+          } else if (updatedGameState.currentPlayer !== 0) {
+            // If it's AI's turn after playing, trigger AI move
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      }, 50) // Small delay to ensure the card is visually removed first
+    } catch (err) {
+      console.error("Failed to play card:", err)
+      setError("Failed to play the card. Please try again.")
+      setIsLoading(false)
+    }
   }
 
   // Handle color selection for wild cards
-  const handleColorSelect = (color) => {
+  const handleColorSelect = async (color) => {
     setShowColorPicker(false)
-    if (pendingWildCard) {
-      playCardWithAnimation(pendingWildCard.card, pendingWildCard.index, color)
+
+    if (!pendingWildCard || isLoading) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // First visually remove the card from the hand
+      setGameState((prev) => {
+        const newState = { ...prev }
+        // Create a temporary copy without the card to be played
+        // This makes it visually disappear from the hand
+        const tempHand = [...newState.players[0]]
+        tempHand.splice(pendingWildCard.index, 1)
+        newState.players[0] = tempHand
+        return newState
+      })
+
+      // Then add play animation
+      setTimeout(() => {
+        addAnimation("play", pendingWildCard.card, "player", "discardPile", async () => {
+          // Call the API to play the wild card with selected color
+          const updatedGameState = await gameAPI.playWildCard(
+              0,
+              pendingWildCard.card,
+              pendingWildCard.index,
+              color,
+              gameState,
+          )
+
+          setGameState(updatedGameState)
+          setPendingWildCard(null)
+
+          // Check for winner
+          if (updatedGameState.players[0].length === 0) {
+            setWinner(0)
+          } else if (updatedGameState.currentPlayer !== 0) {
+            // If it's AI's turn after playing, trigger AI move
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      }, 50)
+    } catch (err) {
+      console.error("Failed to play wild card:", err)
+      setError("Failed to play the wild card. Please try again.")
       setPendingWildCard(null)
+      setIsLoading(false)
+    }
+  }
+
+  // AI player turn logic with animations
+  const playAITurn = async () => {
+    if (!gameState || gameState.currentPlayer === 0 || winner || isLoading) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const currentPlayerIndex = gameState.currentPlayer
+
+      // Call the API to get the AI move
+      const aiMoveResult = await gameAPI.getAIMove(currentPlayerIndex, gameState)
+
+      // Handle different AI move types
+      if (aiMoveResult.moveType === "draw") {
+        // AI is drawing a card
+        const drawnCard = aiMoveResult.drawnCard
+
+        // Add draw animation for AI
+        const playerPosition = getPlayerPosition(currentPlayerIndex).position
+        addAnimation("draw", drawnCard, "drawPile", playerPosition, () => {
+          setGameState(aiMoveResult.gameState)
+
+          // If AI can play the drawn card, it will be handled in the next AI turn
+          if (aiMoveResult.gameState.currentPlayer !== 0) {
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      } else if (aiMoveResult.moveType === "play") {
+        // AI is playing a card
+        const cardToPlay = aiMoveResult.playedCard
+        const playerPosition = getPlayerPosition(currentPlayerIndex).position
+
+        // Add play animation for AI
+        addAnimation("play", cardToPlay, playerPosition, "discardPile", () => {
+          setGameState(aiMoveResult.gameState)
+
+          // Check for winner
+          if (aiMoveResult.gameState.players[currentPlayerIndex].length === 0) {
+            setWinner(currentPlayerIndex)
+          } else if (aiMoveResult.gameState.currentPlayer !== 0) {
+            // If it's still AI's turn, continue AI moves
+            setTimeout(() => {
+              playAITurn()
+            }, 800)
+          }
+
+          setIsLoading(false)
+        })
+      }
+    } catch (err) {
+      console.error("Failed to process AI turn:", err)
+      setError("Failed to process AI turn. Please try again.")
+      setIsLoading(false)
     }
   }
 
   // Say UNO button handler
-  const handleSayUno = () => {
-    if (gameState && gameState.players[0].length === 1) {
-      setGameState((prev) => ({
-        ...prev,
-        sayUno: true,
-      }))
-      setMessage("You said UNO!")
+  const handleSayUno = async () => {
+    if (gameState.players[0].length !== 1 || isLoading) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // Call the API to say UNO
+      const updatedGameState = await gameAPI.sayUno(0, gameState)
+
+      setGameState(updatedGameState)
+    } catch (err) {
+      console.error("Failed to say UNO:", err)
+      setError("Failed to say UNO. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // Get player position based on player index and total number of players
   const getPlayerPosition = (playerIndex) => {
-    const numPlayers = gameState?.players?.length || 6
-
     // Player 0 is always at the bottom
     if (playerIndex === 0) return { position: "bottom", rotation: 0 }
 
@@ -365,14 +407,24 @@ export function GameBoard({ gameID, playerID }) {
     }
   }
 
-  // Loading state when waiting for game state
+  // Start a new game
+  useEffect(() => {
+    if (!gameStarted) {
+      initGame()
+    }
+  }, [gameStarted])
+
   if (!gameState) {
     return (
         <div className="flex items-center justify-center h-screen bg-[#3E8914]">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <p className="text-xl">Loading game...</p>
-            {message && <p className="mt-2">{message}</p>}
-          </div>
+          <button
+              className="px-6 py-3 bg-black text-white rounded-lg text-xl font-bold shadow-lg hover:bg-gray-800 transition-colors"
+              onClick={initGame}
+              disabled={isLoading}
+          >
+            {isLoading ? "Starting Game..." : "Start Game"}
+          </button>
+          {error && <div className="absolute bottom-10 bg-red-500 text-white p-4 rounded-lg">{error}</div>}
         </div>
     )
   }
@@ -528,9 +580,6 @@ export function GameBoard({ gameID, playerID }) {
         }
     }
 
-    // For API integration, we need to determine if this is the current player's hand
-    const isPlayerHand = playerIndex === 0
-
     return (
         <div className={`absolute ${isCurrentPlayer ? "z-10" : ""} player-${position}`} style={containerStyle}>
           {/* Player name with improved positioning */}
@@ -547,8 +596,7 @@ export function GameBoard({ gameID, playerID }) {
               }}
           >
           <span className="bg-black/70 text-white font-bold px-3 py-1 rounded-md whitespace-nowrap">
-            {playerIndex === 0 ? "You" : playerNames[playerIndex] || `Player ${playerIndex}`}{" "}
-            {isCurrentPlayer ? "(Playing)" : ""}
+            {playerNames[playerIndex]} {isCurrentPlayer ? "(Playing)" : ""}
           </span>
           </div>
 
@@ -562,9 +610,7 @@ export function GameBoard({ gameID, playerID }) {
               }}
           >
             {cards.map((card, index) => {
-              // For API integration, we need to determine if the card can be played
               const canPlay =
-                  isPlayerHand &&
                   isCurrentPlayer &&
                   (card.type === "special" ||
                       card.color === gameState.currentColor ||
@@ -573,37 +619,37 @@ export function GameBoard({ gameID, playerID }) {
               // For player 0 (user), we need special handling for playable cards
               const transform = baseTransform(index, totalCards)
               const hoverTransform =
-                  isPlayerHand && canPlay ? `${baseTransform(index, totalCards)} translateY(-30px)` : transform
+                  playerIndex === 0 && canPlay ? `${baseTransform(index, totalCards)} translateY(-30px)` : transform
 
               return (
                   <div
-                      key={isPlayerHand ? card.id : `${playerIndex}-${index}`}
+                      key={playerIndex === 0 ? card.id : `${playerIndex}-${index}`}
                       className="absolute transition-all duration-200"
                       style={{
-                        transform: isPlayerHand && canPlay ? `${transform} translateY(-10px)` : transform,
+                        transform: playerIndex === 0 && canPlay ? `${transform} translateY(-10px)` : transform,
                         transformOrigin: transformOrigin,
                         zIndex: index,
                       }}
                       onMouseEnter={
-                        isPlayerHand && canPlay
+                        playerIndex === 0 && canPlay
                             ? (e) => {
                               e.currentTarget.style.transform = hoverTransform
                             }
                             : undefined
                       }
                       onMouseLeave={
-                        isPlayerHand && canPlay
+                        playerIndex === 0 && canPlay
                             ? (e) => {
                               e.currentTarget.style.transform = `${transform} translateY(-10px)`
                             }
                             : undefined
                       }
                   >
-                    {isPlayerHand ? (
+                    {playerIndex === 0 ? (
                         card.type === "special" ? (
                             <WildCard
                                 onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay}
+                                disabled={!canPlay || isLoading}
                                 className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
                             />
                         ) : (
@@ -611,7 +657,7 @@ export function GameBoard({ gameID, playerID }) {
                                 color={card.color}
                                 number={card.value}
                                 onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay}
+                                disabled={!canPlay || isLoading}
                                 className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
                             />
                         )
@@ -723,28 +769,32 @@ export function GameBoard({ gameID, playerID }) {
 
   return (
       <div className="min-h-screen bg-[#3E8914] relative overflow-hidden" ref={tableRef}>
-        {/* Game info */}
-        <div className="absolute top-2 left-2 bg-black/70 text-white p-2 rounded-md z-50">
-          <p>
-            Lobby ID: {lobbyID} | Player ID: {playerIdentifier}
-          </p>
-        </div>
+        {/* Loading overlay */}
+        {isLoading && (
+            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40 pointer-events-none">
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <div className="animate-spin h-8 w-8 border-4 border-[#3E8914] border-t-transparent rounded-full mx-auto"></div>
+                <p className="mt-2 text-center">Processing...</p>
+              </div>
+            </div>
+        )}
 
-        {/* Message display */}
-        {message && (
-            <div className="absolute top-2 right-2 bg-black/70 text-white p-2 rounded-md z-50 max-w-xs">{message}</div>
+        {/* Error message */}
+        {error && (
+            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg z-50">
+              {error}
+            </div>
         )}
 
         {/* Winner announcement */}
         {winner !== null && (
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
               <div className="bg-white p-8 rounded-xl shadow-2xl text-center">
-                <h2 className="text-3xl font-bold mb-4">
-                  {winner === playerIdentifier ? "You Win!" : `${playerNames[winner] || `Player ${winner}`} Wins!`}
-                </h2>
+                <h2 className="text-3xl font-bold mb-4">{winner === 0 ? "You Win!" : `${playerNames[winner]} Wins!`}</h2>
                 <button
                     className="px-6 py-3 bg-[#3E8914] text-white rounded-lg text-xl font-bold shadow-lg hover:bg-[#2d6610] transition-colors"
-                    onClick={() => window.location.reload()}
+                    onClick={initGame}
+                    disabled={isLoading}
                 >
                   Play Again
                 </button>
@@ -758,7 +808,7 @@ export function GameBoard({ gameID, playerID }) {
         {/* Game board */}
         <div className="relative w-full h-[calc(100vh-8rem)]">
           {/* Render all player hands */}
-          {gameState.players.map((_, index) => renderPlayerHand(index))}
+          {Array.from({ length: numPlayers }).map((_, index) => renderPlayerHand(index))}
 
           {/* Center area with draw and discard piles */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-8">
@@ -766,13 +816,11 @@ export function GameBoard({ gameID, playerID }) {
             <div className="relative">
               <CardBack
                   isDark={true}
-                  onClick={
-                    gameState.currentPlayer === playerIdentifier && !isDrawing && !loading ? handleDrawCard : undefined
-                  }
+                  onClick={gameState.currentPlayer === 0 && !isDrawing && !isLoading ? handleDrawCard : undefined}
                   className={`w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40 ${
-                      gameState.currentPlayer === playerIdentifier && !isDrawing && !loading
+                      gameState.currentPlayer === 0 && !isDrawing && !isLoading
                           ? "cursor-pointer hover:scale-105"
-                          : isDrawing || loading
+                          : isDrawing || isLoading
                               ? "opacity-75"
                               : ""
                   }`}
@@ -819,11 +867,12 @@ export function GameBoard({ gameID, playerID }) {
           </div>
 
           {/* Say UNO button */}
-          {gameState.players[0] && gameState.players[0].length === 1 && !gameState.sayUno && (
+          {gameState.players[0].length === 1 && !gameState.sayUno && (
               <div className="absolute bottom-4 right-4">
                 <button
                     className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold shadow-md hover:bg-red-700"
                     onClick={handleSayUno}
+                    disabled={isLoading}
                 >
                   Say UNO!
                 </button>

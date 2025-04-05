@@ -5,14 +5,51 @@ const HostGameLobby = () => {
   const { gameCode } = useParams(); // Read game code from URL
   const location = useLocation();
   const navigate = useNavigate();
-
   const [players, setPlayers] = useState([]);
   const [error, setError] = useState("");
+  const [bet, setBetAmount] = useState("");
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+    
+    // Use useEffect for API calls
+    useEffect(() => {
+      const initializeAuth = async () => {
+        try {
+          setIsLoading(true);
+          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResult = await cookieResponse.json();
+          
+          if (cookieResult.status) {
+            console.log("Cookie acquired:", cookieResult.cookie);
+            setCookie(cookieResult.cookie);
+            
+            // Get user metadata with the cookie
+            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResult = await metaResponse.json();
+            
+            if (metaResult.status) {
+              setUsername(metaResult.username);
+              setMoney(metaResult.money);
+              console.log("Username:", metaResult.username, "Money:", metaResult.money);
+            } else {
+              console.error("Failed to get user metadata:", metaResult);
+            }
+          } else {
+            console.error("Failed to get cookie:", cookieResult);
+          }
+        } catch (error) {
+          console.error("Error during initialization:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      initializeAuth();
+    }, []); // Empty dependency array means this runs once on component mount
+    
 
-  // Extract bet amount from navigation state
-  const username = localStorage.getItem("username");
-
-  const betAmount = Number(localStorage.getItem('bet'));
 
   const handleStartGame = async () => {
     try {
@@ -24,7 +61,7 @@ const HostGameLobby = () => {
         body: JSON.stringify({
           gameID: gameCode,
           action: "start",
-          bet: betAmount
+          bet: bet
         })
       });
       if(!response.ok){
@@ -40,7 +77,7 @@ const HostGameLobby = () => {
       const result = JSON.parse(text);
       
       if (result.success) {
-        navigate(`/`);
+        navigate(`/game-board/${gameCode}`);
       } else {
         alert("Error: " + result.error);
       }
@@ -57,6 +94,7 @@ const HostGameLobby = () => {
         console.error("Missing username or game code");
         return;
       }
+      
 
       try {
         const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
@@ -65,9 +103,9 @@ const HostGameLobby = () => {
           body: JSON.stringify({
             gameID: gameCode,
             action: "create",
-            playerID: username,
+            playerID: cookie,
             playerName: username,
-            bet_amount: betAmount,
+            bet_amount: bet,
           }),
         });
 
@@ -94,7 +132,7 @@ const HostGameLobby = () => {
     };
 
     createLobby();
-  }, [gameCode, betAmount, username]);
+  }, [gameCode, bet, username]);
 
   // Fetch players in the lobby (polling every 3 seconds)
   useEffect(() => {
@@ -162,7 +200,7 @@ const HostGameLobby = () => {
 
       {/* Bet Amount */}
       <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${betAmount}
+        Bet Amount: ${bet}
       </div>
 
       {/* Error Message */}

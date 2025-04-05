@@ -7,9 +7,48 @@ const JoinGameMenu = () => {
   const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [bet_amount, setBetAmount] = useState(null);
-  
-  // Fetch available lobbies
+  const [bet, setBetAmount] = useState(null);
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+    
+    // Use useEffect for API calls
+    useEffect(() => {
+      const initializeAuth = async () => {
+        try {
+          setIsLoading(true);
+          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResult = await cookieResponse.json();
+          
+          if (cookieResult.status) {
+            console.log("Cookie acquired:", cookieResult.cookie);
+            setCookie(cookieResult.cookie);
+            
+            // Get user metadata with the cookie
+            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResult = await metaResponse.json();
+            
+            if (metaResult.status) {
+              setUsername(metaResult.username);
+              setMoney(metaResult.money);
+              console.log("Username:", metaResult.username, "Money:", metaResult.money);
+            } else {
+              console.error("Failed to get user metadata:", metaResult);
+            }
+          } else {
+            console.error("Failed to get cookie:", cookieResult);
+          }
+        } catch (error) {
+          console.error("Error during initialization:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      initializeAuth();
+    }, []);
+
   const fetchLobbies = async () => {
     setLoading(true);
     setError("");
@@ -71,7 +110,7 @@ const JoinGameMenu = () => {
         body: JSON.stringify({
           gameID,
           action: "join",
-          playerID: username,
+          playerID: cookie,
           playerName: username,
         }),
       });
@@ -158,7 +197,7 @@ const JoinGameMenu = () => {
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
                     <p className="italic">Host - {host}</p>
-                    <p>Players - {playerCount}</p>
+                    <p>Players - {playerCount - 1}</p>
                   </div>
                   <button
                     onClick={() => joinLobby(lobby.gameID)}
@@ -187,4 +226,3 @@ const JoinGameMenu = () => {
 
 
 export default JoinGameMenu;
-

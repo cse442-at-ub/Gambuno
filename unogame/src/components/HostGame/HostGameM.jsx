@@ -132,7 +132,7 @@ const HostGame = () => {
             />
 
             {/* Game Mode Selection */}
-            <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
+            {/* <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
                 Game Mode
             </button>
             <div className="flex gap-4 mb-6">
@@ -145,7 +145,7 @@ const HostGame = () => {
                 <button className="px-6 py-3 bg-red-700 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-black">
                     Hard
                 </button>
-            </div>
+            </div> */}
 
             {/* Host Game Button */}
             <button

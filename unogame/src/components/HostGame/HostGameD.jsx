@@ -1,11 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const HostGame = () => {
   const navigate = useNavigate();
-  const [betAmount, setBetAmount] = useState(""); // Move useState to the component level
-  const [currentBalance, setCurrentBalance] = useState(Number(localStorage.getItem("money")));
+  const [betAmount, setBetAmount] = useState(null);
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   
+  // Use useEffect for API calls
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        setIsLoading(true);
+        const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+        const cookieResult = await cookieResponse.json();
+        
+        if (cookieResult.status) {
+          console.log("Cookie acquired:", cookieResult.cookie);
+          setCookie(cookieResult.cookie);
+          
+          // Get user metadata with the cookie
+          const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+          const metaResult = await metaResponse.json();
+          
+          if (metaResult.status) {
+            setUsername(metaResult.username);
+            setMoney(metaResult.money);
+            console.log("Username:", metaResult.username, "Money:", metaResult.money);
+          } else {
+            console.error("Failed to get user metadata:", metaResult);
+          }
+        } else {
+          console.error("Failed to get cookie:", cookieResult);
+        }
+      } catch (error) {
+        console.error("Error during initialization:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    initializeAuth();
+  }, []); // Empty dependency array means this runs once on component mount
+
   const generateGameCode = async () => {
     try {
       const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
@@ -31,17 +70,15 @@ const HostGame = () => {
       alert("Please enter a betting amount.")
       return
     }
-    if (Number(betAmount) > currentBalance) {
+    if (Number(betAmount) > money) {
       alert("You do not have enough money to bet that amount.")
       return
     }
     let gameCode = await generateGameCode(); // Call the function to generate game code
     // If game code generation fails
     // Calculate new balance
-    const newBalance = currentBalance - Number(betAmount);
-    setCurrentBalance(newBalance);
-    localStorage.setItem("money", newBalance.toString());
-    localStorage.setItem("bet", betAmount);
+    const newBalance = money - Number(betAmount);
+    setMoney(newBalance);
 
     // Update money in database
     const updateMoneyInDatabase = async (username, money) => {
@@ -70,7 +107,6 @@ const HostGame = () => {
     };
     
     // Get username and update money
-    let username = localStorage.getItem("username");
     await updateMoneyInDatabase(username, newBalance);
   
     // Navigate to game lobby with game code and bet amount
@@ -128,16 +164,6 @@ return (
                     }
                 }}
             />
-      
-      {/* Game Mode Selection */}
-      <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
-        Game Mode
-      </button>
-      <div className="flex gap-4 mb-6">
-        <button className="px-6 py-3 bg-green-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-black">Easy</button>
-        <button className="px-6 py-3 bg-yellow-500 text-black text-xl font-bold shadow-lg rounded-xl border-4 border-black">Normal</button>
-        <button className="px-6 py-3 bg-red-700 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-black">Hard</button>
-      </div>
       
       {/* Host Game Button */}
       <button

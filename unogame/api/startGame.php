@@ -212,22 +212,5 @@ function getPlayerName($conn, $username) {
     return $username;
 }
 
-function removeMoney($conn, $playerList, $bets){
-    for($x= 1; $x < count($playerList); $x++){
-        $query = "UPDATE users SET betting_amt = ? WHERE username = ?";
-        $stmt = $conn->prepare($query);
 
-        $money = 
-        $stmt->bind_param("ds", $money, $playerList[$x]);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['username'];
-        }
-    }
-    // Return the username as fallback if not found in database
-    return $username;
-}
 ?>

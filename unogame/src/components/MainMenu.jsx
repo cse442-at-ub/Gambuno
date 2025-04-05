@@ -132,7 +132,7 @@ useEffect(() => {
           <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button>
         )}
           {/* <button className={styles.LogIn_26_10} onClick={goToLogin}> Log In </button> */}
-          </span><span><button className={styles.Play_80_74} onClick={goToPlayPage}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
+          </span><span><button className={styles.Play_80_74} onClick={() => navigate('/uno-game')}>Play</button></span><span className={styles.Settings_80_79} onClick={toggleSettings}>Settings</span>
 
       <Tutorial isOpen ={isTutOpen} onClose={()=> setIsTutOpen(false)}/>
       <div className={styles.CreditsButton_14_7}></div><span className={styles.Credits_26_17}><button className={styles.Credits_26_17}>Credits</button></span>

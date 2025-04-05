@@ -5,9 +5,9 @@ header("Access-Control-Allow-Methods: GET");
 header("Content-Type: application/json");
 
 // Database configuration
-$host = "localhost";
-$user = "kurianva";
-$pass = "50554678";
+$host   = "localhost";
+$user   = "kurianva";
+$pass   = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
 // Create connection
@@ -29,8 +29,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'getPlayerCardList') {
         exit();
     }
 
-    // Prepare statement
+    // Prepare statement (assuming playerName corresponds to playerID)
     $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerName = ?");
+    if (!$stmt) {
+        echo json_encode(["status" => "error", "message" => "Statement preparation failed: " . $conn->error]);
+        exit();
+    }
+    
     $stmt->bind_param("s", $playerID);
     $stmt->execute();
 
@@ -40,8 +45,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'getPlayerCardList') {
     if (!$result) {
         echo json_encode(["status" => "error", "message" => "Player not found"]);
     } else {
-        echo json_encode(["status" => "success", "cardList" => $result["cardList"]]);
+        // Convert the stored cardList (assumed to be a JSON array) into a comma-separated string
+        $cards = json_decode($result["cardList"], true);
+        if (is_array($cards)) {
+            $cardString = implode(",", $cards);
+        } else {
+            // Fallback: if not a valid JSON array, use the stored value directly
+            $cardString = $result["cardList"];
+        }
+        echo json_encode(["status" => "success", "cardList" => $cardString]);
     }
+    
+    $stmt->close();
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action"]);
 }

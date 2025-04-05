@@ -19,9 +19,9 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
  import SettingsPopup from "./components/SettingsPopup";
  import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
  import Leaderboard from './components/leaderbroad';
- import { GameBoard } from './components/gameLayout/game-board';
- import { GameBoard2 } from './components/gameLayout/game-boardM';
+ import GameBoard  from './components/uno-game';
  import MainMenuMobile from './components/MainMenuM';
+
 
             function App() {
               const { isMobile } = useDeviceDetect();
@@ -29,7 +29,7 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                 <Router>
                   <Routes>
                     <Route path="/" element={ isMobile ? (<MainMenuMobile />) : (<MainMenu />)} />
-                    <Route path="/play" element={<PlayGame />} />
+                    <Route path="/play" element={<GameBoard />} />
                     <Route path="/single-game" element={<SingleGame />} />
                     <Route path="/card" element={<TempPath />} />
                     <Route path="/login" element={<LogIn />} />
@@ -40,7 +40,7 @@ import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                     <Route path="/waiting-host/:gameID" element={isMobile ? (<WaitingRoomM />) : (<WaitingRoomD />)} />
                     <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
-                    <Route path="/game-board" element={isMobile ? (<GameBoard2 />) : (<GameBoard/>)} />
+                    <Route path="/game-board" element={<GameBoard />} />
                   </Routes>
                 </Router>
               );

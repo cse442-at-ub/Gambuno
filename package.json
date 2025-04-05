@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.8.4",
     "lucide-react": "^0.477.0",
-    "next": "^15.2.1",
+    "next": "^15.2.3",
     "react": "^19.0.0",
     "react-responsive": "^10.0.1",
-    "react-router-dom": "^7.2.0",
+    "react-router-dom": "^7.4.0",
     "tailwindcss-animate": "^1.0.7",
     "web-vitals": "^4.2.4"
   }

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="bbd2ea12-e6a0-47c8-aaea-9bf2fc4cf1e6" name="Changes" comment="">
+<<<<<<< Updated upstream
+      <change afterPath="$PROJECT_DIR$/unogame/src/components/gameLayout/cards/cards.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/unogame/src/components/gameLayout/cards/color-picker.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/unogame/src/components/gameLayout/game-board.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/src/components/gameLayout/cards/card-back.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/src/components/gameLayout/cards/uno-card.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/src/components/gameLayout/cards/wild-card.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/src/components/gameLayout/uno-layout.jsx" beforeDir="false" />
+=======
+      <change afterPath="$PROJECT_DIR$/unogame/globals.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/unogame/src/components/gameplay/cards.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/unogame/src/components/gameplay/game-board.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/unogame/src/lib/game-logic.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/unogame/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unogame/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/unogame/src/App.jsx" afterDir="false" />
+>>>>>>> Stashed changes
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ComposerSettings">
+    <execution />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaScript File" />
+        <option value="JSX File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="php" />
+  <component name="ProjectColorInfo"><![CDATA[{
+<<<<<<< Updated upstream
+  "customColor": "",
+  "associatedIndex": 3
+}]]></component>
+  <component name="ProjectId" id="2v4IKuSChPP3BMzktpkATwW71yB" />
+=======
+  "associatedIndex": 4
+}]]></component>
+  <component name="ProjectId" id="2v4ervZfsl5dcYlMfIK2jjMB5jQ" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+>>>>>>> Stashed changes
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+<<<<<<< Updated upstream
+    "git-widget-placeholder": "front-end-for-game",
+=======
+    "git-widget-placeholder": "89662a50",
+>>>>>>> Stashed changes
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Applications/PhpStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactDesignerToolWindowState">
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.intellij.reactbuddy.reactComponents" value="false" />
+        <entry key="com.intellij.reactbuddy.reactInspector" value="false" />
+        <entry key="com.intellij.reactbuddy.storybook" value="false" />
+      </map>
+    </option>
+  </component>
+<<<<<<< Updated upstream
+=======
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/unogame/src/components/gameplay" />
+    </key>
+  </component>
+>>>>>>> Stashed changes
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-PS-243.23654.115" />
+        <option value="bundled-php-predefined-a98d8de5180a-4c3855d0ab16-com.jetbrains.php.sharedIndexes-PS-243.23654.115" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="bbd2ea12-e6a0-47c8-aaea-9bf2fc4cf1e6" name="Changes" comment="" />
+<<<<<<< Updated upstream
+      <created>1743397866831</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743397866831</updated>
+      <workItem from="1743397877494" duration="288000" />
+=======
+      <created>1743408976369</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743408976369</updated>
+      <workItem from="1743408977760" duration="5008000" />
+>>>>>>> Stashed changes
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

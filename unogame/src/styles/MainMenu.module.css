@@ -113,6 +113,18 @@
   cursor: pointer;
 }
 
+.money_display{
+  font-family: "Inter-BlackItalic", Helvetica;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 800;
+  color: #eeeded;
+  position: absolute;
+  top: 11vh;
+  left: 90vw;
+  transform: translate(-50%, -50%);
+}
+
 .LoginButton_14_8 {
   background: #000000c9;
   border-radius: 60px;
@@ -155,6 +167,7 @@
   justify-content: center;
 
 }
+
 .Settings_80_79 {
   color: #fffffb;
   -webkit-text-stroke-color: #000000ab;

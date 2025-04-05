@@ -1,5 +1,9 @@
 <?php
 require_once 'util.php';
+// Enable error reporting
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // For development - restrict in production
@@ -10,13 +14,25 @@ header('Access-Control-Allow-Headers: Content-Type');
 // processCardEffect : add code for drawing cards and handling special effects
 // moveToNextPlayer: add code for handling skip and reverse effects
 
+function getDatabaseConnection(){
+    $host = "localhost";
+    $user = "kurianva";
+    $pass = "50554678";
+    $dbname = "cse442_2025_spring_team_c_db";
+    
+    $conn = new mysqli($host, $user, $pass, $dbname);
+
+    return $conn;
+}
 
 
 // Check if a player's turn is valid
-function isPlayerTurn($conn, $gameID, $playerID): bool
+function isPlayerTurn($gameID, $playerID)
 {
-    $currentPlayer = getCurrentPlayer($conn, $gameID);
-    return $currentPlayer === $playerID;
+    $h = json_encode(getCurrentPlayer($gameID));
+    $currentPlayer = json_decode($h, true)["currentPlayer"];
+    return ($currentPlayer) === $playerID;
+    
 }
 
 // Validate if a card can be played based on current card in play
@@ -54,13 +70,14 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
 // Handle card placement
 function placeCard($conn, $gameID, $playerID, $card) {
 
-    if (!isPlayerTurn($conn, $gameID, $playerID)) {// if player not in turn dont play
+    if (!isPlayerTurn($gameID, $playerID)) {// if player not in turn dont play
         return json_encode(['success' => false, 'message' => 'Not your turn']);
         //returns: {"success":false,"message":"Not your turn"}
     }
 
     // Get current card in play
-    $currentCard = getCurrentCard($conn, $gameID);
+    $h = json_encode(getCurrentCard($gameID));
+    $currentCard = json_decode($h, true)["curCard"];
 
     // Check if card is valid to play
     if (!isValidCardPlay($currentCard, $card)) {
@@ -69,7 +86,8 @@ function placeCard($conn, $gameID, $playerID, $card) {
     }
 
     // Check if player has this card
-    $playerCards = getCardList($conn, $gameID, $playerID);
+    $s = json_encode(getCardList($playerID));
+    $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
     if (!in_array($card, $playerCardsArray)) {
@@ -131,12 +149,20 @@ function processCardEffect($conn, $gameID, $card) {
 }
 
 // Move to the next player's turn
-function moveToNextPlayer($conn, $gameID) {
-    $currentPlayer = getCurrentPlayer($conn, $gameID);
-    $gameOrder = getGameOrder($conn, $gameID);
-    $gameOrderArray = explode(',', $gameOrder);
+function moveToNextPlayer($gameID) {
+    $s = json_encode(getCurrentPlayer($gameID));
+    $currentPlayer = json_decode($s, true)["currentPlayer"];
+
+
+    //$h = json_encode(getGameOrder($gameID));
+    //$currentPlayer = json_decode($s, true)["currentPlayer"];
+
+    //$gameOrder = getGameOrder($gameID);
+    //$gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
+    $b = json_encode(getPlayerList($gameID));
+    $gameOrderArray = json_decode($b, true)["playerList"];
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
 
     // Get card effect if any
@@ -153,20 +179,21 @@ function moveToNextPlayer($conn, $gameID) {
 //    }
 //
     // Set next player
-    setCurrentPlayer($conn, $gameID, $gameOrderArray[$nextIndex]);
+    setCurrentPlayer($gameID, $gameOrderArray[$nextIndex]);
 
-    setGameOrder($conn, $gameID, implode(',', $gameOrderArray));
+    setGameOrder($gameID, implode(',', $gameOrderArray));
 }
 
 // Handle player drawing a card
 function drawCard($conn, $gameID, $playerID) {
     // Check if it's player's turn
-    if (!isPlayerTurn($conn, $gameID, $playerID)) {
+    if (!isPlayerTurn($gameID, $playerID)) {
         return json_encode(['success' => false, 'message' => 'Not your turn']);
     }
 
     // Get player's current cards
-    $playerCards = getCardList($conn, $gameID, $playerID);
+    $s = json_encode(getCardList($playerID));
+    $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
     // Generate a random card (in a real game, you'd draw from a deck)
@@ -183,10 +210,10 @@ function drawCard($conn, $gameID, $playerID) {
 
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
-    setCardList($conn, $gameID, $playerID, implode(',', $playerCardsArray));
+    setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Move to next player's turn
-    moveToNextPlayer($conn, $gameID);
+    moveToNextPlayer($gameID);
 
     return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
 }
@@ -218,7 +245,9 @@ function createGame($conn, $playerID, $bettingAmount) {
     $gameID = uniqid();
 
     // Check if player has enough money
-    $playerMoney = getMoney($conn, $playerID);
+    $h = json_encode(getMoney($playerID));
+    $playerMoney = json_decode($h, true)["money"];
+
     if ($playerMoney < $bettingAmount) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
     }
@@ -239,7 +268,7 @@ function createGame($conn, $playerID, $bettingAmount) {
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName($conn, $playerID);
+    $playerName = getPlayerName($playerID);
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -267,13 +296,16 @@ function joinGame($conn, $gameID, $playerID) {
     }
 
     // Check if player has enough money
-    $playerMoney = getMoney($conn, $playerID);
+    $h = json_encode(getMoney($playerID));
+    $playerMoney = json_decode($h, true)["money"];
+
     if ($playerMoney < $row['betting_amt']) {
         return json_encode(['success' => false, 'message' => 'Not enough money']);
     }
 
     // Check if player already in the game
-    $players = explode(',', $row['playerList']);
+    $decoded_playerList = json_decode($row['playerList']);
+    $players = explode(',', $decoded_playerList);
     if (in_array($playerID, $players)) {
         return json_encode(['success' => false, 'message' => 'Already in game']);
     }
@@ -283,7 +315,8 @@ function joinGame($conn, $gameID, $playerID) {
 
     // Add player to game
     $players[] = $playerID;
-    $playerList = implode(',', $players);
+    $list = implode(',', $players);
+    $playerList = json_encode($list);
     $gameOrder = $playerList; // Simple order for now
 
     $stmt = $conn->prepare("UPDATE lobby SET playerList = ?, gameOrder = ? WHERE gameID = ?");
@@ -291,7 +324,9 @@ function joinGame($conn, $gameID, $playerID) {
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName($conn, $playerID);
+    $p = getPlayerName($playerID);
+    $playerName = json_encode($p, true)["playerName"];
+
     $initialCards = generateInitialCards();
     $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
@@ -324,7 +359,8 @@ function startGame($conn, $gameID, $playerID) {//just call
     // Check if requester is game creator
     //should be calling getHost($conn,$gameID)
 
-    $host = getHost($conn, $gameID);
+    $h = json_encode(getHost($gameID));
+    $host = json_decode($h, true)["currentPlayer"];
 
     if ($host !== $playerID) {
         return json_encode(['success' => false, 'message' => 'Only the host can start the game']);

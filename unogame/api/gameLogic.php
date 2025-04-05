@@ -185,7 +185,7 @@ function moveToNextPlayer($gameID) {
 }
 
 // Handle player drawing a card
-function drawCard( $gameID, $playerID) {
+function drawCard($gameID, $playerID) {
     // Check if it's player's turn
     if (!isPlayerTurn($gameID, $playerID)) {
         return json_encode(['success' => false, 'message' => 'Not your turn']);

@@ -69,7 +69,7 @@ function placeCard( $gameID, $playerID, $card) {
     }
 
     // Check if player has this card
-    $playerCards = getCardList( $gameID, $playerID);
+    $playerCards = getPlayerCardList( $gameID, $playerID);
     $playerCardsArray = explode(',', $playerCards);
 
     if (!in_array($card, $playerCardsArray)) {

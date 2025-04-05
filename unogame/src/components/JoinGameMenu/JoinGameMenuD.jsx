@@ -80,6 +80,28 @@ const JoinGameMenu = () => {
   // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
     try {
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}`, )
+      const result = await response.json();
+
+      if (result.success) {
+        setBetAmount(result.bet);
+
+      } else {
+        alert("Error: " + result.error);
+      }
+    } catch (error) {
+      console.error("Join failed:", error);
+    }
+
+    const username = localStorage.getItem("username");
+
+
+    if (!username || !gameID) {
+      alert("Missing username or game code.");
+      return;
+    }
+
+    try {
       const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
         method: "POST",
         headers: {

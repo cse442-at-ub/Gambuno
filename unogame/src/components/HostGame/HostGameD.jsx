@@ -135,20 +135,10 @@ return (
       </div>
       
       {/* Title */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-black mt-12 mb-8 text-center">
-        Host a Game
+      <h1 className="text-2xl sm:text-3xl font-bold text-black mt-30 mb-4 text-center">
+        Host A Game
       </h1>
-      
-      {/* Player Count */}
-      <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
-        Player Count
-      </button>
-      <input 
-        type="number" 
-        className="w-24 h-12 text-center text-xl border-4 border-black rounded-lg bg-white shadow-md mb-6" 
-        placeholder=""
 
-      />
       {/* Betting Amount */}
       <button className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700 mb-4">
                 Betting Amount

@@ -1,5 +1,8 @@
 <?php
-header('Content-Type: application/json');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
 include 'db_connection.php'; // Ensure this file sets up your $conn variable
 
 $host = "localhost";
@@ -24,7 +27,8 @@ if (!isset($_COOKIE['authToken']) || empty($_COOKIE['authToken'])) {
     exit;
 }
 
-$authToken = $_COOKIE['authToken'];
+$authToken =  "32ebcd82f38bf944ff4d8014429d2342"; //$_COOKIE['authToken'];
+echo $authToken;
 $hashedToken = hash('sha256', $authToken); // Hash the auth token before using it
 
 // Fetch the player's ID and name using the hashed authToken

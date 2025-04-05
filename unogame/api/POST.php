@@ -519,8 +519,10 @@ function startGame($conn, $gameID) {
         return json_encode(["error" => "Not enough players to start the game"]);
     }
     
-    if (count($playerList) < 3) {
-        return ['error' => 'Need at least 3 players to start'];
+    $deck = createDeck();
+    $hands = [];
+    foreach ($players as $player) {
+        $hands[$player] = array_splice($deck, 0, 7);
     }
     
     do {

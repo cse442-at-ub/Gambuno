@@ -78,8 +78,8 @@ export async function drawCard(gameId,playerId) {
 /**
  * Play a card from a player's hand
  * @param {String} playerId - ID of the player playing the card
- * @param gameId
- * @param {Object} card - Card being played
+ * @param {String}gameId
+ * @param {String} card - Card being played
  * @returns {Promise<Object>} - Updated game state after playing the card
  */
 export async function playCard(playerId,gameId, card) {

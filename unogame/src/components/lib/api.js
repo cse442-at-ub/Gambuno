@@ -111,3 +111,92 @@ export async function playCard(playerId,gameId, card) {
     }
 }
 
+export async function getGameState(gameId, playerId) {
+    try {
+        const response = await fetch(`${API_PATH}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'get_game_state',
+                gameID: gameId.toString(),
+                playerID: playerId.toString(),
+                playerName: "",
+                card: "",
+                host: "",
+                bettingAmount: "",
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching game state:', error);
+        throw error;
+    }
+}
+
+
+
+export async function createGame(playerID, bettingAmount) {
+    try {
+        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'create_game',
+                gameID: '', // Server generates it
+                playerID: playerID.toString(),
+                playerName: '', // Optional
+                card: '', // Optional
+                host: '', // Optional
+                bettingAmount: bettingAmount.toString(),
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error creating game:', error);
+        throw error;
+    }
+}
+
+
+export async function joinGame(gameId, playerId) {
+    try {
+        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'join_game',
+                gameID: gameId.toString(),
+                playerID: playerId.toString(),
+                playerName: "",
+                card: "",
+                host: "",
+                bettingAmount: "",
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error joining game:', error);
+        throw error;
+    }
+}

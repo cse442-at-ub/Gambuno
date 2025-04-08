@@ -63,7 +63,7 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
     list($playedColor, $playedValue) = explode('_', $playedCard);
 
     // Wild card can always be played
-    if ($playedColor === 'wild') {
+    if ($playedColor === 'wild' || $currentColor === 'wild') {
         return true;
     }
     //add code here for +5 and +2

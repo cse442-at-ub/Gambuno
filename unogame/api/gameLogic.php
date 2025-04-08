@@ -290,9 +290,7 @@ function createGame($playerID, $bettingAmount) {
 // Join an existing game
 function joinGame($gameID, $playerID) {
     // Check if game exists and is waiting
-    if(!checkBalance($playerID, $bettingAmount)){
-        return json_encode(['success' => false, 'message' => 'Not enough money']);
-    }
+   
     $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT gameStatus, betting_amt, playerList FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
@@ -308,7 +306,7 @@ function joinGame($gameID, $playerID) {
     if ($row['gameStatus'] !== 'waiting') {
         return json_encode(['success' => false, 'message' => 'Game already in progress or finished']);
     }
-
+    
     // Check if player has enough money
     $h = json_encode(getMoney($playerID));
     $playerMoney = json_decode($h, true)["money"];
@@ -320,9 +318,14 @@ function joinGame($gameID, $playerID) {
     // Check if player already in the game
     $playersObj = getPlayerList($gameID);
     $players = explode(',', $playersObj["playerList"]);
+    
 
     if (in_array($playerID, $players)) {
         return json_encode(['success' => false, 'message' => 'Already in game']);
+    }
+
+    if (count($players) >= 6) {
+        return json_encode(['success' => false, 'message' => 'Game is full']);
     }
 
     // Deduct betting amount

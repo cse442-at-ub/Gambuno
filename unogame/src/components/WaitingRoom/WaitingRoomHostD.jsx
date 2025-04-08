@@ -182,11 +182,12 @@ const WaitingRoomHost = () => {
       </button>
 
       <button
-          onClick={() => navigate("/uno-game")}
-          className="mt-6 px-6 py-3 bg-white text-blue-500 text-xl font-bold shadow-lg rounded-xl border-2 border-blue-500 hover:bg-blue-500 hover:text-white transition"
-        >
-          Start
-        </button>
+        onClick={() => navigate(`/game-board/${gameID}`)}
+        className="mt-6 px-6 py-3 bg-white text-blue-500 text-xl font-bold shadow-lg rounded-xl border-2 border-blue-500 hover:bg-blue-500 hover:text-white transition"
+      >
+        Start
+      </button>
+
     </div>
   );
 };

@@ -21,7 +21,7 @@ import React from 'react';
                       // import Leaderboard from './components/Leaderboard';
                       import UnoGame from './components/uno-game'; // Import UnoGame if needed
                       import MainMenuMobile from './components/MainMenuM';
-                      import {GameBoard} from "./components/gameLayout/game-board";
+                      import GameBoard from "./components/gameLayout/game-board";
 
                       function App() {
                         const { isMobile } = useDeviceDetect();
@@ -40,7 +40,7 @@ import React from 'react';
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
                               <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
                               {/*<Route path="/leaderboard" element={<Leaderboard />} />*/}
-                                <Route path="/game-board" element={<GameBoard />} />,
+                                <Route path="/game-board/:gameID" element={<GameBoard />} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
                             </Routes>
                           </Router>

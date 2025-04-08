@@ -8,46 +8,51 @@ const JoinGameMenu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [bet, setBetAmount] = useState(null);
-  const [username, setUsername] = useState("");
-  const [money, setMoney] = useState(null);
-  const [cookie, setCookie] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+
     
-    // Use useEffect for API calls
-    useEffect(() => {
-      const initializeAuth = async () => {
-        try {
-          setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
-          const cookieResult = await cookieResponse.json();
-          
-          if (cookieResult.status) {
-            console.log("Cookie acquired:", cookieResult.cookie);
-            setCookie(cookieResult.cookie);
-            
-            // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
-            const metaResult = await metaResponse.json();
-            
-            if (metaResult.status) {
-              setUsername(metaResult.username);
-              setMoney(metaResult.money);
-              console.log("Username:", metaResult.username, "Money:", metaResult.money);
-            } else {
-              console.error("Failed to get user metadata:", metaResult);
-            }
-          } else {
-            console.error("Failed to get cookie:", cookieResult);
-          }
-        } catch (error) {
-          console.error("Error during initialization:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
+// Use useEffect for API calls
+const [username, setUsername] = useState("");
+const [money, setMoney] = useState(0);
+const [cookie, setCookie] = useState("");
+const [isLoading, setIsLoading] = useState(true);
+    
+    
+
+  // Use useEffect for API calls
+useEffect(() => {
+  const initializeAuth = async () => {
+    try {
+      setIsLoading(true);
+      const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+      const cookieResult = await cookieResponse.json();
       
-      initializeAuth();
-    }, []);
+      if (cookieResult.status) {
+        console.log("Cookie acquired:", cookieResult.cookie);
+        setCookie(cookieResult.cookie);
+        
+        // Get user metadata with the cookie
+        const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+        const metaResult = await metaResponse.json();
+        
+        if (metaResult.status) {
+          setUsername(metaResult.username);
+          setMoney(metaResult.money);
+          console.log("Username:", metaResult.username, "Money:", metaResult.money);
+        } else {
+          console.error("Failed to get user metadata:", metaResult);
+        }
+      } else {
+        console.error("Failed to get cookie:", cookieResult);
+      }
+    } catch (error) {
+      console.error("Error during initialization:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  initializeAuth();
+}, []);
 
   const fetchLobbies = async () => {
     setLoading(true);
@@ -79,44 +84,52 @@ const JoinGameMenu = () => {
 
   // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
-    try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}`, )
-      const result = await response.json();
+    /*console.log("cookie:", cookie);
+    console.log("username:", username);
+    console.log("gameID:", gameID);
 
+    if (!cookie || !username || !gameID) {
+      alert("Authentication in progress or missing game code.");
+      return;
+    }*/
+
+  
+    try {
+      const response = await fetch(
+        `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}`
+      );
+      const result = await response.json();
+  
       if (result.success) {
         setBetAmount(result.bet);
-
       } else {
         alert("Error: " + result.error);
+        return;
       }
     } catch (error) {
-      console.error("Join failed:", error);
-    }
-
-    const username = localStorage.getItem("username");
-
-
-    if (!username || !gameID) {
-      alert("Missing username or game code.");
+      console.error("Failed to get bet amount:", error);
       return;
     }
-
+  
     try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          gameID,
-          action: "join",
-          playerID: cookie,
-          playerName: username,
-        }),
-      });
-
+      const response = await fetch(
+        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            gameID,
+            action: "join",
+            playerID: username,
+            playerName: username,
+          }),
+        }
+      );
+  
       const result = await response.json();
-
+  
       if (result.success) {
         navigate(`/waiting-host/${gameID}`);
       } else {
@@ -127,6 +140,7 @@ const JoinGameMenu = () => {
       alert("Network error while joining the game.");
     }
   };
+  
 
   useEffect(() => {
     fetchLobbies();
@@ -162,17 +176,19 @@ const JoinGameMenu = () => {
           maxLength={6}
         />
         <button
-          onClick={() => {
+        onClick={() => {
             if (manualCode.length !== 6) {
               alert("Game code must be 6 characters.");
               return;
             }
             joinLobby(manualCode);
           }}
-          className="mt-2 px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
+          disabled={isLoading || manualCode.length !== 6}
+          className="mt-2 px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition disabled:opacity-50"
         >
           Join by Code
         </button>
+
       </div>
 
       {/* Lobby List */}
@@ -200,11 +216,13 @@ const JoinGameMenu = () => {
                     <p>Players - {playerCount - 1}</p>
                   </div>
                   <button
-                    onClick={() => joinLobby(lobby.gameID)}
-                    className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
-                  >
-                    Join
-                  </button>
+                  onClick={() => joinLobby(lobby.gameID)}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition disabled:opacity-50"
+                >
+                  Join
+                </button>
+
                 </div>
               );
             })

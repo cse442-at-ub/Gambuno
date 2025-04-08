@@ -1,169 +1,141 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { UnoCard, CardBack } from "./cards/cards"
-import { initializeGame, drawCard, playCard, getGameState } from "../lib/api"
+import React from "react"
+import StarIcon from "@mui/icons-material/Star"
 
-export function GameBoard({ gameId = "1", playerId = 0, numPlayers = 4 }) {
-    const [gameState, setGameState] = useState(null)
-    const [winner, setWinner] = useState(null)
-    const [loading, setLoading] = useState(false)
-
-    // Poll the backend to refresh the game state every 3 seconds
-    useEffect(() => {
-        let interval
-        if (gameState) {
-            interval = setInterval(async () => {
-                try {
-                    const state = await getGameState(gameId, playerId)
-                    setGameState(state)
-                    // If the backend sends a "winner" field, update the state accordingly.
-                    if (state.winner !== undefined && state.winner !== null) {
-                        setWinner(state.winner)
-                    }
-                } catch (error) {
-                    console.error("Error fetching game state:", error)
-                }
-            }, 3000)
-        }
-        return () => clearInterval(interval)
-    }, [gameState, gameId, playerId])
-
-    // Start the game using the API
-    const startGame = async () => {
-        try {
-            setLoading(true)
-            const state = await initializeGame(gameId, playerId)
-            setGameState(state)
-            setLoading(false)
-        } catch (error) {
-            console.error("Error starting game:", error)
-            setLoading(false)
-        }
-    }
-
-    // When the user clicks the draw pile, call the API to draw a card
-    const handleDrawCard = async () => {
-        // Only allow drawing if the game state exists, it's the current player's turn, and no one has won
-        if (!gameState || gameState.currentPlayer !== playerId || winner !== null) return
-        try {
-            setLoading(true)
-            const state = await drawCard(gameId, playerId)
-            setGameState(state)
-            setLoading(false)
-        } catch (error) {
-            console.error("Error drawing card:", error)
-            setLoading(false)
-        }
-    }
-
-    // When a card is clicked in the player's hand, use the API to play the card.
-    const handlePlayCard = async (card, index) => {
-        if (!gameState || gameState.currentPlayer !== playerId || winner !== null) return
-        try {
-            setLoading(true)
-            const state = await playCard(String(playerId), gameId, card)
-            setGameState(state)
-            setLoading(false)
-        } catch (error) {
-            console.error("Error playing card:", error)
-            setLoading(false)
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Loading...</p>
-            </div>
-        )
-    }
-
-    // If gameState is null, the game hasn’t started yet.
-    if (!gameState) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <button onClick={startGame} className="px-6 py-3 bg-blue-600 text-white rounded-lg">
-                    Start Game
-                </button>
-            </div>
-        )
+export default function GameBoard() {
+    const styles = {
+        container: {
+            minHeight: "100vh",
+            background: "linear-gradient(to bottom, #1a202c, #2d3748)",
+            color: "white",
+            padding: "1rem",
+            fontFamily:
+                "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif",
+        },
+        title: {
+            fontSize: "1.875rem",
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: "1.5rem",
+        },
+        gameContainer: {
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+        },
+        gameContent: {
+            width: "100%",
+            maxWidth: "64rem",
+        },
+        statusBar: {
+            backgroundColor: "#1f2937",
+            borderRadius: "0.5rem",
+            padding: "0.75rem",
+            marginBottom: "1rem",
+            textAlign: "center",
+        },
+        statusText: {
+            fontSize: "1.25rem",
+            fontWeight: "600",
+        },
+        botRow: {
+            display: "flex",
+            justifyContent: "space-around",
+            marginBottom: "2rem",
+        },
+        cardBack: {
+            width: "3rem",
+            height: "4.5rem",
+            backgroundColor: "white",
+            borderRadius: "0.5rem",
+            margin: "0.2rem",
+        },
+        playArea: {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "4rem",
+            marginBottom: "2rem",
+        },
+        pile: {
+            width: "5rem",
+            height: "7rem",
+            backgroundColor: "#1f2937",
+            borderRadius: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#ccc",
+            fontWeight: "bold",
+        },
+        playerHandContainer: {
+            backgroundColor: "#1f2937",
+            borderRadius: "0.5rem",
+            padding: "1rem",
+            marginTop: "2rem",
+        },
+        playerHandTitle: {
+            fontSize: "1.125rem",
+            fontWeight: "600",
+            marginBottom: "0.75rem",
+        },
+        playerCards: {
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0.5rem",
+        },
     }
 
     return (
-        <div className="min-h-screen bg-green-600 p-4">
-            {/* Winner Announcement */}
-            {winner !== null && (
-                <div className="text-center text-3xl font-bold mb-4">
-                    {winner === playerId ? "You win!" : `Player ${winner} wins!`}
-                </div>
-            )}
+        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-4" style={styles.container}>
+            <h1 className="text-3xl font-bold text-center mb-6" style={styles.title}>
+                UNO Game
+            </h1>
 
-            {/* Player’s Hand */}
-            <div className="mb-4">
-                <h2 className="text-xl font-bold">Your Hand</h2>
-                <div className="flex space-x-2">
-                    {gameState.players &&
-                        gameState.players[0] &&
-                        gameState.players[0].map((card, index) => (
-                            <div key={card.id} onClick={() => handlePlayCard(card, index)}>
-                                <UnoCard
-                                    color={card.color}
-                                    number={card.value}
-                                    className="player-card"
-                                    onClick={() => handlePlayCard(card, index)}
-                                    disabled={winner !== null || gameState.currentPlayer !== playerId}
-                                />
+            <div className="flex flex-col items-center" style={styles.gameContainer}>
+                <div className="w-full max-w-4xl" style={styles.gameContent}>
+
+                    {/* Status Bar */}
+                    <div className="bg-gray-800 rounded-lg p-3 mb-4 text-center" style={styles.statusBar}>
+                        <h2 className="text-xl font-semibold" style={styles.statusText}>
+                            Waiting for other players...
+                        </h2>
+                    </div>
+
+                    {/* Other Players */}
+                    <div style={styles.botRow}>
+                        {["Player 2", "Player 3", "Player 4"].map((player, idx) => (
+                            <div key={idx} className="text-center">
+                                <p className="mb-2 font-semibold">{player}</p>
+                                <div className="flex justify-center">
+                                    {Array(5).fill(0).map((_, i) => (
+                                        <div key={i} style={styles.cardBack}></div>
+                                    ))}
+                                </div>
                             </div>
                         ))}
-                </div>
-            </div>
-
-            {/* Draw Pile */}
-            <div className="mb-4">
-                <h2 className="text-xl font-bold">Draw Pile</h2>
-                <div onClick={handleDrawCard} className="cursor-pointer inline-block">
-                    <CardBack className="card-back" onClick={handleDrawCard} />
-                </div>
-            </div>
-
-            {/* Discard Pile */}
-            <div className="mb-4">
-                <h2 className="text-xl font-bold">Discard Pile</h2>
-                {gameState.discardPile && gameState.discardPile.length > 0 ? (
-                    <div>
-                        <UnoCard
-                            color={gameState.discardPile[gameState.discardPile.length - 1].color}
-                            number={gameState.discardPile[gameState.discardPile.length - 1].value}
-                            className="discard-card"
-                            onClick={() => {}}
-                            disabled={true}
-                        />
                     </div>
-                ) : (
-                    <p>No cards in discard pile</p>
-                )}
-            </div>
 
-            {/* Other Players */}
-            <div>
-                <h2 className="text-xl font-bold">Other Players</h2>
-                <div className="flex space-x-4">
-                    {gameState.players &&
-                        gameState.players.map((hand, idx) => {
-                            // Skip rendering the current player's hand (assumed to be at index 0)
-                            if (idx === 0) return null
-                            return (
-                                <div key={idx} className="text-center">
-                                    <p>Player {idx}</p>
-                                    <p>Cards: {hand.length}</p>
-                                    <CardBack className="inline-block" onClick={() => {}} />
-                                </div>
-                            )
-                        })}
+                    {/* Play Area */}
+                    <div style={styles.playArea}>
+                        <div style={styles.pile}>Draw Pile</div>
+                        <div style={styles.pile}>Played Pile</div>
+                    </div>
+
+                    {/* Your Hand */}
+                    <div className="bg-gray-800 rounded-lg p-4" style={styles.playerHandContainer}>
+                        <h3 className="text-lg font-semibold mb-3" style={styles.playerHandTitle}>
+                            Your Hand (0)
+                        </h3>
+                        <div style={styles.playerCards}>
+                            {/* Your cards will be rendered here */}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     )
 }
-

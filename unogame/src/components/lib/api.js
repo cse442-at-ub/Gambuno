@@ -18,8 +18,13 @@ export async function initializeGame(numPlayers) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                action: 'start_game',
-                numPlayers
+                "action" : "play",
+                "gameID": "X1X2X3",
+                "playerID": "name1",
+                "playerName" :"name1",
+                "card" : "card_1",
+                "host" : "name1",
+                "bettingAmount": 50.00,
             }),
         });
 

@@ -25,6 +25,15 @@ function getDatabaseConnection(){
     return $conn;
 }
 
+function generateGameCode($length = 6) {
+    $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $code = '';
+    for ($i = 0; $i < $length; $i++) {
+        $code .= $characters[rand(0, strlen($characters) - 1)];
+    }
+    return $code;
+}
+
 
 // Check if a player's turn is valid
 function isPlayerTurn($gameID, $playerID)
@@ -68,7 +77,7 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
 }
 
 // Handle card placement
-function placeCard( $gameID, $playerID, $card) {
+function placeCard($gameID, $playerID, $card) {
 
     if (!isPlayerTurn($gameID, $playerID)) {// if player not in turn dont play
         return json_encode(['success' => false, 'message' => 'Not your turn']);
@@ -114,7 +123,7 @@ function placeCard( $gameID, $playerID, $card) {
     }
 
     // Move to next player's turn
-    moveToNextPlayer( $gameID);
+    moveToNextPlayer($gameID);
 
     return json_encode(['success' => true, 'message' => 'Card played successfully']);
 }
@@ -153,7 +162,6 @@ function moveToNextPlayer($gameID) {
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
 
-
     //$h = json_encode(getGameOrder($gameID));
     //$currentPlayer = json_decode($s, true)["currentPlayer"];
 
@@ -163,6 +171,7 @@ function moveToNextPlayer($gameID) {
     // Find current player index
     $b = json_encode(getPlayerList($gameID));
     $gameOrderArray = json_decode($b, true)["playerList"];
+    $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
 
     // Get card effect if any
@@ -180,8 +189,6 @@ function moveToNextPlayer($gameID) {
 //
     // Set next player
     setCurrentPlayer($gameID, $gameOrderArray[$nextIndex]);
-
-    setGameOrder($gameID, implode(',', $gameOrderArray));
 }
 
 // Handle player drawing a card
@@ -230,7 +237,8 @@ function handleGameWin( $gameID, $playerID) {
     updatePlayersStats( $gameID, $playerID);
 
     $bettingAmt = getBettingAmount( $gameID);
-    $players = explode(',', getPlayerList( $gameID));
+    $playersObj = getPlayerList($gameID);
+    $players = $playersObj["playerList"];
     $totalPot = $bettingAmt * count($players);
 
 
@@ -240,9 +248,9 @@ function handleGameWin( $gameID, $playerID) {
 }
 
 // Create a new game
-function createGame( $playerID, $bettingAmount) {
+function createGame($playerID, $bettingAmount) {
     // Generate unique game ID
-    $gameID = uniqid();
+    $gameID = generateGameCode();
 
     // Check if player has enough money
     $h = json_encode(getMoney($playerID));
@@ -253,7 +261,7 @@ function createGame( $playerID, $bettingAmount) {
     }
 
     // Deduct betting amount
-    setMoney( $playerID, $playerMoney - $bettingAmount);
+    setMoney($playerID, $playerMoney - $bettingAmount);
 
     // Generate initial card
     $colors = ['red', 'blue', 'green', 'yellow'];
@@ -262,16 +270,17 @@ function createGame( $playerID, $bettingAmount) {
 
     $conn = getDatabaseConnection();
     // Create lobby entry
-    $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '')");
-    $playerList = $playerID;
-    $gameOrder = $playerID;
-    $stmt->bind_param("sssssi", $gameID, $initialCard, $playerID, $playerList, $gameOrder, $bettingAmount);
+    $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect, host) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '', ?)");
+    $playerList = json_encode([$playerID]);
+    $gameOrder = json_encode([$playerID]);
+    $host = $playerID;
+    $stmt->bind_param("sssssis", $gameID, $initialCard, $playerID, $playerList, $gameOrder, $bettingAmount, $host);
     $stmt->execute();
 
     // Create player entry
-    $playerName = getPlayerName($playerID);
-    $initialCards = generateInitialCards();
-    $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $playerName = $playerID;
+    $initialCards = json_encode(generateInitialCards());
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
 
@@ -279,8 +288,11 @@ function createGame( $playerID, $bettingAmount) {
 }
 
 // Join an existing game
-function joinGame( $gameID, $playerID) {
+function joinGame($gameID, $playerID) {
     // Check if game exists and is waiting
+    if(!checkBalance($playerID, $bettingAmount)){
+        return json_encode(['success' => false, 'message' => 'Not enough money']);
+    }
     $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT gameStatus, betting_amt, playerList FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
@@ -306,32 +318,28 @@ function joinGame( $gameID, $playerID) {
     }
 
     // Check if player already in the game
-    $decoded_playerList = json_decode($row['playerList']);
-    $players = explode(',', $decoded_playerList);
+    $playersObj = getPlayerList($gameID);
+    $players = explode(',', $playersObj["playerList"]);
+
     if (in_array($playerID, $players)) {
         return json_encode(['success' => false, 'message' => 'Already in game']);
     }
 
     // Deduct betting amount
-    setMoney( $playerID, $playerMoney - $row['betting_amt']);
-
+    setMoney($playerID, $playerMoney - $row['betting_amt']);
     // Add player to game
     $players[] = $playerID;
-    $list = implode(',', $players);
-    $playerList = json_encode($list);
-    $gameOrder = $playerList; // Simple order for now
-
+    $playerList = json_encode($players);
+    $gameOrder = json_encode($players); // Simple order for now
+    
     $stmt = $conn->prepare("UPDATE lobby SET playerList = ?, gameOrder = ? WHERE gameID = ?");
     $stmt->bind_param("sss", $playerList, $gameOrder, $gameID);
     $stmt->execute();
 
-    // Create player entry
-    $p = getPlayerName($playerID);
-    $playerName = json_encode($p, true)["playerName"];
-
-    $initialCards = generateInitialCards();
-    $stmt = $conn->prepare("INSERT INTO player (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
-    $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
+    // Add player to player table
+    $initialCards = json_encode(generateInitialCards());
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();
 
     return json_encode(['success' => true, 'message' => 'Joined game successfully']);
@@ -353,11 +361,11 @@ function generateInitialCards() {
         }
     }
 
-    return implode(',', $cards);
+    return ($cards);
 }
 
 // Start the game if enough players have joined
-function startGame( $gameID, $playerID) {//just call
+function startGame($gameID, $playerID) {//just call
     // Check if requester is game creator
     //should be calling getHost($gameID)
 
@@ -397,9 +405,7 @@ function startGame( $gameID, $playerID) {//just call
 
 // Get game state for a player
 function getGameState( $gameID, $playerID) {
-    // Check if game exists
-
-    //call getGame( $gameID)
+    //call getGame($gameID)
     $conn = getDatabaseConnection();
     $stmt = $conn->prepare("SELECT * FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
@@ -412,9 +418,8 @@ function getGameState( $gameID, $playerID) {
 
     $lobbyData = $lobbyResult->fetch_assoc();
 
-
     // Get player data
-    $stmt = $conn->prepare("SELECT * FROM player WHERE gameID = ?");
+    $stmt = $conn->prepare("SELECT * FROM players WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $playerResult = $stmt->get_result();
@@ -464,7 +469,7 @@ if ($requestMethod === 'POST') {
 
     $action = $data['action'];
     $playerID = $data['playerID'];
-    $gameID = $data['gameID'] ?? null;
+    $gameID = $data['gameID'] ?? null; 
 
     switch ($action) {
         case 'create_game':
@@ -480,7 +485,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo joinGame( $gameID, $playerID);
+            echo joinGame($gameID, $playerID);
             break;
 
         case 'start_game':
@@ -488,7 +493,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo startGame( $gameID, $playerID);
+            echo startGame($gameID, $playerID);
             break;
 
         case 'place_card':
@@ -504,7 +509,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo drawCard( $gameID, $playerID);
+            echo drawCard($gameID, $playerID);
             break;
 
         case 'get_game_state':
@@ -512,7 +517,7 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo getGameState( $gameID, $playerID);
+            echo getGameState($gameID, $playerID);
             break;
 
         default:

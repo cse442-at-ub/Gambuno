@@ -13,6 +13,7 @@ header('Access-Control-Allow-Headers: Content-Type');
 // isValidCardPlay: add code  for +5 and +2
 // processCardEffect : add code for drawing cards and handling special effects
 // moveToNextPlayer: add code for handling skip and reverse effects
+//TODO: Make it so wild_0 let you pick you color
 
 function getDatabaseConnection(){
     $host = "localhost";
@@ -63,7 +64,7 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
     list($playedColor, $playedValue) = explode('_', $playedCard);
 
     // Wild card can always be played
-    if ($playedColor === 'wild') {
+    if ($playedColor === 'wild'||$currentColor === 'wild') {
         return true;
     }
     //add code here for +5 and +2

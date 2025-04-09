@@ -312,6 +312,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom";
 import { UnoCard, WildCard, CardBack } from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
 import { AlertCircle, CheckCircle2, X, Users, Trophy } from "lucide-react"
@@ -325,6 +326,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
   const [isLoading, setIsLoading] = useState(true)
   const [gameMessage, setGameMessage] = useState("")
   const [selectedColor, setSelectedColor] = useState(null)
+  const navigate = useNavigate()
 
   // Fetch game state at regular intervals
   useEffect(() => {
@@ -332,7 +334,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
 
     const intervalId = setInterval(() => {
       fetchGameState()
-    }, 3000) // Poll every 3 seconds
+    }, 1000) // Poll every 3 seconds
 
     return () => clearInterval(intervalId)
   }, [])
@@ -344,6 +346,9 @@ export default function UnoGameBoard({ gameId, playerId }) {
 
       if (state.success) {
         setGameState(state)
+        if (String(state.gameStatus) === "finished") {
+          navigate("/");
+        }
 
         // Find the current player's data to get their hand
         const currentPlayerData = state.players.find((player) => player.playerID === playerId)
@@ -365,11 +370,11 @@ export default function UnoGameBoard({ gameId, playerId }) {
     const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
 
     // If card is wild, show color picker
-    if (card.startsWith("wild_")) {
-      setSelectedCard(card)
-      setShowColorPicker(true)
-      return
-    }
+    //if (card.startsWith("wild_")) {
+     // setSelectedCard(card)
+      //setShowColorPicker(true)
+      //return
+    //}
     console.log("Playing card:", cleaned)
 
     try {

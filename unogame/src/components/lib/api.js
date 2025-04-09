@@ -43,7 +43,7 @@ export async function initializeGame(gameId, playerId) {
 /**
  * Draw a card for the specified player
  * @param gameId
- * @param {number} playerId - ID of the player drawing a card
+ * @param {String} playerId - ID of the player drawing a card
  * @returns {Promise<Object>} - Updated game state with new card
  */
 export async function drawCard(gameId,playerId) {

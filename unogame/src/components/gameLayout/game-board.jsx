@@ -315,7 +315,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import { UnoCard, WildCard, CardBack } from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
-import { AlertCircle, CheckCircle2, X, Users, Trophy } from "lucide-react"
+import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
 export default function UnoGameBoard({ gameId, playerId }) {
   const [gameState, setGameState] = useState(null)
@@ -468,7 +468,6 @@ export default function UnoGameBoard({ gameId, playerId }) {
     if (!card) return null
 
     const [color, number] = card.split("_");
-
     if (color === "wild") {
       return (
         <WildCard
@@ -595,7 +594,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-emerald-900 to-black p-4 overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#3e8914] from-emerald-900 to-black p-4 overflow-hidden">
       {/* Game header with info */}
       <div className="flex justify-between items-center mb-2">
         <div className="text-white">
@@ -608,10 +607,18 @@ export default function UnoGameBoard({ gameId, playerId }) {
             <span>{gameState?.players?.length || 0} players</span>
           </div>
           {gameState?.bettingAmount > 0 && (
-            <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
-              <Trophy className="w-4 h-4 mr-1" />
-              <span>${gameState.bettingAmount}</span>
+            <div className="bg-black flex flex-col bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
+                <div className="flex items-center">
+                    <DollarSign className="w-4 h-4 mr-1" />
+                    <span>{gameState.bettingAmount}</span>
+                </div>
+
+                <div className="flex items-center">
+                    <Trophy className="w-4 h-4 mr-1" />
+                    <span>${(gameState.bettingAmount * gameState?.players?.length).toFixed(2)}</span>
+                </div>
             </div>
+            
           )}
         </div>
       </div>

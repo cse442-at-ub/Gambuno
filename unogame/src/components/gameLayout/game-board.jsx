@@ -362,18 +362,23 @@ export default function UnoGameBoard({ gameId, playerId }) {
   }
 
   const handleCardPlay = async (card) => {
+    const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
+
     // If card is wild, show color picker
     if (card.startsWith("wild_")) {
       setSelectedCard(card)
       setShowColorPicker(true)
       return
     }
+    console.log("Playing card:", cleaned)
 
     try {
+        console.log("Playing card in console:", cleaned)
       setIsLoading(true)
-      const result = await playCard(playerId, gameId, card)
-
+      const result = await playCard(playerId, gameId, String(cleaned))
+    console.log("Result:", result);
       if (result.success) {
+
         setGameMessage(result.message)
         await fetchGameState() // Refresh game state after playing
       } else {
@@ -397,7 +402,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
 
     try {
       setIsLoading(true)
-      const result = await playCard(playerId, gameId, playableCard, color)
+      const result = await playCard(playerId, gameId, playableCard)
 
       if (result.success) {
         setGameMessage(result.message)
@@ -453,17 +458,18 @@ export default function UnoGameBoard({ gameId, playerId }) {
   }
 
   // Render card component based on card string (color_value)
-  const renderCard = (card, index, playable = false) => {
+  const renderCard = (cardC, index, playable = false) => {
+    const card = cardC.replace(/[^a-zA-Z0-9_]/g, '');
     if (!card) return null
 
-    const [color, number] = card.split("_")
+    const [color, number] = card.split("_");
 
     if (color === "wild") {
       return (
         <WildCard
           key={index}
           className="w-16 h-24 sm:w-20 sm:h-28"
-          onClick={playable ? () => handleCardPlay(card) : undefined}
+          onClick={playable ? () => handleCardPlay(card): undefined}
           disabled={!playable}
         />
       )
@@ -551,7 +557,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
                     .fill(0)
                     .map((_, i) => (
                       <div key={i} className="transform -ml-6 first:ml-0" style={{ zIndex: 10 - i }}>
-                        <CardBack className="w-10 h-14" isDark={gameState.currentPlayer !== player.playerID} />
+                        <CardBack className="w-10 h-14" isDark={gameState.currentPlayer !== player.playerID} onClick={undefined}/>
                       </div>
                     ))}
                   {player.cardCount > 7 && (

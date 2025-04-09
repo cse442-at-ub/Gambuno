@@ -212,6 +212,32 @@ export function CardBack({ className, isDark = false, onClick }) {
     )
 }
 
+export function CardBackODeck({ className, isDark = false, onClick }) {
+    const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
+    const starImage = isDark ? "/images/unoLogoback.png" : "/images/unoLogoWild.png"
+
+    // Add white border class only for dark mode cards
+    const borderClass = isDark ? "border-[2px] border-white" : ""
+
+    return (
+        <button
+            className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
+            onClick={onClick}
+            type="button"
+        >
+            {/* Card background */}
+            <div className="absolute inset-0 bg-black rounded-lg">
+                <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
+                    {/* Normal card back with single star - much bigger */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-5 h-10 sm:w-6 sm:h-6">
+                        <img src={back} alt="UNO star" className="w-full h-full object-contain" />
+                    </div>
+                </div>
+            </div>
+        </button>
+    )
+}
+
 // Updated ColorPicker component to include onClose prop
 export function ColorPicker({ onSelectColor, onClose }) {
     const colors = ["red", "blue", "green", "yellow"]

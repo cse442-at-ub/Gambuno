@@ -97,8 +97,13 @@ const JoinGameMenu = () => {
       if (result.success) {
         navigate(`/waiting-host/${gameID}`);
         console.log("Joined game successfully:", result);
-
-      } else {
+      
+      } 
+      else if(result.success === false && result.message === "Already in game") {
+        navigate(`/waiting-host/${gameID}`);
+        console.log("Joined game successfully:", result);
+      }
+      else {
         alert("Error: " + result.error);
       }
     } catch (error) {

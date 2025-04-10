@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const HostGameLobby = () => {
-  const { gameCode } = useParams(); // Read game code from URL
+  const { gameID } = useParams(); // Read game code from URL
   const location = useLocation();
   const navigate = useNavigate();
   const [players, setPlayers] = useState([]);
@@ -52,32 +52,24 @@ const HostGameLobby = () => {
 
 
   const handleStartGame = async () => {
+    
     try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/startGame.php", {
+      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
         method: "POST",
           headers: { 
           "Content-Type": "application/json" 
         },
         body: JSON.stringify({
-          gameID: gameCode,
-          action: "start",
-          bet: bet
+          gameID: gameID,
+          action: "start_game",
+          playerID : username
         })
       });
-      if(!response.ok){
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-
-      const text = await response.text();
-
-      if (!text || text.trim() === ''){
-        throw new Error(`Server returned an empty response`);
-      }
-
-      const result = JSON.parse(text);
+      const result = await response.json();
       
       if (result.success) {
-        navigate(`/game-board/${gameCode}`);
+        const playerID = username;
+        navigate(`/game-board/${gameID}/${playerID}`);
       } else {
         alert("Error: " + result.error);
       }
@@ -87,73 +79,21 @@ const HostGameLobby = () => {
     }
   };
 
-  // Create the lobby initially (only the host)
-  useEffect(() => {
-    const createLobby = async () => {
-      if (!username || !gameCode) {
-        console.error("Missing username or game code");
-        return;
-      }
-      
-
-      try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            gameID: gameCode,
-            action: "create",
-            playerID: cookie,
-            playerName: username,
-            bet_amount: bet,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          console.log("Lobby created!", data);
-          setPlayers([
-            {
-              id: username,
-              name: username,
-              ready: false,
-              isHost: true,
-            },
-          ]);
-        } else {
-          console.error("Error creating lobby:", data.error);
-          alert("Failed to create lobby: " + data.error);
-        }
-      } catch (error) {
-        console.error("Failed to create lobby:", error);
-        alert("Network error. Please check your connection.");
-      }
-    };
-
-    createLobby();
-  }, [gameCode, bet, username]);
-
   // Fetch players in the lobby (polling every 3 seconds)
   useEffect(() => {
+    
     const fetchPlayersInLobby = async () => {
+      console.log(gameID);
       try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "status",
-            gameID: gameCode,
-            playerID: username,
-          }),
-        });
+        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
 
         const data = await response.json();
 
-        if (data.players) {
-          const updatedPlayers = Object.entries(data.players).map(([id, info]) => ({
+        if (data.status === "success") {
+          const players = data.playerList.split(",");
+          const updatedPlayers = players.map((id) => ({
             id,
-            name: info.playerName,
+            name: id,
             ready: false, // You can extend to handle actual readiness later
             isHost: id === username,
           }));
@@ -167,7 +107,7 @@ const HostGameLobby = () => {
 
     const interval = setInterval(fetchPlayersInLobby, 3000);
     return () => clearInterval(interval);
-  }, [gameCode, username]);
+  }, [gameID, username]);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
@@ -189,9 +129,9 @@ const HostGameLobby = () => {
       </button>
 
       {/* Game Code */}
-      {gameCode && (
+      {gameID && (
         <div className="absolute top-4 right-4 px-4 py-2 bg-white rounded-md shadow-md text-lg">
-          Code: {gameCode}
+          Code: {gameID}
         </div>
       )}
 

@@ -80,57 +80,35 @@ const JoinGameMenu = () => {
   // Join a lobby using POST.php
   const joinLobby = async (gameID) => {
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getBet&gameID=${gameID}`, )
-      const result = await response.json();
-
-      if (result.success) {
-        setBetAmount(result.bet);
-
-      } else {
-        alert("Error: " + result.error);
-      }
-    } catch (error) {
-      console.error("Join failed:", error);
-    }
-
-    const username = localStorage.getItem("username");
-
-
-    if (!username || !gameID) {
-      alert("Missing username or game code.");
-      return;
-    }
-
-    try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-        method: "POST",
+      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php`, {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          gameID,
-          action: "join",
-          playerID: cookie,
-          playerName: username,
-        }),
+          action: 'join_game',
+          gameID: gameID,
+          playerID: username,
+        })
       });
 
       const result = await response.json();
 
       if (result.success) {
         navigate(`/waiting-host/${gameID}`);
+        console.log("Joined game successfully:", result);
+
       } else {
         alert("Error: " + result.error);
       }
     } catch (error) {
       console.error("Join failed:", error);
-      alert("Network error while joining the game.");
     }
   };
-
   useEffect(() => {
     fetchLobbies();
   }, []);
+
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">

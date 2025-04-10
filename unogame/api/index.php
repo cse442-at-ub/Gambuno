@@ -30,7 +30,7 @@ function insertUser($data, $conn) {
 
         else{
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-            setcookie("auth", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
+            setcookie("auth", $authToken, time() + 3600, "/", "", true, true);
 
             $sql = "INSERT INTO users (username, hashed_password, auth, money) VALUES ('$username', '$hashedPassword', '$hashedAuthToken', '$money')";
 

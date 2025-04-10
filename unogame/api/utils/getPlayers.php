@@ -21,7 +21,7 @@
     // Handle getPlayers action
     if (isset($_GET['action']) && $_GET['action'] === 'getPlayers') {
         $lobbyID = $_GET['lobbyID'];
-        $stmt = $conn->prepare("SELECT playerList FROM players WHERE gameID = ?");
+        $stmt = $conn->prepare("SELECT playerName FROM players WHERE gameID = ?");
         $stmt->bind_param("s", $lobbyID);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

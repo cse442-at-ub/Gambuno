@@ -60,7 +60,7 @@ const WaitingRoomHost = () => {
           body: JSON.stringify({
             action: "status",
             gameID: gameID,
-            playerID: cookie, // if needed on the backend
+            playerID: username, // if needed on the backend
           }),
         }
       );
@@ -90,41 +90,50 @@ const WaitingRoomHost = () => {
   };
 
 
-    const checkGame = async () => {
-      try {
-          // Get user metadata with the cookie
-          const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getStatus&gameID=${gameID}`);
-          const data = await response.json();
-          
-          if (data.success) {
-            if (data.status == "inProgress"){
-              setStatus(data.status);
-              console.log("Status:", data.status);
-              navigate(`/game-board/${gameID}`);
-            }
-          } 
-          else {
-            console.error("Failed to get game status:", response);
+  const checkGame = async () => {
+    if (!username) return;
+    try {
+        // Get user metadata with the cookie
+        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getStatus&gameID=${gameID}`);
+        const data = await response.json();
+        
+        if (data.success ) {
+          if (data.status == "inProgress"){
+            const playerID = username;
+            setStatus(data.status);
+            console.log("PlayerID:", playerID);
+            console.log("Status:", data.status);
+            navigate(`/game-board/${gameID}/${playerID}`);
           }
         } 
-      catch (error){
-        console.error("Error during initialization:", error);
-      }
-      finally{
-        setIsLoading(false);
-      }
-    };
+        else {
+          console.error("Failed to get game status:", response);
+        }
+      } 
+    catch (error){
+      console.error("Error during initialization:", error);
+    }
+    finally{
+      setIsLoading(false);
+    }
+  };
 
 
   // Poll every 3 seconds.
   useEffect(() => {
-    if (gameID) {
+    if (gameID && username) {
       fetchPlayers();
       checkGame();
-      const interval = setInterval(fetchPlayers, 3000);
-      return () => clearInterval(interval);
+      const interval = setInterval(fetchPlayers, 1000);
+      const interval1 = setInterval(checkGame, 1000);
+  
+      return () => {
+        clearInterval(interval);
+        clearInterval(interval1);
+      };
     }
   }, [gameID, username]);
+  
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative p-6 overflow-hidden">
@@ -160,9 +169,6 @@ const WaitingRoomHost = () => {
                 </svg>
                 <p className="text-lg font-bold text-black">{player.name}</p>
               </div>
-              <span className={`px-4 py-2 text-white font-bold rounded-lg ${player.ready ? "bg-green-500" : "bg-red-600"}`}>
-                {player.ready ? "Ready" : "Waiting"}
-              </span>
             </div>
           ))
         )}
@@ -180,13 +186,6 @@ const WaitingRoomHost = () => {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z" />
         </svg>
       </button>
-
-      <button
-          onClick={() => navigate("/uno-game")}
-          className="mt-6 px-6 py-3 bg-white text-blue-500 text-xl font-bold shadow-lg rounded-xl border-2 border-blue-500 hover:bg-blue-500 hover:text-white transition"
-        >
-          Start
-        </button>
     </div>
   );
 };

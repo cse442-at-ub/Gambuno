@@ -41,10 +41,15 @@ if ($stmt->num_rows > 0) {
     $stmt->fetch(); // Fetch the result
     if (password_verify($password, $hashedPassword)) {
         // Generate a token (example using sha256 and uniqid)
-        $token = bin2hex(random_bytes(32));
-
+        $token = bin2hex(random_bytes(16));
+        $hashToken = password_hash($token, PASSWORD_BCRYPT);
         // Set the token as a secure HttpOnly cookie
-        setcookie("auth_token", $token, time() + 3600, "/", "cse.buffalo.edu", true, true);
+        setcookie("auth", $token, time() + 3600, "/", "", false, true);
+
+        $query = "UPDATE users SET auth = ? WHERE username = ?";
+        $st = $conn->prepare($query);
+        $st->bind_param("ss", $hashToken, $username);
+        $st->execute();
 
         echo json_encode(["status" => "success", "message" => "User verified", "token" => $token]);
     } else {

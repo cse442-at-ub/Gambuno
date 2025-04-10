@@ -1,4 +1,5 @@
 <?php
+
 // Allow cross-origin requests and set headers
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
@@ -15,37 +16,30 @@ $conn = new mysqli($host, $user, $pass, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]);
-    exit();
+    die(json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]));
 }
 
-// Validate request
 if (isset($_GET['action']) && $_GET['action'] === 'getHost') {
     $gameID = isset($_GET['gameID']) ? trim($_GET['gameID']) : '';
 
-    // Ensure playerID is provided
-    if (empty($gameID)) {
-        echo json_encode(["status" => "error", "message" => "Missing gameID"]);
-        exit();
+    // Prepare and execute the query to get the current player
+    $stmt = $conn->prepare("SELECT host FROM lobby WHERE gameID = ?");
+    if (!$stmt) {
+        die(json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]));
     }
 
-    // Prepare statement
-    $stmt = $conn->prepare("SELECT host FROM lobby WHERE gameID = ?");
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
+    $result = $stmt->get_result();
 
-    // Fetch results
-    $result = $stmt->get_result()->fetch_assoc();
-
-    if (!$result) {
-        echo json_encode(["status" => "error", "message" => "No host"]);
+    if ($result && $row = $result->fetch_assoc()) {
+        echo json_encode(["status" => "success", "currentPlayer" => $row['host']]);
     } else {
-        echo json_encode(["status" => "success", "host" => $result["host"]]);
+        echo json_encode(["status" => "error", "message" => "No current player found or query failed."]);
     }
+
+    $stmt->close();
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action"]);
-}
 
-// Close the connection
-$conn->close();
-?>
+}

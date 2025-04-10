@@ -2,7 +2,7 @@
 // import { UnoCard, WildCard, CardBack, ColorPicker } from './cards/cards';
 // import { getGameState, playCard, drawCard, initializeGame } from './../lib/api';
 
-// export default function UnoGameBoard({ gameId, playerId }) {
+// export default function UnoGameBoard({ gameID, playerID }) {
 //   const [gameState, setGameState] = useState(null);
 //   const [playerHand, setPlayerHand] = useState([]);
 //   const [error, setError] = useState('');
@@ -25,13 +25,13 @@
 //   const fetchGameState = async () => {
 //     try {
 //       setIsLoading(true);
-//       const state = await getGameState(gameId, playerId);
+//       const state = await getGameState(gameID, playerID);
       
 //       if (state.success) {
 //         setGameState(state);
         
 //         // Find the current player's data to get their hand
-//         const currentPlayerData = state.players.find(player => player.playerID === playerId);
+//         const currentPlayerData = state.players.find(player => player.playerID === playerID);
 //         if (currentPlayerData && currentPlayerData.cardList) {
 //           setPlayerHand(currentPlayerData.cardList.split(','));
 //         }
@@ -56,7 +56,7 @@
     
 //     try {
 //       setIsLoading(true);
-//       const result = await playCard(playerId, gameId, card);
+//       const result = await playCard(playerID, gameID, card);
       
 //       if (result.success) {
 //         setGameMessage(result.message);
@@ -81,7 +81,7 @@
     
 //     try {
 //       setIsLoading(true);
-//       const result = await playCard(playerId, gameId, playableCard);
+//       const result = await playCard(playerID, gameID, playableCard);
       
 //       if (result.success) {
 //         setGameMessage(result.message);
@@ -101,7 +101,7 @@
 //   const handleDrawCard = async () => {
 //     try {
 //       setIsLoading(true);
-//       const result = await drawCard(gameId, playerId);
+//       const result = await drawCard(gameID, playerID);
       
 //       if (result.success) {
 //         setGameMessage(`Drew a card: ${result.new_card}`);
@@ -120,7 +120,7 @@
 //   const startGame = async () => {
 //     try {
 //       setIsLoading(true);
-//       const result = await initializeGame(gameId, playerId);
+//       const result = await initializeGame(gameID, playerID);
       
 //       if (result.success) {
 //         setGameMessage('Game started!');
@@ -165,13 +165,13 @@
 //     }
 //   };
 
-//   const isPlayerTurn = gameState?.currentPlayer === playerId;
+//   const isPlayerTurn = gameState?.currentPlayer === playerID;
 
 //   // Layout for other players based on total number of players
 //   const renderOtherPlayers = () => {
 //     if (!gameState || !gameState.players) return null;
     
-//     const otherPlayers = gameState.players.filter(player => player.playerID !== playerId);
+//     const otherPlayers = gameState.players.filter(player => player.playerID !== playerID);
     
 //     // Center players evenly around the top of the board
 //     return (
@@ -230,7 +230,7 @@
 //         </div>
 //       )}
       
-//       {gameState?.gameStatus === 'waiting' && gameState.host === playerId && (
+//       {gameState?.gameStatus === 'waiting' && gameState.host === playerID && (
 //         <div className="text-center mb-4">
 //           <button 
 //             className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -244,7 +244,7 @@
 //       {gameState?.gameStatus === 'waiting' && (
 //         <div className="text-center mb-4 text-white">
 //           <h2 className="text-xl font-bold">Waiting for players...</h2>
-//           <p>Game Code: {gameId}</p>
+//           <p>Game Code: {gameID}</p>
 //           <p>Players: {gameState?.players?.length || 0}</p>
 //         </div>
 //       )}
@@ -312,12 +312,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useParams} from "react-router-dom";
 import { UnoCard, WildCard, CardBack } from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
 import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
-export default function UnoGameBoard({ gameId, playerId }) {
+export default function UnoGameBoard() {
+  const { gameID, playerID } = useParams()
   const [gameState, setGameState] = useState(null)
   const [playerHand, setPlayerHand] = useState([])
   const [error, setError] = useState("")
@@ -342,7 +343,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
   const fetchGameState = async () => {
     try {
       setIsLoading(true)
-      const state = await getGameState(gameId, playerId)
+      const state = await getGameState(gameID, playerID)
 
       if (state.success) {
         setGameState(state)
@@ -351,7 +352,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
         }
 
         // Find the current player's data to get their hand
-        const currentPlayerData = state.players.find((player) => player.playerID === playerId)
+        const currentPlayerData = state.players.find((player) => player.playerID === playerID)
         if (currentPlayerData && currentPlayerData.cardList) {
           setPlayerHand(currentPlayerData.cardList.split(","))
         }
@@ -380,7 +381,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
     try {
         console.log("Playing card in console:", cleaned)
       setIsLoading(true)
-      const result = await playCard(playerId, gameId, String(cleaned))
+      const result = await playCard(playerID, gameID, String(cleaned))
     console.log("Result:", result);
       if (result.success) {
 
@@ -407,7 +408,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
 
     try {
       setIsLoading(true)
-      const result = await playCard(playerId, gameId, playableCard)
+      const result = await playCard(playerID, gameID, playableCard)
 
       if (result.success) {
         setGameMessage(result.message)
@@ -427,7 +428,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
   const handleDrawCard = async () => {
     try {
       setIsLoading(true)
-      const result = await drawCard(gameId, playerId)
+      const result = await drawCard(gameID, playerID)
 
       if (result.success) {
         setGameMessage(`Drew a card: ${result.new_card}`)
@@ -446,7 +447,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
   const startGame = async () => {
     try {
       setIsLoading(true)
-      const result = await initializeGame(gameId, playerId)
+      const result = await initializeGame(gameID, playerID)
 
       if (result.success) {
         setGameMessage("Game started!")
@@ -491,21 +492,21 @@ export default function UnoGameBoard({ gameId, playerId }) {
     }
   }
 
-  const isPlayerTurn = gameState?.currentPlayer === playerId
-  const currentPlayerData = gameState?.players?.find((player) => player.playerID === playerId)
-  const currentPlayerName = currentPlayerData?.playerName || playerId
+  const isPlayerTurn = gameState?.currentPlayer === playerID
+  const currentPlayerData = gameState?.players?.find((player) => player.playerID === playerID)
+  const currentPlayerName = currentPlayerData?.playerName || playerID
 
   // Get the current player's position in the array
   const getPlayerPosition = () => {
     if (!gameState?.players) return -1
-    return gameState.players.findIndex((player) => player.playerID === playerId)
+    return gameState.players.findIndex((player) => player.playerID === playerID)
   }
 
   // Arrange other players in a circular layout
   const renderOtherPlayers = () => {
     if (!gameState?.players) return null
 
-    const otherPlayers = gameState.players.filter((player) => player.playerID !== playerId)
+    const otherPlayers = gameState.players.filter((player) => player.playerID !== playerID)
     const totalPlayers = otherPlayers.length
 
     if (totalPlayers === 0) return null
@@ -599,7 +600,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
       <div className="flex justify-between items-center mb-2">
         <div className="text-white">
           <h2 className="text-lg font-bold">UNO Game</h2>
-          <p className="text-sm">Game ID: {gameId}</p>
+          <p className="text-sm">Game ID: {gameID}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
@@ -650,7 +651,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
           <div className="bg-white rounded-lg p-6 max-w-md w-full text-center">
             <h2 className="text-2xl font-bold mb-4">Waiting for players...</h2>
             <p className="mb-2">
-              Game Code: <span className="font-mono font-bold">{gameId}</span>
+              Game Code: <span className="font-mono font-bold">{gameID}</span>
             </p>
             <p className="mb-4">Players: {gameState?.players?.length || 0}</p>
 
@@ -665,7 +666,7 @@ export default function UnoGameBoard({ gameId, playerId }) {
               ))}
             </div>
 
-            {gameState.host === playerId && (
+            {gameState.host === playerID && (
               <button
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full transition-colors"
                 onClick={startGame}

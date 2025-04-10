@@ -38,9 +38,9 @@ import React from 'react';
                               <Route path="/join-game-menu" element={isMobile ? <JoinGameM /> : <JoinGameD />} />
                               <Route path="/host-game" element={isMobile ? <HostGameM /> : <HostGameD />} />
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
-                              <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
+                              <Route path="/host-game-lobby/:gameID" element={<HostGameLobby />} />
                               /*{/*<Route path="/leaderboard" element={<Leaderboard />} />*/}*/
-                              <Route path="/game-board" element={<UnoGameBoard gameId={"3KRJR1"} playerId={"kurianva"} />} />,
+                              <Route path="/game-board/:gameID/:playerID" element={<UnoGameBoard />} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
                             </Routes>
                           </Router>

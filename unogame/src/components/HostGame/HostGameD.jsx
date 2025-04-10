@@ -9,6 +9,7 @@ const HostGame = () => {
   const [money, setMoney] = useState(null);
   const [cookie, setCookie] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   
   // Use useEffect for API calls
   useEffect(() => {
@@ -66,11 +67,11 @@ const HostGame = () => {
       const data = await response.json();
   
       if (data.success) {
-
         setGameCode(data.gameID); // Store the generated game code in state
         console.log('Game ID: ', data.gameID); // Log the game ID for debugging
         navigate(`/host-game-lobby/${data.gameID}`); // Navigate to the lobby page with the game ID
       } else {
+        setError(data.message);
         console.error('Failed to make game:', data.message);
       }
     } catch (error) {
@@ -137,6 +138,8 @@ return (
       >
         Host Game
       </button>
+      {/* Error Message */}
+      {error && <p className="text-red-500 mt-4">{error}</p>}
     </div>
   );
 };

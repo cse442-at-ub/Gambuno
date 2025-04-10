@@ -175,12 +175,14 @@ const JoinGameMenu = () => {
               }
               const playerCount = Array.isArray(playerList) ? playerList.length : 0;
               const host = playerCount > 0 ? playerList[0] : "Unknown";
+              const betAmount =  lobby.betting_amt;
 
               return (
                 <div key={index} className="flex justify-between items-center bg-red-500 text-white text-lg font-bold shadow-lg rounded-xl border-4 border-orange-700 px-4 py-3">
                   <div>
                     <p className="italic">Host - {host}</p>
-                    <p>Players - {playerCount - 1}</p>
+                    <p>Players - {playerCount}</p>
+                    <p>Bet Amount - ${betAmount}</p>
                   </div>
                   <button
                     onClick={() => joinLobby(lobby.gameID)}

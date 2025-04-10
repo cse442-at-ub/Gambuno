@@ -10,7 +10,7 @@ import tutorialCircle from "./Assets/tutorial-circle.svg"
 import SettingsPopup from "./SettingsPopup";
 import MobilePopup from "../MobilePopup";
 import Tutorial from './Tutorial';
-import Cookies from 'js-cookie';
+
 
 
 function MainMenu() {

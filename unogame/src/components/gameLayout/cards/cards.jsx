@@ -6,6 +6,10 @@ import yellowS from "./images/unoLogoYellow.png"
 import greenS from "./images/unoLogogreen.png"
 import back from "./images/unoLogoback.png"
 import wild from "./images/unoLogoWild.png"
+import skipred from "./images/skip_red.png"
+import skipblue from "./images/skip_blue.png"
+import skipgreen from "./images/skip_green.png"
+import skipyellow from "./images/skip_yellow.png"
 
 export function UnoCard({ color, number, className, onClick, disabled }) {
     // Map colors to their respective star images
@@ -14,6 +18,14 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
         blue: blueS,
         yellow: yellowS,
         green: greenS,
+        
+    }
+
+    const colorSkipMap = {
+        red: skipred,
+        blue: skipblue,
+        yellow: skipyellow,
+        green: skipgreen,
         
     }
 
@@ -40,6 +52,60 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
         { top: "30%", left: "10%", transform: "translate(-50%, 0) rotate(90deg)" },
         { top: "15%", left: "25%", transform: "translate(-50%, 0) rotate(135deg)" },
     ]
+
+    if(number == "skip"){
+        return(
+            <button
+                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+                onClick={onClick}
+                disabled={disabled}
+                type="button"
+            >
+                {/* Card background with thicker border */}
+                <div className="absolute inset-0 bg-black rounded-lg">
+                    <div className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center">
+                        {/* Number in top left - improved visibility */}
+                        <div className="absolute top-1 left-1 z-10 w-6 h-6">
+                <span>
+                <img
+                    src={colorSkipMap[color]}
+                    alt={`${color} star`}
+                    className="w-full h-full object-contain"
+                />
+                </span>
+                        </div>
+                        {/* Number in bottom right - improved visibility */}
+                        <div className="absolute bottom-1 right-1 z-10 w-6 h-6">
+                <span>
+                <img
+                    src={colorSkipMap[color]}
+                    alt={`${color} star`}
+                    className="w-full h-full object-contain"
+                />
+                </span>
+                        </div>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-[60px] h-[60px]">
+              <span
+                  style={{
+                      color: colorHexMap[color],
+                      fontSize: "clamp(1.5rem, 4vw, 3rem)",
+                      textShadow: "0 0 3px rgba(255, 255, 255, 0.9)",
+                      fontWeight: "900",
+                  }}
+                  className="font-bold"
+              >
+                <img
+                    src={colorSkipMap[color]}
+                    alt={`${color} star`}
+                    className="w-full h-full object-contain"
+                />
+              </span>
+                        </div>
+                    </div>
+                </div>
+            </button>
+        )
+    }
 
     return (
         <button
@@ -186,12 +252,32 @@ export function WildCard({ className, onClick, disabled }) {
     )
 }
 
-export function CardBack({ className, isDark = false, onClick }) {
+export function CardBack({ className, isPile = false, isDark = false, onClick }) {
     const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
     const starImage = isDark ? {back} : {wild}
 
     // Add white border class only for dark mode cards
     const borderClass = isDark ? "border-[2px] border-white" : ""
+
+    if (isPile){
+        return (
+            <button
+                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
+                onClick={onClick}
+                type="button"
+            >
+                {/* Card background */}
+                <div className="absolute inset-0 bg-black rounded-lg">
+                    <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
+                        {/* Normal card back with single star - much bigger */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-[60px] sm:h-[60px]">
+                            <img src={back} alt="UNO star" className="w-full h-full object-contain" />
+                        </div>
+                    </div>
+                </div>
+            </button>
+        )
+    }
 
     return (
         <button

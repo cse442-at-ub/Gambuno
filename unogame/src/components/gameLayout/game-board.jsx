@@ -312,14 +312,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom";
-import { useRouter } from "next/router";
+import { useNavigate , useParams} from "react-router-dom";
 import { UnoCard, WildCard, CardBack } from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
-import { AlertCircle, CheckCircle2, X, Users, Trophy, Home, DollarSign } from "lucide-react"
-import Confetti from "react-confetti"
-import { useWindowSize } from "react-use"
-
+import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
 export default function UnoGameBoard() {
   const { gameID, playerID } = useParams()
@@ -332,7 +328,9 @@ export default function UnoGameBoard() {
   const [gameMessage, setGameMessage] = useState("")
   const [selectedColor, setSelectedColor] = useState(null)
   const navigate = useNavigate()
-  const [winner, setWinner] = useState(null)
+  const [showWinner, setShowWinner] = useState(false)
+  const [winnerInfo, setWinnerInfo] = useState({ winner: "Unknown", bettingRemain: 0 })
+
 
   // Fetch game state at regular intervals
   useEffect(() => {
@@ -345,6 +343,40 @@ export default function UnoGameBoard() {
     return () => clearInterval(intervalId)
   }, [])
 
+  const handleGameEnd = async () => {
+    try {
+      const playerRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
+      const playerData = await playerRes.json();
+      const players = typeof playerData.players === "string" ? JSON.parse(playerData.players) : playerData.players;
+  
+      let winnerName = "Unknown";
+      let winnerID = "";
+      const betAmount = playerData.betAmount || 0;
+      const totalPlayer = players.length;
+      const moneyToSet = (betAmount * totalPlayer).toFixed(2);
+  
+      for (const player of players) {
+        const cardRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}`);
+        const cardData = await cardRes.json();
+        const cardList = cardData.cardList ? cardData.cardList.split(",") : [];
+  
+        if (cardList.length === 0) {
+          winnerName = player.playerName || player.playerID;
+          winnerID = player.playerID;
+          break;
+        }
+      }
+  
+      if (winnerID) {
+        await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/setMoney.php?action=setMoney&playerID=${winnerID}&money=${moneyToSet}`);
+      }
+  
+    } catch (err) {
+      setError("Failed to fetch winner info");
+    }
+  };
+  
+
 
 
   const fetchGameState = async () => {
@@ -354,10 +386,10 @@ export default function UnoGameBoard() {
 
       if (state.success) {
         setGameState(state)
-        if (String(state.gameStatus) === "finished") {
-          const winner = setWinner(state.winner)
-          handleWinner(winner);
+        if (String(state.gameStatus) === "finished" && !showWinner) {
+          handleGameEnd();
         }
+        
 
         // Find the current player's data to get their hand
         const currentPlayerData = state.players.find((player) => player.playerID === playerID)
@@ -375,68 +407,6 @@ export default function UnoGameBoard() {
     }
   }
 
-  const handleWinner = (winner) => {
-    const { width, height } = useWindowSize()
-    const [showConfetti, setShowConfetti] = useState(true)
-    const router = useRouter()
-
-    useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowConfetti(false)
-    }, 8000) // Confetti runs for 8 seconds
-
-      return () => clearTimeout(timer)
-    }, [])
-
-    return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#25cb78] to-[#3e8914] text-white">
-      {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={800} />}
-
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20 pointer-events-none">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-[#3183ff] blur-3xl"></div>
-        <div className="absolute top-1/4 -right-10 w-60 h-60 rounded-full bg-[#25cb78] blur-3xl"></div>
-        <div className="absolute bottom-1/4 -left-20 w-72 h-72 rounded-full bg-[#eb0000] blur-3xl"></div>
-        <div className="absolute -bottom-20 right-1/4 w-80 h-80 rounded-full bg-[#ffb30f] blur-3xl"></div>
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center max-w-3xl w-full px-4 py-12 text-center">
-        <div className="mb-6 animate-bounce">
-          <div className="bg-white rounded-full p-5 shadow-xl">
-            <Trophy className="h-20 w-20 text-[#25cb78]" />
-          </div>
-        </div>
-
-        <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white drop-shadow-md animate-in slide-in-from-top duration-700">
-          VICTORY!
-        </h1>
-
-        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-8 mb-8 w-full max-w-md border-2 border-white/30 shadow-2xl">
-          <h2 className="text-4xl md:text-5xl font-bold mb-2 text-white">{winner}</h2>
-          <p className="text-xl md:text-2xl text-white/90 font-medium">is the WINNER!</p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
-          <button
-            onClick={() => router.push("/waiting-host/gameID")} // Replace gameID with actual game ID
-            className="flex-1 h-14 text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 text-white border-2 border-white/30 shadow-lg rounded-lg flex items-center justify-center"
-          >
-            <Users className="mr-2 h-5 w-5" />
-            Back to Lobby
-          </button>
-
-          <button
-            onClick={() => router.push("/")}
-            className="flex-1 h-14 text-lg font-bold bg-[#25cb78] hover:bg-[#25cb78]/80 text-white border-2 border-white/30 shadow-lg rounded-lg flex items-center justify-center"
-          >
-            <Home className="mr-2 h-5 w-5" />
-            Home Screen
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-    
-  }
   const handleCardPlay = async (card) => {
     const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
 
@@ -871,6 +841,23 @@ export default function UnoGameBoard() {
           </div>
         </div>
       )}
+
+      {showWinner && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Game Over</h2>
+            <p className="text-lg mb-2">Winner: {winnerInfo.winner}</p>
+            <p className="text-lg mb-4">Remaining Betting: ${winnerInfo.bettingRemain}</p>
+            <button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full"
+              onClick={() => navigate("/")}
+            >
+              Back to Main Menu
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

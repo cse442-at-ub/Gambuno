@@ -115,7 +115,7 @@ function placeCard($gameID, $playerID, $card) {
     setCurrentCard($gameID, $card);
 
     // Process card effects if any
-//    processCardEffect( $gameID, $card);
+    processCardEffect($gameID, $card);
 
     // Check if player has won (no cards left)
     if (count($playerCardsArray) === 0) {
@@ -130,13 +130,14 @@ function placeCard($gameID, $playerID, $card) {
 }
 
 // Process special card effects
-function processCardEffect( $gameID, $card) {
+function processCardEffect($gameID, $card) {
     list($color, $value) = explode('_', $card);
     $effect = null;
 
     // Determine card effect based on value
     if ($value === 'skip') {
         $effect = 'skip';
+        
     } else if ($value === 'reverse') {
         $effect = 'reverse';
         // Reverse the game order
@@ -154,7 +155,7 @@ function processCardEffect( $gameID, $card) {
 
     // Set card effect in the database
     if ($effect) {
-        setCardEffect( $gameID, $effect);
+        setCardEffect($gameID, $effect);
     }
 }
 
@@ -162,7 +163,7 @@ function processCardEffect( $gameID, $card) {
 function moveToNextPlayer($gameID) {
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
-
+    
     //$h = json_encode(getGameOrder($gameID));
     //$currentPlayer = json_decode($s, true)["currentPlayer"];
 
@@ -174,20 +175,21 @@ function moveToNextPlayer($gameID) {
     $gameOrderArray = json_decode($b, true)["playerList"];
     $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
-
+    
     // Get card effect if any
-//    $cardEffect = getCardEffect( $gameID);
+    $h = json_encode(getCardEffect($gameID));
+    $cardEffect = json_decode($h, true)["effect"];
 
     // Determine next player index
     $nextIndex = ($currentIndex + 1) % count($gameOrderArray); // ensures circular ordering
 
 //    // Handle skip effect
-//    if ($cardEffect === 'skip') {
-//        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
-//        // Reset card effect after applying
-//        setCardEffect( $gameID, '');
-//    }
-//
+    if ($cardEffect === 'skip') {
+        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
+        // Reset card effect after applying
+        setCardEffect($gameID, '\"\"');
+    }
+    
     // Set next player
     setCurrentPlayer($gameID, $gameOrderArray[$nextIndex]);
 }
@@ -221,8 +223,15 @@ function drawCard($gameID, $playerID) {
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Move to next player's turn
-    moveToNextPlayer($gameID);
 
+    $h = json_encode(getCurrentCard($gameID));
+    $currentCard = json_decode($h, true)["curCard"];
+
+    // Check if card is valid to play
+    if (!isValidCardPlay($currentCard, $newCard)) {
+        moveToNextPlayer($gameID);
+    }
+    
     return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
 }
 
@@ -523,9 +532,10 @@ if ($requestMethod === 'POST') {
             echo getGameState($gameID, $playerID);
             break;
         
-        case "handlewin":
-            echo handleGameWin($gameID, $playerID);
+        case 'move':
+            echo moveToNextPlayer($gameID);
             break;
+
         default:
             echo json_encode(['success' => false, 'message' => 'Unknown action']);
     }

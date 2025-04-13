@@ -514,7 +514,7 @@ export default function UnoGameBoard() {
     const rotatedPlayers = [
       ...gameState.players.slice(playerIndex),
       ...gameState.players.slice(0, playerIndex),
-    ];
+    ].reverse();
 
     const otherPlayers = rotatedPlayers.slice(1);
     const totalPlayers = otherPlayers.length;

@@ -227,25 +227,24 @@ function drawCard($gameID, $playerID) {
 }
 
 // Handle game win scenario
-function handleGameWin( $gameID, $playerID) {
+function handleGameWin($gameID, $playerID) {
     //should have the follow methods, updatePlayerWins($gameID, $playerID), updatePlayersStats($gameID, $playerID)
     // Update game status
     setGameStatus( $gameID, 'finished');
+    $i = json_encode(getBettingAmount($gameID));
+    $bettingAmt = json_decode($i, true)["betting"];
+    
 
-    // Update player stats
-    updatePlayerWins( $gameID, $playerID);
-
-    updatePlayersStats( $gameID, $playerID);
-
-    $bettingAmt = getBettingAmount( $gameID);
-    $playersObj = getPlayerList($gameID);
-    $players = $playersObj["playerList"];
+    $b = json_encode(getPlayerList($gameID));
+    $playersObj= json_decode($b, true)["playerList"];
+    $players = explode(",", $playersObj);
+    
     $totalPot = $bettingAmt * count($players);
-
-
+    
     // Add winnings to player's account
-    $currentMoney = getMoney( $playerID);
-    setMoney( $playerID, $currentMoney + $totalPot);
+    $h = json_encode(getMoney($playerID));
+    $currentMoney = json_decode($h, true)["money"];
+    setMoney($playerID, ($currentMoney + $totalPot));
 }
 
 // Create a new game
@@ -523,7 +522,10 @@ if ($requestMethod === 'POST') {
             }
             echo getGameState($gameID, $playerID);
             break;
-
+        
+        case "handlewin":
+            echo handleGameWin($gameID, $playerID);
+            break;
         default:
             echo json_encode(['success' => false, 'message' => 'Unknown action']);
     }

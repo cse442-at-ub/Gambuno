@@ -431,7 +431,8 @@ export default function UnoGameBoard() {
       const result = await drawCard(gameID, playerID)
 
       if (result.success) {
-        setGameMessage(`Drew a card: ${result.new_card}`)
+        const newCard = (result.new_card.charAt(0).toUpperCase() + result.new_card.slice(1)).replace("_", ' ');
+        setGameMessage(`Drew a card: ${newCard}`)
         await fetchGameState() // Refresh game state after drawing
       } else {
         setError(result.message || "Failed to draw card")
@@ -504,12 +505,21 @@ export default function UnoGameBoard() {
 
   // Arrange other players in a circular layout
   const renderOtherPlayers = () => {
-    if (!gameState?.players) return null
+    if (!gameState?.players) return null;
 
-    const otherPlayers = gameState.players.filter((player) => player.playerID !== playerID)
-    const totalPlayers = otherPlayers.length
+    const playerIndex = getPlayerPosition();
+    if (playerIndex === -1) return null;
 
-    if (totalPlayers === 0) return null
+    // Rotate players so current player is always at index 0
+    const rotatedPlayers = [
+      ...gameState.players.slice(playerIndex),
+      ...gameState.players.slice(0, playerIndex),
+    ];
+
+    const otherPlayers = rotatedPlayers.slice(1);
+    const totalPlayers = otherPlayers.length;
+
+    if (totalPlayers === 0) return null;
 
     // Calculate positions based on number of players
     return (

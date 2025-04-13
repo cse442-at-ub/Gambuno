@@ -18,7 +18,7 @@ import React from 'react';
                       import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
                       import SettingsPopup from "./components/SettingsPopup";
                       import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
-                      // import Leaderboard from './components/Leaderboard';
+                      import Leaderboard from './components/leaderboard';
                       import UnoGame from './components/uno-game'; // Import UnoGame if needed
                       import MainMenuMobile from './components/MainMenuM';
                       import UnoGameBoard from "./components/gameLayout/game-board";
@@ -39,7 +39,7 @@ import React from 'react';
                               <Route path="/host-game" element={isMobile ? <HostGameM /> : <HostGameD />} />
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
                               <Route path="/host-game-lobby/:gameID" element={<HostGameLobby />} />
-                              /*{/*<Route path="/leaderboard" element={<Leaderboard />} />*/}*/
+                              <Route path="/leaderboard" element={<Leaderboard />} />
                               <Route path="/game-board/:gameID/:playerID" element={<UnoGameBoard />} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
                             </Routes>

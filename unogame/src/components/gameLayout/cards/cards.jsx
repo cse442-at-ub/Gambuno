@@ -157,7 +157,7 @@ export function WildCard({ className, onClick, disabled }) {
                     {/* Star in bottom right */}
                     <div className="absolute bottom-1 right-1 w-4 h-4 sm:w-5 sm:h-5">
                         <img
-                            src="/images/unoLogoWild.png"
+                            src={wild}
                             alt="Wild star"
                             className="w-full h-full object-contain"
                             style={{ transform: "rotate(0deg)" }}
@@ -188,7 +188,7 @@ export function WildCard({ className, onClick, disabled }) {
 
 export function CardBack({ className, isDark = false, onClick }) {
     const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
-    const starImage = isDark ? "/images/unoLogoback.png" : "/images/unoLogoWild.png"
+    const starImage = isDark ? {back} : {wild}
 
     // Add white border class only for dark mode cards
     const borderClass = isDark ? "border-[2px] border-white" : ""

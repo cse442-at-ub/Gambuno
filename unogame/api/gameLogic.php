@@ -141,8 +141,11 @@ function processCardEffect($gameID, $card) {
     } else if ($value === 'reverse') {
         $effect = 'reverse';
         // Reverse the game order
-        $gameOrder = getGameOrder( $gameID);
+        $h = json_encode(getGameOrder($gameID));
+        $gameOrder = json_decode($h, true)["gameOrder"];
+        
         $gameOrderArray = explode(',', $gameOrder);
+        return $gameOrder;
         $gameOrderArray = array_reverse($gameOrderArray);
         setGameOrder($gameID, implode(',', $gameOrderArray));
     } else if ($value === 'draw2') {
@@ -533,7 +536,8 @@ if ($requestMethod === 'POST') {
             break;
         
         case 'move':
-            echo moveToNextPlayer($gameID);
+            $card = "blue_reverse";
+            echo processCardEffect($gameID, $card);
             break;
 
         default:

@@ -180,6 +180,9 @@ function processCardEffect($gameID, $card) {
 
     switch ($effect):
         case 'draw5':
+            // TODO: @rances Implement draw 5 cards logic
+            $effect = 'skip';
+            setCardEffect($gameID, $effect);
             // Draw 5 cards logic
             break;
         case 'reverse':
@@ -192,15 +195,17 @@ function processCardEffect($gameID, $card) {
             setCardEffect($gameID, $effect);
             break;
         default:
-            break;
+//            setCardEffect($gameID, $effect);
     endswitch;
+
 }
 
 // Move to the next player's turn
 function moveToNextPlayer($gameID) {
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
-    
+
+    // TODO: make it work with game order not player order.
     //$h = json_encode(getGameOrder($gameID));
     //$currentPlayer = json_decode($s, true)["currentPlayer"];
 
@@ -208,8 +213,8 @@ function moveToNextPlayer($gameID) {
     //$gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
-    $b = json_encode(getPlayerList($gameID));
-    $gameOrderArray = json_decode($b, true)["playerList"];
+    $playerList = json_encode(getPlayerList($gameID));
+    $gameOrderArray = json_decode($playerList, true)["playerList"];
     $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
     

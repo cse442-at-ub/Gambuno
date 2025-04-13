@@ -45,8 +45,23 @@ function isPlayerTurn($gameID, $playerID)
     
 }
 
+$colorMap = [
+    '0' => 'red',
+    '1' => 'blue',
+    '2' => 'green',
+    '3' => 'yellow',
+
+    '5' => 'red',
+    '6' => 'blue',
+    '7' => 'green',
+    '8' => 'yellow'
+];
+
+
 // Validate if a card can be played based on current card in play
-function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 0 as false
+function isValidCardPlay($currentCard, $playedCard): bool
+{//php treats 1 as true and 0 as false
+    global $colorMap;
     if (empty($currentCard) || empty($playedCard)) {
         return false; // If either card is empty, invalid play
     }
@@ -63,11 +78,26 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
     list($currentColor, $currentValue) = explode('_', $currentCard);//explode = split
     list($playedColor, $playedValue) = explode('_', $playedCard);
 
+
+//    if($playedValue < '0' || $playedValue > '9'){
+//        return false;
+//    }
+
     // Wild card can always be played
-    if ($playedColor === 'wild' || $currentColor === 'wild') {
+    if ($playedColor === 'wild') {
+//        if($playedValue > '8' || $playedValue === '4'){
+//            return false;
+//        }
         return true;
     }
-    //add code here for +5 and +2
+
+
+    if($currentColor === 'wild'){
+        $currentColor = $colorMap[$currentValue];
+//        if($currentColor === $playedColor){
+//            return true;
+//        }
+    }
 
     // Same color or same value is a valid play
     if ($currentColor === $playedColor || $currentValue === $playedValue) {
@@ -134,29 +164,36 @@ function processCardEffect($gameID, $card) {
     list($color, $value) = explode('_', $card);
     $effect = null;
 
-    // Determine card effect based on value
-    if ($value === 'skip') {
-        $effect = 'skip';
-        
-    } else if ($value === 'reverse') {
-        $effect = 'reverse';
-        // Reverse the game order
-        $gameOrder = getGameOrder( $gameID);
-        $gameOrderArray = explode(',', $gameOrder);
-        $gameOrderArray = array_reverse($gameOrderArray);
-        setGameOrder($gameID, implode(',', $gameOrderArray));
-    } else if ($value === 'draw2') {
-        $effect = 'draw2';
-        // Implementation for drawing 2 cards will be added later
-    } else if ($color === 'wild') {
-        $effect = 'wild';
-        // Wild card effect handled by front-end choice
-    }
 
-    // Set card effect in the database
-    if ($effect) {
-        setCardEffect($gameID, $effect);
+    if($value === 'skip'){
+        $effect = 'skip';
     }
+    if($value === 'reverse'){
+        $effect = 'reverse';
+    }
+    if($color === 'wild'){
+        if($value >= 5 && $value <= 8){
+            $effect = 'draw5';
+        }
+    }
+    else{return;}
+
+    switch ($effect):
+        case 'draw5':
+            // Draw 5 cards logic
+            break;
+        case 'reverse':
+            $gameOrder = getGameOrder($gameID);
+            $gameOrderArray = explode(',', $gameOrder);
+            $gameOrderArray = array_reverse($gameOrderArray);
+            setGameOrder($gameID, implode(',', $gameOrderArray));
+            break;
+        case 'skip':
+            setCardEffect($gameID, $effect);
+            break;
+        default:
+            break;
+    endswitch;
 }
 
 // Move to the next player's turn

@@ -376,10 +376,13 @@ export default function UnoGameBoard() {
   }
 
   const handleWinner = (winner) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { width, height } = useWindowSize()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [showConfetti, setShowConfetti] = useState(true)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const router = useRouter()
-
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
     const timer = setTimeout(() => {
       setShowConfetti(false)

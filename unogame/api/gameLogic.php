@@ -163,8 +163,9 @@ function placeCard($gameID, $playerID, $card) {
 
 function wildConversion($card){
     list($color, $value) = explode('_', $card);
+    $value = (int) ($value);
     if($color === 'wild'){
-        if($value >= 0 && $value <= 3){
+        if($value >= "0" && $value <= "3"){
             $card = 'wild_0';
         }
         elseif ($value >= 5 && $value <= 8){
@@ -179,15 +180,16 @@ function wildConversion($card){
 function processCardEffect($gameID, $card) {
     list($color, $value) = explode('_', $card);
     $effect = null;
-
+    
 
     if($value === 'skip'){
         $effect = 'skip';
     }
-    if($value === 'reverse'){
+    else if($value === 'reverse'){
         $effect = 'reverse';
     }
-    if($color === 'wild'){
+    else if($color === 'wild'){
+        $value = (int) ($value);
         if($value >= 5 && $value <= 8){
             $effect = 'draw5';
         }
@@ -197,12 +199,12 @@ function processCardEffect($gameID, $card) {
     switch ($effect):
         case 'draw5':
             $player = getNextPlayer($gameID);
-            
             $s = json_encode(getCardList($player));
             $playerCards = json_decode($s, true)["cardList"];
             $playerCardsArray = explode(',', $playerCards);
 
             $newCards = generateCards(5);
+            $newCards = implode(",", $newCards);
             $playerCardsArray[] = $newCards;
             setCardList($gameID, $player, implode(',', $playerCardsArray));
 
@@ -211,10 +213,13 @@ function processCardEffect($gameID, $card) {
             // Draw 5 cards logic
             break;
         case 'reverse':
-            $gameOrder = getGameOrder($gameID);
+            setCardEffect($gameID, $effect);
+            $s = json_encode(getGameOrder($gameID));
+            $gameOrder =json_decode($s, true)["gameOrder"];
             $gameOrderArray = explode(',', $gameOrder);
             $gameOrderArray = array_reverse($gameOrderArray);
             setGameOrder($gameID, implode(',', $gameOrderArray));
+            setCardEffect($gameID, $effect);
             break;
         case 'skip':
             setCardEffect($gameID, $effect);
@@ -270,7 +275,7 @@ function moveToNextPlayer($gameID) {
     if ($cardEffect === 'skip') {
         $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
         // Reset card effect after applying
-        setCardEffect($gameID, '\"\"');
+        setCardEffect($gameID, ' ');
     }
     
     // Set next player
@@ -301,7 +306,7 @@ function drawCard($gameID, $playerID) {
 //        $newCard = $color . '_' . $value;
 //    }
 
-    $newCard = generateCards(1);
+    $newCard = generateCards(1)[0];
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));

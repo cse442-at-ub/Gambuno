@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
+import { Trophy, Home, Users } from 'lucide-react';
 
 export default function WinningScreen() {
   const { gameID } = useParams();
@@ -95,26 +98,90 @@ export default function WinningScreen() {
     fetchWinnerAndMoney();
   }, [gameID]);
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-900 to-black text-white">
-      <h1 className="text-4xl font-bold mb-6">Game Over</h1>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div className="bg-black bg-opacity-50 p-6 rounded-lg text-center">
-        <h2 className="text-2xl font-bold mb-4">Winner: {winner}</h2>
 
-        {playerResults.map((p, idx) => (
-          <div key={idx} className="mb-2 text-lg">
-            {p.playerName} : ${p.originalMoney} {p.operation} = ${p.finalMoney}
+  const { width, height } = useWindowSize();
+  const [showConfetti, setShowConfetti] = useState(true);
+
+  const timer = setTimeout(() => {
+    setShowConfetti(false);
+  }, 8000); // Confetti runs for 8 seconds
+  useEffect(() => {
+    return () => clearTimeout(timer); // Cleanup timer on unmount
+  }, [timer]);
+
+  return (    
+  <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-900 to-black text-white">
+      {showConfetti && <Confetti width={width} height={height} recycle={false} numberOfPieces={800} />}
+
+<div className="relative z-10 flex flex-col items-center justify-center max-w-3xl w-full px-4 py-12 text-center">
+  <div className="mb-6 animate-bounce">
+    <div className="bg-white rounded-full p-5 shadow-xl">
+      {/* Trophy icon */}
+      <div className="bg-white rounded-full p-5 shadow-xl">
+            <Trophy className="h-20 w-20 text-[#25cb78]" />
           </div>
-        ))}
+    </div>
+  </div>
 
-        <button
-          className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-full"
-          onClick={() => navigate("/")}
-        >
-          Back to Main Menu
-        </button>
-      </div>
+  <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white drop-shadow-md animate-in slide-in-from-top duration-700">
+    VICTORY!
+  </h1>
+
+  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-8 mb-8 w-full max-w-md border-2 border-white/30 shadow-2xl">
+    <h2 className="text-4xl md:text-5xl font-bold mb-2 text-white">{winner}</h2>
+    <p className="text-xl md:text-2xl text-white/90 font-medium">is the WINNER!</p>
+  </div>
+
+  <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+    <button
+      onClick={() => {
+        navigate("/game-board/:gameID");
+      }}
+      className="flex-1 h-14 text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center"
+    >
+      {/* Users icon */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="mr-2 h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+        />
+      </svg>
+      Back to Lobby
+    </button>
+
+    <button
+      onClick={() => {
+        navigate("/");
+      }}
+      className="flex-1 h-14 text-lg font-bold bg-[#25cb78] hover:bg-[#25cb78]/80 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center"
+    >
+      {/* Home icon */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="mr-2 h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+        />
+      </svg>
+      Home Screen
+    </button>
+  </div>
+</div>
     </div>
   );
 }

@@ -377,7 +377,7 @@ function createGame($playerID, $bettingAmount) {
 
     // Create player entry
     $playerName = $playerID;
-    $initialCards = json_encode(implode(",", generateCards(7)));
+    $initialCards = json_encode(generateCards(7));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
@@ -438,7 +438,7 @@ function joinGame($gameID, $playerID) {
     $stmt->execute();
 
     // Add player to player table
-    $initialCards = json_encode(implode(",",generateCards(7)));
+    $initialCards = json_encode(generateCards(7));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();

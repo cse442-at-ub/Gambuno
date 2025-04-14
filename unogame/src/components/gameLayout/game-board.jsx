@@ -372,11 +372,11 @@ export default function UnoGameBoard() {
 
     // If card is wild, show color picker
     //TODO: add colorpicker to work
-    // if (card.startsWith("wild_")) {
-    //  setSelectedCard(card)
-    //   setShowColorPicker(true)
-    //   return
-    // }
+     if (card.startsWith("wild_")) {
+      setSelectedCard(card)
+      setShowColorPicker(true)
+      return
+     }
     console.log("Playing card:", cleaned)
 
     try {

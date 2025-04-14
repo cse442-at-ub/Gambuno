@@ -145,7 +145,7 @@ function processCardEffect($gameID, $card) {
         $gameOrder = json_decode($h, true)["gameOrder"];
         
         $gameOrderArray = explode(',', $gameOrder);
-        return $gameOrder;
+        
         $gameOrderArray = array_reverse($gameOrderArray);
         setGameOrder($gameID, implode(',', $gameOrderArray));
     } else if ($value === 'draw2') {
@@ -174,8 +174,8 @@ function moveToNextPlayer($gameID) {
     //$gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
-    $b = json_encode(getPlayerList($gameID));
-    $gameOrderArray = json_decode($b, true)["playerList"];
+    $b = json_encode(getGameOrder($gameID));
+    $gameOrderArray = json_decode($b, true)["gameOrder"];
     $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
     
@@ -537,7 +537,7 @@ if ($requestMethod === 'POST') {
         
         case 'move':
             $card = "blue_reverse";
-            echo processCardEffect($gameID, $card);
+            echo moveToNextPlayer($gameID, $card);
             break;
 
         default:

@@ -71,9 +71,6 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         return callApi($url, 'GET');
     }
 
-
-
-
     function getCardEffect($gameID) {
         $url = API_URL . "getCardEffect.php?action=getCardEffect&gameID=$gameID";
         return callApi($url, 'GET');

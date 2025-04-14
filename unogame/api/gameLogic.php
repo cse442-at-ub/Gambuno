@@ -204,8 +204,7 @@ function processCardEffect($gameID, $card) {
 function moveToNextPlayer($gameID) {
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
-
-    // TODO: make it work with game order not player order.
+    
     //$h = json_encode(getGameOrder($gameID));
     //$currentPlayer = json_decode($s, true)["currentPlayer"];
 
@@ -213,8 +212,8 @@ function moveToNextPlayer($gameID) {
     //$gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
-    $playerList = json_encode(getPlayerList($gameID));
-    $gameOrderArray = json_decode($playerList, true)["playerList"];
+    $b = json_encode(getGameOrder($gameID));
+    $gameOrderArray = json_decode($b, true)["gameOrder"];
     $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
     

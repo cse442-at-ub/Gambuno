@@ -125,20 +125,21 @@ function placeCard($gameID, $playerID, $card) {
         //returns: {"success":false,"message":"Invalid card play"}
     }
 
+
     // Check if player has this card
     $s = json_encode(getCardList($playerID));
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
-    if (!in_array($card, $playerCardsArray)) {
+    if (!in_array(wildConversion($card), $playerCardsArray)) {
         return json_encode(['success' => false, 'message' => 'You do not have this card']);
     }
 
     // Set the placed card
-    setPlacedCard($gameID, $playerID, $card);
+    setPlacedCard($gameID, $playerID, $card);//might need to be wildConversion($card) instead of $card
 
     // Remove card from player's hand
-    $playerCardsArray = array_diff($playerCardsArray, [$card]);//returns array of cards without the played card
+    $playerCardsArray = array_diff($playerCardsArray, [wildConversion($card)]);//returns array of cards without the played card
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Update current card in play
@@ -158,6 +159,21 @@ function placeCard($gameID, $playerID, $card) {
 
     return json_encode(['success' => true, 'message' => 'Card played successfully']);
 }
+
+
+function wildConversion($card){
+    list($color, $value) = explode('_', $card);
+    if($color === 'wild'){
+        if($value >= 0 && $value <= 3){
+            $card = 'wild_0';
+        }
+        elseif ($value >= 5 && $value <= 8){
+            $card = 'wild_5';
+        }
+    }
+    return $card;
+}
+
 
 // Process special card effects
 function processCardEffect($gameID, $card) {
@@ -180,7 +196,16 @@ function processCardEffect($gameID, $card) {
 
     switch ($effect):
         case 'draw5':
-            // TODO: @rances Implement draw 5 cards logic
+            $player = getNextPlayer($gameID);
+            
+            $s = json_encode(getCardList($player));
+            $playerCards = json_decode($s, true)["cardList"];
+            $playerCardsArray = explode(',', $playerCards);
+
+            $newCards = generateCards(5);
+            $playerCardsArray[] = $newCards;
+            setCardList($gameID, $player, implode(',', $playerCardsArray));
+
             $effect = 'skip';
             setCardEffect($gameID, $effect);
             // Draw 5 cards logic
@@ -200,23 +225,40 @@ function processCardEffect($gameID, $card) {
 
 }
 
+
+function getNextPlayer($gameID) {
+    // Get current player
+    $s = json_encode(getCurrentPlayer($gameID));
+    $currentPlayer = json_decode($s, true)["currentPlayer"];
+
+    // Get game order
+    $b = json_encode(getGameOrder($gameID));
+    $gameOrderArray = json_decode($b, true)["gameOrder"];
+    $gameOrderArray = explode(',', $gameOrderArray);
+
+    // Find current player's index
+    $currentIndex = array_search($currentPlayer, $gameOrderArray);
+
+    // Determine next player index with wrap-around
+    $nextIndex = ($currentIndex + 1) % count($gameOrderArray);
+
+    // Return next player
+    return $gameOrderArray[$nextIndex];
+}
+
+
 // Move to the next player's turn
 function moveToNextPlayer($gameID) {
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
-    
-    //$h = json_encode(getGameOrder($gameID));
-    //$currentPlayer = json_decode($s, true)["currentPlayer"];
 
-    //$gameOrder = getGameOrder($gameID);
-    //$gameOrderArray = explode(',', $gameOrder);
 
     // Find current player index
     $b = json_encode(getGameOrder($gameID));
     $gameOrderArray = json_decode($b, true)["gameOrder"];
     $gameOrderArray = explode(',', $gameOrderArray);
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
-    
+
     // Get card effect if any
     $h = json_encode(getCardEffect($gameID));
     $cardEffect = json_decode($h, true)["effect"];
@@ -247,18 +289,19 @@ function drawCard($gameID, $playerID) {
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
-    // Generate a random card (in a real game, you'd draw from a deck)
-    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];//, 'skip', 'reverse', 'draw2'
+//    // Generate a random card (in a real game, you'd draw from a deck)
+//    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
+//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];//, 'skip', 'reverse', 'draw2'
+//
+//    if (rand(0, 10) > 8) {  // 20% chance of wild card
+//        $newCard = 'wild_' . rand(0, 0); // Only wild_0 for now
+//    } else {
+//        $color = $colors[rand(0, 3)]; // Exclude wild
+//        $value = $values[rand(0, count($values) - 1)];
+//        $newCard = $color . '_' . $value;
+//    }
 
-    if (rand(0, 10) > 8) {  // 20% chance of wild card
-        $newCard = 'wild_' . rand(0, 0); // Only wild_0 for now
-    } else {
-        $color = $colors[rand(0, 3)]; // Exclude wild
-        $value = $values[rand(0, count($values) - 1)];
-        $newCard = $color . '_' . $value;
-    }
-
+    $newCard = generateCards(1);
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));
@@ -313,10 +356,10 @@ function createGame($playerID, $bettingAmount) {
     // Deduct betting amount
     setMoney($playerID, $playerMoney - $bettingAmount);
 
-    // Generate initial card
-    $colors = ['red', 'blue', 'green', 'yellow'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
+//    // Generate initial card
+//    $colors = ['red', 'blue', 'green', 'yellow'];
+//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+//    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
 
     $conn = getDatabaseConnection();
     // Create lobby entry
@@ -329,7 +372,7 @@ function createGame($playerID, $bettingAmount) {
 
     // Create player entry
     $playerName = $playerID;
-    $initialCards = json_encode(generateInitialCards());
+    $initialCards = json_encode(generateCards(7));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
@@ -390,7 +433,7 @@ function joinGame($gameID, $playerID) {
     $stmt->execute();
 
     // Add player to player table
-    $initialCards = json_encode(generateInitialCards());
+    $initialCards = json_encode(generateCards(7));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();
@@ -399,14 +442,33 @@ function joinGame($gameID, $playerID) {
 }
 
 // Generate initial cards for a player (7 random cards)
-function generateInitialCards() {
+function generateCards($numberOfCards): array
+{
     $colors = ['red', 'blue', 'green', 'yellow'];
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $cards = [];
 
-    for ($i = 0; $i < 7; $i++) {
-        if (rand(0, 10) > 8) {  // 20% chance of wild card
-            $cards[] = 'wild_0';
+    for ($i = 0; $i < $numberOfCards; $i++) {
+        if (rand(0, 3) > 2) {  // 25% chance of special card
+            $randomValue = rand(0, 2);// 0 = skip, 1 = reverse, 2 = wilds
+            $color = $colors[rand(0, 3)];
+
+            if($randomValue === 0){
+                $cards[] = $color . '_skip';
+            }
+
+            if($randomValue === 1){
+                $cards[] = $color . '_reverse';
+            }
+
+            if($randomValue === 2){
+               if(rand(0, 1) === 0){
+                    $cards[] = 'wild_0';
+                }else{
+                    $cards[] = 'wild_5';
+                }
+            }
+
         } else {
             $color = $colors[rand(0, 3)];
             $value = $values[rand(0, count($values) - 1)];

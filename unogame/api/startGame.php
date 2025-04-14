@@ -155,8 +155,7 @@ function startGame($conn, $gameID, $bets) {
 function generateDeck() {
     $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    //$specials = ['Skip', 'Reverse', 'Draw2'];
-    //$wilds = ['wild', 'wild_Draw4'];
+    $specials = ['skip', 'reverse'];
     
     $deck = [];
     

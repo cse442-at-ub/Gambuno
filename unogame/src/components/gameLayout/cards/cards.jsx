@@ -1,5 +1,5 @@
 "use client"
-import React from "react" 
+import React from "react"
 import redS from "./images/unoLogoRed.png"
 import blueS from "./images/unoLogoblue.png"
 import yellowS from "./images/unoLogoYellow.png"
@@ -14,7 +14,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
         blue: blueS,
         yellow: yellowS,
         green: greenS,
-        
+
     }
 
     // Map colors to exact hex color values from the reference
@@ -105,7 +105,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
                                 }}
                             >
                                 <img
-                                    src={colorStarMap[color]}
+                                    src={colorStarMap[color] || "/placeholder.svg"}
                                     alt={`${color} star`}
                                     className="w-full h-full object-contain"
                                 />
@@ -157,7 +157,7 @@ export function WildCard({ className, onClick, disabled }) {
                     {/* Star in bottom right */}
                     <div className="absolute bottom-1 right-1 w-4 h-4 sm:w-5 sm:h-5">
                         <img
-                            src={wild}
+                            src={wild || "/placeholder.svg"}
                             alt="Wild star"
                             className="w-full h-full object-contain"
                             style={{ transform: "rotate(0deg)" }}
@@ -177,7 +177,80 @@ export function WildCard({ className, onClick, disabled }) {
                         }}
                     >
                         <div className="w-3/4 h-3/4 flex items-center justify-center">
-                            <img src={wild} alt="Wild star" className="w-full h-full object-contain" />
+                            <img src={wild || "/placeholder.svg"} alt="Wild star" className="w-full h-full object-contain" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </button>
+    )
+}
+
+export function ColoredWildCard({ color, className, onClick, disabled }) {
+    // Map colors to their respective star images
+    const colorStarMap = {
+        red: redS,
+        blue: blueS,
+        yellow: yellowS,
+        green: greenS,
+    }
+
+    // Map colors to exact hex color values from the reference
+    const colorHexMap = {
+        red: "#F42C04",
+        blue: "#1789FC",
+        yellow: "#FFB30F",
+        green: "#3E8914",
+    }
+
+    return (
+        <button
+            className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+            onClick={onClick}
+            disabled={disabled}
+            type="button"
+        >
+            {/* Card background */}
+            <div className="absolute inset-0 bg-black rounded-lg">
+                <div className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center">
+                    {/* Star in top left */}
+                    <div className="absolute top-1 left-1 w-4 h-4 sm:w-5 sm:h-5">
+                        <img
+                            src={colorStarMap[color] || "/placeholder.svg"}
+                            alt={`${color} star`}
+                            className="w-full h-full object-contain"
+                            style={{ transform: "rotate(0deg)" }}
+                        />
+                    </div>
+
+                    {/* Star in bottom right */}
+                    <div className="absolute bottom-1 right-1 w-4 h-4 sm:w-5 sm:h-5">
+                        <img
+                            src={colorStarMap[color] || "/placeholder.svg"}
+                            alt={`${color} star`}
+                            className="w-full h-full object-contain"
+                            style={{ transform: "rotate(0deg)" }}
+                        />
+                    </div>
+
+                    {/* Center oval with colored star */}
+                    <div
+                        className="border-[3px] sm:border-[4px] border-black rounded-[50%] flex items-center justify-center"
+                        style={{
+                            width: "92%",
+                            height: "86.25%",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                        }}
+                    >
+                        <div className="w-3/4 h-3/4 flex items-center justify-center">
+                            <img
+                                src={colorStarMap[color] || "/placeholder.svg"}
+                                alt={`${color} star`}
+                                className="w-full h-full object-contain"
+                            />
                         </div>
                     </div>
                 </div>
@@ -204,7 +277,7 @@ export function CardBack({ className, isDark = false, onClick }) {
                 <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
                     {/* Normal card back with single star - much bigger */}
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-6 sm:h-6">
-                        <img src={back} alt="UNO star" className="w-full h-full object-contain" />
+                        <img src={back || "/placeholder.svg"} alt="UNO star" className="w-full h-full object-contain" />
                     </div>
                 </div>
             </div>
@@ -270,4 +343,3 @@ export function ColorPicker({ onSelectColor, onClose }) {
         </div>
     )
 }
-

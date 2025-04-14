@@ -17,43 +17,51 @@ export default function WinningScreen() {
       try {
         // Get Player List
         const playerRes = await fetch(
-          "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}"
+          `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`
         );
-
-
         const playerData = await playerRes.json();
         const players =
           typeof playerData.players === "string"
-            ? JSON.parse(playerData.players)
-            : playerData.players;
-/*
+            ? JSON.parse(playerData.playerList)
+            : playerData.playerList;
+        const playerList =  players.split(",");
+        console.log(playerList);
+
+        /*
         // Get Betting Amount
         const betRes = await fetch(
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getBettingAmount.php?action=getBettingAmount&gameID=${gameID}"
+        `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getBettingAmount.php?action=getBettingAmount&gameID=${gameID}`
         );
         const betData = await betRes.json();
-        const betAmount = betData.betAmount || 0;
-        const totalPlayer = players.length;
+        const betAmount = betData.betting || 0;
+        console.log(betAmount);
+*/
+        const totalPlayer = playerList.length;
+        console.log(totalPlayer);
 
         let winnerName = "Unknown";
         let winnerID = "";
 
         // Find Winner
-        for (const player of players) {
+        for (const player of playerList) {
           const cardRes = await fetch(
-            "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}"
+            `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerCardList.php?action=getPlayerCardList&playerID=${player}`
           );
+          
           const cardData = await cardRes.json();
+
           const cardList = cardData.cardList
             ? cardData.cardList.split(",")
             : [];
+            console.log(cardList);
 
           if (cardList.length === 0) {
-            winnerName = player.playerName || player.playerID;
-            winnerID = player.playerID;
+            console.log(player);
+            winnerName = player;
+            winnerID = player;
           }
         }
-
+/*
         // Calculate Money Result for All Players
         const results = [];
         for (const player of players) {
@@ -86,10 +94,13 @@ export default function WinningScreen() {
             finalMoney,
           });
         }
-      
+      */
+        console.log(winnerID);
 
-        setPlayerResults(results);
-        */
+
+        setWinner(winnerName);
+
+
       } catch (err) {
         setError("Server Error fetching result");
       }
@@ -135,7 +146,7 @@ export default function WinningScreen() {
   <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
     <button
       onClick={() => {
-        navigate("/game-board/:gameID");
+        navigate(`/waiting-host/${gameID}`);
       }}
       className="flex-1 h-14 text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center"
     >

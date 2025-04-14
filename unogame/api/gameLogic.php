@@ -164,10 +164,10 @@ function placeCard($gameID, $playerID, $card) {
 function wildConversion($card){
     list($color, $value) = explode('_', $card);
     if($color === 'wild'){
-        if($value >= 0 && $value <= 3){
+        if($value >= "0" && $value <= "3"){
             $card = 'wild_0';
         }
-        elseif ($value >= 5 && $value <= 8){
+        elseif ($value >= "5" && $value <= "8"){
             $card = 'wild_5';
         }
     }
@@ -203,6 +203,7 @@ function processCardEffect($gameID, $card) {
             $playerCardsArray = explode(',', $playerCards);
 
             $newCards = generateCards(5);
+            $newCards = implode(",", $newCards);
             $playerCardsArray[] = $newCards;
             setCardList($gameID, $player, implode(',', $playerCardsArray));
 
@@ -301,7 +302,7 @@ function drawCard($gameID, $playerID) {
 //        $newCard = $color . '_' . $value;
 //    }
 
-    $newCard = generateCards(1);
+    $newCard = generateCards(1)[0];
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));

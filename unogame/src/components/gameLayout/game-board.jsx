@@ -369,7 +369,7 @@ export default function UnoGameBoard() {
 
   const handleCardPlay = async (card) => {
     const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
-
+    
     // If card is wild, show color picker
     //TODO: add colorpicker to work
      if (card.startsWith("wild_")) {
@@ -401,11 +401,43 @@ export default function UnoGameBoard() {
 
   const handleColorSelect = async (color) => {
     if (!selectedCard) return
-
+    const[col, number] = selectedCard.split("_");
     setSelectedColor(color)
     // Format the wild card with the selected color
-    const playableCard = selectedCard
+    let playableCard = selectedCard
     setShowColorPicker(false)
+    if (number === "0"){
+      if(color == "red"){
+        playableCard = "wild_0";
+      }
+      else if(color == "blue"){
+        playableCard = "wild_1";
+      }
+
+      else if(color == "green"){
+        playableCard = "wild_2";
+      }
+
+      else if(color == "yellow"){
+        playableCard = "wild_3";
+      }
+    }
+    else if (number == "5"){
+      if(color == "red"){
+        playableCard = "wild_5";
+      }
+      else if(color == "blue"){
+        playableCard = "wild_6";
+      }
+
+      else if(color == "green"){
+        playableCard = "wild_7";
+      }
+
+      else if(color == "yellow"){
+        playableCard = "wild_8";
+      }
+    }
 
     try {
       setIsLoading(true)

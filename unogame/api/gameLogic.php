@@ -365,7 +365,7 @@ function createGame($playerID, $bettingAmount) {
 //    $colors = ['red', 'blue', 'green', 'yellow'];
 //    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 //    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
-
+    $initialCard = generateCards(1)[0];
     $conn = getDatabaseConnection();
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect, host) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '', ?)");
@@ -377,7 +377,7 @@ function createGame($playerID, $bettingAmount) {
 
     // Create player entry
     $playerName = $playerID;
-    $initialCards = json_encode(generateCards(7));
+    $initialCards = json_encode(implode(",", generateCards(7)));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
@@ -438,7 +438,7 @@ function joinGame($gameID, $playerID) {
     $stmt->execute();
 
     // Add player to player table
-    $initialCards = json_encode(generateCards(7));
+    $initialCards = json_encode(implode(",",generateCards(7)));
     $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();

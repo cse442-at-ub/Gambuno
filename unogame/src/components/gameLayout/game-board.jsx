@@ -313,7 +313,7 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate , useParams} from "react-router-dom";
-import { UnoCard, WildCard, CardBack } from "./cards/cards"
+import { UnoCard, WildCard, CardBack, SkipCard, ReverseCard, PlusFiveCard, ColoredWildCard, ColoredPlusFiveCard} from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
 import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
@@ -503,7 +503,19 @@ export default function UnoGameBoard() {
     if (!card) return null
 
     const [color, number] = card.split("_");
-    if (color === "wild") {
+
+    if (card === "wild_5"){
+      return(
+        <PlusFiveCard
+        key={index}
+        className="w-16 h-24 sm:w-20 sm:h-28"
+        onClick={playable ? () => handleCardPlay(card) : undefined}
+        disabled={!playable}
+        />
+      )
+  }
+
+    else if (color === "wild") {
       return (
         <WildCard
           key={index}
@@ -512,7 +524,33 @@ export default function UnoGameBoard() {
           disabled={!playable}
         />
       )
-    } else {
+    } 
+    else if (number === "skip"){
+      return(
+        <SkipCard
+        key={index}
+        color={color}
+        className="w-16 h-24 sm:w-20 sm:h-28"
+        onClick={playable ? () => handleCardPlay(card) : undefined}
+        disabled={!playable}
+        />
+      )
+    }
+    
+    else if (number === "reverse"){
+      return(
+        <ReverseCard
+        key={index}
+        color={color}
+        className="w-16 h-24 sm:w-20 sm:h-28"
+        onClick={playable ? () => handleCardPlay(card) : undefined}
+        disabled={!playable}
+        />
+      )
+    }
+
+ 
+    else {
       return (
         <UnoCard
           key={index}
@@ -637,6 +675,21 @@ export default function UnoGameBoard() {
     )
   }
 
+  const wildColorMap = {
+    wild_0: "red",
+    wild_1: "blue",
+    wild_2: "green",
+    wild_3: "yellow",
+    wild_5: "red",
+    wild_6: "blue",
+    wild_7: "green",
+    wild_8: "yellow",
+  };
+  
+  const isColoredWildCard = ["wild_0", "wild_1", "wild_2", "wild_3"].includes(gameState?.currentCard);
+  const isColoredWild5 = ["wild_5", "wild_6", "wild_7", "wild_8"].includes(gameState?.currentCard);
+  const effectiveColor = wildColorMap[gameState?.currentCard];
+  
   return (
     <div className="flex flex-col h-screen bg-[#3e8914] from-emerald-900 to-black p-4 overflow-hidden">
       {/* Game header with info */}
@@ -723,6 +776,7 @@ export default function UnoGameBoard() {
 
       {/* Game board */}
       <div className="flex-1 relative">
+      </div>
         {/* Other players positioned around the board */}
         {renderOtherPlayers()}
 
@@ -741,25 +795,37 @@ export default function UnoGameBoard() {
 
             {/* Current card */}
             <div className="text-center">
-              {gameState?.currentCard ? (
-                <div className="relative">
-                  {renderCard(gameState.currentCard)}
-                  {selectedColor && gameState.currentCard.startsWith("wild_") && (
-                    <div
-                      className="absolute inset-0 rounded-lg opacity-50"
-                      style={{ backgroundColor: selectedColor }}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="w-20 h-32 sm:w-24 sm:h-36 border-2 border-dashed border-white/30 rounded-lg flex items-center justify-center">
-                  <span className="text-white/50">No Card</span>
-                </div>
-              )}
-              <p className="text-white text-sm mt-2">Current Card</p>
-            </div>
-          </div>
+                {gameState?.currentCard ? (
+                  <div className="relative">
+                    {isColoredWildCard && effectiveColor ? (
+                      <ColoredWildCard
+                        color={effectiveColor}
+                        className="w-16 h-24 sm:w-20 sm:h-28"
+                        onClick={undefined}
+                        disabled={!isPlayerTurn}
+                      />
+                    ) : isColoredWild5 && effectiveColor ? (
+                      <ColoredPlusFiveCard
+                        color={effectiveColor}
+                        className="w-16 h-24 sm:w-20 sm:h-28"
+                        onClick={undefined}
+                        disabled={!isPlayerTurn}
+                      />
+                    ) : (
+                      renderCard(gameState.currentCard)
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-20 h-32 sm:w-24 sm:h-36 border-2 border-dashed border-white/30 rounded-lg flex items-center justify-center">
+                    <span className="text-white/50">No Card</span>
+                  </div>
+                )}
+                <p className="text-white text-sm mt-2">Current Card</p>
+              </div>
+
         </div>
+
+
 
         {/* Game status */}
         <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 text-center">

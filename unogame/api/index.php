@@ -32,7 +32,7 @@ function insertUser($data, $conn) {
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
             setcookie("auth", $authToken, time() + 3600, "/", "", true, true);
 
-            $sql = "INSERT INTO users (username, hashed_password, auth, money) VALUES ('$username', '$hashedPassword', '$hashedAuthToken', '$money')";
+            $sql = "INSERT INTO users (username, hashed_password, auth, money, wins, total_games) VALUES ('$username', '$hashedPassword', '$hashedAuthToken', '$money', 0, 0)";
 
             if ($conn->query($sql) === TRUE) {
                 echo json_encode(["status" => "success", "message" => "User created successfully"]);

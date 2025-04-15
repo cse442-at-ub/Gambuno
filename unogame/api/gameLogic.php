@@ -332,6 +332,8 @@ function handleGameWin($gameID, $playerID) {
     $i = json_encode(getBettingAmount($gameID));
     $bettingAmt = json_decode($i, true)["betting"];
     
+    $w = json_encode(getWins($playerID));
+    $win = json_decode($w, true)["wins"];
 
     $b = json_encode(getPlayerList($gameID));
     $playersObj= json_decode($b, true)["playerList"];
@@ -343,6 +345,8 @@ function handleGameWin($gameID, $playerID) {
     $h = json_encode(getMoney($playerID));
     $currentMoney = json_decode($h, true)["money"];
     setMoney($playerID, ($currentMoney + $totalPot));
+
+    setWins($playerID, ((int)$wins)+1);
 }
 
 // Create a new game
@@ -367,6 +371,10 @@ function createGame($playerID, $bettingAmount) {
 //    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
     $initialCard = generateCards(1)[0];
     $conn = getDatabaseConnection();
+
+    $s = json_encode(getTotalGame($playerID));
+    $total_games = json_decode($h, true)["totalgames"];
+
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect, host) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '', ?)");
     $playerList = json_encode([$playerID]);
@@ -378,9 +386,13 @@ function createGame($playerID, $bettingAmount) {
     // Create player entry
     $playerName = $playerID;
     $initialCards = json_encode(generateCards(7));
-    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) VALUES (?, ?, ?, ?, '', 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
+    
+    setTotalGame($playerID, ((int) $total_games) + 1);
+    
+
 
     return json_encode(['success' => true, 'message' => 'Game created successfully', 'gameID' => $gameID]);
 }
@@ -439,7 +451,7 @@ function joinGame($gameID, $playerID) {
 
     // Add player to player table
     $initialCards = json_encode(generateCards(7));
-    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) VALUES (?, ?, ?, ?, '', 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();
 

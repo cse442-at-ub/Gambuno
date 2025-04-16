@@ -1,4 +1,8 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST, GET");
+header("Content-Type: application/json");
 // Database connection parameters
 $host = "localhost";
 $user = "kurianva";
@@ -13,12 +17,7 @@ if ($conn->connect_error) {
     die(json_encode(['error' => 'Connection failed: ' . $conn->connect_error]));
 }
 
-// Set the response content type to JSON
-header('Content-Type: application/json');
-
-// Testing mode - when set to true, will log actions and use test game IDs
-$testingMode = true;
-$testGameID = "test_game_" . date("Ymd_His") . "_" . rand(1000, 9999);
+// Testing mode - when set to true, will log actions and use test game IDs// Example test game ID
 
 // Log function for testing
 function testLog($message) {
@@ -46,15 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postData = $_POST;
     }
     
-    // For testing: if no gameID is provided, use the test game ID
-    if (!isset($postData['gameID']) && $testingMode) {
-        $postData['gameID'] = $testGameID;
-        testLog("Using test game ID: " . $testGameID);
-    } elseif (!isset($postData['gameID'])) {
-        echo json_encode(['error' => 'Game ID is required']);
-        exit;
-    }
-    
     $gameID = $conn->real_escape_string(trim($postData['gameID']));
     
     // For testing: if no action is provided, default to 'create'
@@ -66,27 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $action = $postData['action'];
-    
-    // For testing: if no playerID is provided but needed, generate one
-    if (!isset($postData['playerID']) && 
-        ($action == 'join' || $action == 'create' || $action == 'placeCard' || $action == 'drawCard' || $action == 'chooseColor') &&
-        $testingMode) {
-        $postData['playerID'] = "player_" . rand(1000, 9999);
-        testLog("Generated test player ID: " . $postData['playerID']);
-    }
-    
-    // For testing: if no playerName is provided but needed, generate one
-    if (!isset($postData['playerName']) && 
-        ($action == 'join' || $action == 'create') &&
-        $testingMode) {
-        $names = ["Alice", "Bob", "Charlie", "Dave", "Eve", "Frank", "Grace", "Heidi"];
-        $postData['playerName'] = $names[array_rand($names)] . rand(1, 99);
-        testLog("Generated test player name: " . $postData['playerName']);
-    }
-    
-    testLog("Processing action: " . $action . " for game: " . $gameID);
-    
+    $action = $postData['action'] ?? null;
+    $playerID = $postData['action'] ?? null;
+    $playerName = $postData['playerName'] ?? null;
+   
     switch ($action) {
         case 'join':
             $result = handleJoinGame($conn, $gameID, $postData);
@@ -95,7 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'create':
             $result = handleCreateGame($conn, $postData);
             break;
-            
+
+        case 'startGame':
+            $result = startGame($gameID,$conn);
+            break;
+         
         case 'placeCard':
             if (!isset($postData['cardPlaced'])) {
                 if ($testingMode) {
@@ -141,23 +118,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $color = $conn->real_escape_string($postData['color']);
             $result = handleColorChoice($conn, $gameID, $playerID, $color);
             break;
-            
-        case 'test':
-            // Special test action that generates a complete test game
-            if ($testingMode) {
-                $result = createTestGame($conn, $gameID);
-            } else {
-                $result = ['error' => 'Test mode is disabled'];
+        
+        case 'endGame':
+            if (!isset($postData['winnerID'])) {
+                echo json_encode(['error' => 'winnerID is required']);
+                exit;
             }
+            
+            $winnerID = $conn->real_escape_string($postData['winnerID']);
+            $result = handleGameEnd($conn, $gameID, $winnerID);
             break;
             
         default:
             $result = ['error' => 'Unknown action: ' . $action];
             break;
     }
-    
+
     // Get updated game state after action
-    if ($action !== 'placeCard') { // placeCard already returns a result
+    if ($action !== 'create' && $action !== 'placeCard' && $action !== 'endGame') { // placeCard and endGame already return a result
         $updatedGameState = isset($postData['playerID']) ? 
             fetchGameState($conn, $gameID, $conn->real_escape_string($postData['playerID'])) : 
             fetchGameState($conn, $gameID);
@@ -173,6 +151,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode($result);
     }
+}
+
+/**
+ * Handle game end - update statistics for all players
+ */
+function handleGameEnd($conn, $gameID, $winnerID) {
+    // First, verify the game exists
+    $checkGameQuery = "SELECT playerList FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($checkGameQuery);
+    $stmt->bind_param("s", $gameID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        return ['error' => 'Game not found'];
+    }
+    
+    $gameData = $result->fetch_assoc();
+    $playerList = json_decode($gameData['playerList'], true);
+    
+    // Verify winner is in the player list
+    if (!in_array($winnerID, $playerList)) {
+        return ['error' => 'Winner is not a player in this game'];
+    }
+    
+    // Update statistics for all players
+    foreach ($playerList as $playerID) {
+        // Check if player has stats record
+        $checkStatsQuery = "SELECT * FROM player_stats WHERE playerID = ?";
+        $stmt = $conn->prepare($checkStatsQuery);
+        $stmt->bind_param("s", $playerID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            // Create new stats record
+            $createStatsQuery = "INSERT INTO player_stats (playerID, wins, total_games) VALUES (?, ?, 1)";
+            $stmt = $conn->prepare($createStatsQuery);
+            $wins = ($playerID === $winnerID) ? 1 : 0;
+            $stmt->bind_param("si", $playerID, $wins);
+            $stmt->execute();
+        } else {
+            // Update existing stats record
+            $updateStatsQuery = "UPDATE player_stats SET 
+                                total_games = total_games + 1" . 
+                                ($playerID === $winnerID ? ", wins = wins + 1" : "") . 
+                                " WHERE playerID = ?";
+            $stmt = $conn->prepare($updateStatsQuery);
+            $stmt->bind_param("s", $playerID);
+            $stmt->execute();
+        }
+    }
+    
+    // Update game status to completed
+    $updateGameQuery = "UPDATE lobby SET gameStatus = 'completed', winner = ? WHERE gameID = ?";
+    $stmt = $conn->prepare($updateGameQuery);
+    $stmt->bind_param("ss", $winnerID, $gameID);
+    $stmt->execute();
+    
+    return [
+        'success' => true, 
+        'message' => 'Game ended successfully', 
+        'winner' => $winnerID,
+        'stats_updated' => true
+    ];
+}
+
+function createDeck() {
+    $colors = ['Red', 'Yellow', 'Green', 'Blue'];
+    $values = array_merge(range(0, 9), ['Skip', 'Reverse', 'Draw Two']);
+    $deck = [];
+    
+    foreach ($colors as $color) {
+        foreach ($values as $value) {
+            $deck[] = "$color" . "_" . "$value";
+            if ($value !== 0) $deck[] = "$color" . "_" . "$value"; 
+        }
+    }
+    
+    for ($i = 0; $i < 4; $i++) {
+        $deck[] = 'Wild_Wild';
+        $deck[] = 'Wild_DrawFour';
+    }
+    
+    shuffle($deck);
+    return $deck;
 }
 
 /**
@@ -292,14 +356,14 @@ function handleJoinGame($conn, $gameID, $postData) {
  * Handle creating a new game
  */
 function handleCreateGame($conn, $postData) {
-    if (!isset($postData['gameID']) || !isset($postData['playerID']) || !isset($postData['playerName'])) {
-        return ['error' => 'GameID, playerID, and playerName are required to create a game'];
+    if (empty($postData['gameID']) || empty($postData['playerID']) || empty($postData['playerName']) || empty($postData['bet_amount'])) {
+        return ['error' => $postData['gameID'] . " ". $postData['playerID'] . "   ". $postData['playerName']];
     }
     
     $gameID = $conn->real_escape_string($postData['gameID']);
     $playerID = $conn->real_escape_string($postData['playerID']);
     $playerName = $conn->real_escape_string($postData['playerName']);
-    
+    $bet = $conn->real_escape_string($postData['bet_amount']);
     // Check if game already exists
     $checkGameQuery = "SELECT gameID FROM lobby WHERE gameID = ?";
     $stmt = $conn->prepare($checkGameQuery);
@@ -322,10 +386,10 @@ function handleCreateGame($conn, $postData) {
     $initialCard = $colors[array_rand($colors)] . '_' . $values[array_rand($values)];
     
     // Create new game in lobby
-    $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus) 
-                        VALUES (?, ?, ?, '', ?, ?, 'waiting')";
+    $createGameQuery = "INSERT INTO lobby (gameID, curCard, curPlayer, cardEffect, playerList, gameOrder, gameStatus, betting_amt) 
+                        VALUES (?, ?, ?, '', ?, ?, 'waiting', ?)";
     $stmt = $conn->prepare($createGameQuery);
-    $stmt->bind_param("sssss", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson);
+    $stmt->bind_param("sssssi", $gameID, $initialCard, $playerID, $playerListJson, $gameOrderJson, $bet);
     $stmt->execute();
     
     // Create player entry
@@ -439,30 +503,46 @@ function handleColorChoice($conn, $gameID, $playerID, $color) {
  */
 function startGame($conn, $gameID) {
     // Check if there are at least 2 players
-    $checkPlayersQuery = "SELECT playerList FROM lobby WHERE gameID = ?";
-    $stmt = $conn->prepare($checkPlayersQuery);
+    $query = "SELECT playerList FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
+    $gameData = $result->fetch_assoc();
     
-    if ($result->num_rows === 0) {
-        return ['error' => 'Game not found'];
+    if (!$gameData) {
+        return json_encode(["error" => "Game not found"]);
     }
     
-    $row = $result->fetch_assoc();
-    $playerList = json_decode($row['playerList'], true);
-    
-    if (count($playerList) < 2) {
-        return ['error' => 'Need at least 2 players to start'];
+    $players = json_decode($gameData['playerList'], true);
+    if (!$players || count($players) < 2) {
+        return json_encode(["error" => "Not enough players to start the game"]);
     }
     
-    // Update game status
-    $updateStatusQuery = "UPDATE lobby SET gameStatus = 'inProgress' WHERE gameID = ?";
-    $stmt = $conn->prepare($updateStatusQuery);
-    $stmt->bind_param("s", $gameID);
+    $deck = createDeck();
+    $hands = [];
+    foreach ($players as $player) {
+        $hands[$player] = array_splice($deck, 0, 7);
+    }
+    
+    do {
+        $startingCard = array_pop($deck);
+    } while (strpos($startingCard, 'Wild_DrawFour') !== false);
+    
+    $firstPlayer = $players[array_rand($players)];
+    
+    $updateQuery = "UPDATE lobby SET curCard = ?, curPlayer = ?, gameOrder = ?, gameStatus = 'active', betting_amt = NULL WHERE gameID = ?";
+    $stmt = $conn->prepare($updateQuery);
+    $gameOrder = json_encode($players);
+    $stmt->bind_param("ssss", $startingCard, $firstPlayer, $gameOrder, $gameID);
     $stmt->execute();
     
-    return ['success' => true, 'message' => 'Game started'];
+    return json_encode([
+        'ok' => true,
+        'players' => $hands,
+        'startingCard' => $startingCard,
+        'firstPlayer' => $firstPlayer
+    ]);
 }
 
 /**
@@ -477,7 +557,7 @@ function fetchGameState($conn, $gameID, $playerID = null) {
     $lobbyResult = $stmt->get_result();
 
     if ($lobbyResult->num_rows === 0) {
-        return ['error' => 'Game not found'];
+        return ['error' => 'Game i found'];
     }
 
     $lobbyData = $lobbyResult->fetch_assoc();
@@ -576,6 +656,18 @@ function handleCardPlacement($conn, $gameID, $playerID, $placedCard, $gameState)
     $stmt = $conn->prepare($updateLobbyQuery);
     $stmt->bind_param("ss", $placedCard, $gameID);
     $stmt->execute();
+
+    // Check if player has won (no cards left)
+    if (count($playerCards) === 0) {
+        // Player has won, update stats
+        handleGameEnd($conn, $gameID, $playerID);
+        return [
+            'success' => true, 
+            'message' => 'Player has won!', 
+            'winner' => $playerID,
+            'gameOver' => true
+        ];
+    }
 
     // Handle card effects
     handleCardEffect($conn, $gameID, $placedCard, $gameState);

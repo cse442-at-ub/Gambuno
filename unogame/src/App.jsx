@@ -18,7 +18,7 @@ import React from 'react';
         import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
         import SettingsPopup from "./components/SettingsPopup";
         import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
-        import Leaderboard from './components/leaderbroad'; // Import Leaderboard component
+        import Leaderboard from './components/leaderboard'; // Import Leaderboard component
 
         function App() {
 

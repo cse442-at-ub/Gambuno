@@ -68,7 +68,7 @@ const WaitingRoom = () => {
 
       {showFriendList && (
   <FriendList 
-    onClose={() => setShowFriendList(false)} // Pass close handler
+    //onClose={() => setShowFriendList(false)} // Pass close handler
   />
 )}
     </div>

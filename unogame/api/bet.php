@@ -27,6 +27,22 @@ if (isset($_GET['action']) && $_GET['action'] == 'leaderboard') {
     exit;
 }
 
+if (isset($_GET['action']) && $_GET['action'] == 'getBet') {
+    $gameId = $_GET['gameID'];
+    $bet = getBet($conn, $gameId);
+    echo json_encode(["success" => true, "bet" => $bet]);
+    $conn->close();
+    exit;
+}
+
+if (isset($_GET['action']) && $_GET['action'] == 'getStatus') {
+    $gameId = $_GET['gameID'];
+    $bet = getStatus($conn, $gameId);
+    echo json_encode(["success" => true, "status" => $bet]);
+    $conn->close();
+    exit;
+}
+
 // Handle money request (your existing code)
 $username = isset($_GET['username']) ? $_GET['username'] : '';
 if (!empty($username)) {
@@ -57,13 +73,14 @@ if (!empty($username)) {
  * @param string $sort_by Column to sort by (default: 'money')
  * @return array Sorted leaderboard data
  */
-function create_leaderboard($conn, $sort_by = 'money') {
+function create_leaderboard($conn, $sort_by) {
     // Validate sort_by parameter to prevent SQL injection
-    $valid_sort_columns = ['money', 'username', 'wins', 'losses']; // add other valid columns as needed
+    $valid_sort_columns = ['money', 'wins']; // add other valid columns as needed
     $sort_column = in_array($sort_by, $valid_sort_columns) ? $sort_by : 'money';
 
+    $query = "SELECT username, money, wins FROM users ORDER BY $sort_column DESC";
+
     // Using string interpolation for column names is safe here because we validated them
-    $query = "SELECT username, money FROM users ORDER BY $sort_column DESC";
     $result = $conn->query($query);
 
     $leaderboard = [];
@@ -76,5 +93,41 @@ function create_leaderboard($conn, $sort_by = 'money') {
     return ($leaderboard);
 }
 
+function getBet($conn, $gameID){
+    $query = "SELECT betting_amt FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $gameID); // "i" indicates integer type
+    $stmt->execute();
+
+    // Bind result variable
+    $stmt->bind_result($betting_amt);
+
+    // Fetch the result
+    if ($stmt->fetch()) {
+        return $betting_amt;
+    } else {
+        echo "No game found with ID: " . $gameID;
+    }   
+}
+
+function getStatus($conn, $gameID){
+    $query = "SELECT gameStatus FROM lobby WHERE gameID = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $gameID); // "i" indicates integer type
+    $stmt->execute();
+
+    // Bind result variable
+    $stmt->bind_result($status);
+
+    // Fetch the result
+    if ($stmt->fetch()) {
+        return $status;
+    } else {
+        echo "No game found with ID: " . $gameID;
+    }   
+}
+
 create_leaderboard($conn);
+
+
 ?>

@@ -73,13 +73,14 @@ if (!empty($username)) {
  * @param string $sort_by Column to sort by (default: 'money')
  * @return array Sorted leaderboard data
  */
-function create_leaderboard($conn, $sort_by = 'money') {
+function create_leaderboard($conn, $sort_by) {
     // Validate sort_by parameter to prevent SQL injection
-    $valid_sort_columns = ['money', 'username', 'wins', 'losses']; // add other valid columns as needed
+    $valid_sort_columns = ['money', 'wins']; // add other valid columns as needed
     $sort_column = in_array($sort_by, $valid_sort_columns) ? $sort_by : 'money';
 
+    $query = "SELECT username, money, wins FROM users ORDER BY $sort_column DESC";
+
     // Using string interpolation for column names is safe here because we validated them
-    $query = "SELECT username, money FROM users ORDER BY $sort_column DESC";
     $result = $conn->query($query);
 
     $leaderboard = [];

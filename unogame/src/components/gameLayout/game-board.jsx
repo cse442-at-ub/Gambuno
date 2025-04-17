@@ -962,6 +962,10 @@ export default function UnoGameBoard() {
   const isColoredWild5 = ["wild_5", "wild_6", "wild_7", "wild_8"].includes(gameState?.currentCard)
   const effectiveColor = WILD_COLOR_MAP[gameState?.currentCard]
 
+  //End game state
+  const [showWinner, setShowWinner] = useState(false)
+  const [winnerInfo, setWinnerInfo] = useState({ winner: "Unknown", bettingRemain: 0 })
+
   // Fetch game state at regular intervals
   useEffect(() => {
     fetchGameState()
@@ -983,10 +987,14 @@ export default function UnoGameBoard() {
 
         // Redirect if game is finished
         if (String(state.gameStatus) === "finished") {
-          if (state.host === playerID) {
-            navigate(`/host-game-lobby/${gameID}`)
-          } else {
-            navigate(`/waiting-host/${gameID}`)
+          // if (state.host === playerID) {
+          //   navigate(`/host-game-lobby/${gameID}`)
+          // } else {
+          //   navigate(`/waiting-host/${gameID}`)
+          // }
+
+          if (String(state.gameStatus) === "finished" && !showWinner) {
+            handleGameEnd();
           }
         }
 
@@ -1005,6 +1013,38 @@ export default function UnoGameBoard() {
       setIsLoading(false)
     }
   }
+  const handleGameEnd = async () => {
+    try {
+      const playerRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
+      const playerData = await playerRes.json();
+      const players = typeof playerData.players === "string" ? JSON.parse(playerData.players) : playerData.players;
+  
+      let winnerName = "Unknown";
+      let winnerID = "";
+      const betAmount = playerData.betAmount || 0;
+      const totalPlayer = players.length;
+      const moneyToSet = (betAmount * totalPlayer).toFixed(2);
+  
+      for (const player of players) {
+        const cardRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}`);
+        const cardData = await cardRes.json();
+        const cardList = cardData.cardList ? cardData.cardList.split(",") : [];
+  
+        if (cardList.length === 0) {
+          winnerName = player.playerName || player.playerID;
+          winnerID = player.playerID;
+          break;
+        }
+      }
+  
+      if (winnerID) {
+        await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/setMoney.php?action=setMoney&playerID=${winnerID}&money=${moneyToSet}`);
+      }
+  
+    } catch (err) {
+      setError("Failed to fetch winner info");
+    }
+  };
 
   const handleCardPlay = async (card) => {
     const cleanedCard = card.replace(/[^a-zA-Z0-9_]/g, "")

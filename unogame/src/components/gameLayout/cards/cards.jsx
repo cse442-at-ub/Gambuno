@@ -51,7 +51,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
             <div className="absolute inset-0 bg-black rounded-lg">
                 <div className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center">
                     {/* Number in top left - improved visibility */}
-                    <div className="absolute top-1 left-1 z-10">
+                    <div className="absolute top-0 left-1 z-10">
             <span
                 style={{
                     color: colorHexMap[color],
@@ -66,7 +66,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
                     </div>
 
                     {/* Number in bottom right - improved visibility */}
-                    <div className="absolute bottom-1 right-1 z-10">
+                    <div className="absolute bottom-0 right-1 z-10">
             <span
                 style={{
                     color: colorHexMap[color],

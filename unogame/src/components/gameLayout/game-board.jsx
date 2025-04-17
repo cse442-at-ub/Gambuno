@@ -786,7 +786,7 @@ export default function UnoGameBoard() {
         {renderOtherPlayers()}
 
         {/* Center play area */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/4 flex items-center justify-center">
           <div className="flex flex-row items-center space-x-8 bg-black bg-opacity-30 p-6 rounded-xl">
             {/* Draw pile */}
             <div className="text-center">

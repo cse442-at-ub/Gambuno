@@ -984,11 +984,18 @@ export default function UnoGameBoard() {
 
       if (state.success) {
         setGameState(state)
-
+        
         // Redirect if game is finished
+        if (String(state.gameStatus) === "finished") {
+          navigate(`/winning-screen/${gameID}`);
+          return;
+        }
+
+        /*
         if (String(state.gameStatus) === "finished" && !showWinner) {
           handleGameEnd();
         }
+        */
 
         // Update player hand
         const currentPlayerData = state.players.find((player) => player.playerID === playerID)

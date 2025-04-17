@@ -1592,14 +1592,14 @@ export default function UnoGameBoard() {
                   {isColoredWildCard && effectiveColor ? (
                     <ColoredWildCard
                       color={effectiveColor}
-                      className="w-16 h-24 sm:w-20 sm:h-28"
+                      className="w-20 h-32 sm:w-24 sm:h-36"
                       onClick={undefined}
                       disabled={!isPlayerTurn}
                     />
                   ) : isColoredWild5 && effectiveColor ? (
                     <ColoredPlusFiveCard
                       color={effectiveColor}
-                      className="w-16 h-24 sm:w-20 sm:h-28"
+                      className="w-20 h-32 sm:w-24 sm:h-36"
                       onClick={undefined}
                       disabled={!isPlayerTurn}
                     />

@@ -66,7 +66,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
                     </div>
 
                     {/* Number in bottom right - improved visibility */}
-                    <div className="absolute bottom-0 right-1 z-10">
+                    <div className="absolute bottom-10 right-1 z-10">
             <span
                 style={{
                     color: colorHexMap[color],
@@ -443,19 +443,19 @@ export function SkipCard({ color, className, onClick, disabled }) {
                 <div className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center">
                     {/* Skip symbol in top left */}
                     <div className="absolute top-0.5 left-0.5 z-10">
-                        <SkipIcon size={20} strokeWidth={3} />
+                        <SkipIcon size={17} strokeWidth={3} />
                     </div>
 
                     {/* Skip symbol in bottom right */}
                     <div className="absolute bottom-0.5 right-0.5 z-10">
-                        <SkipIcon size={20} strokeWidth={3} />
+                        <SkipIcon size={17} strokeWidth={3} />
                     </div>
 
                     {/* Center oval with skip symbol */}
                     <div
                         className="border-[3px] sm:border-[4px] border-black rounded-[50%] flex items-center justify-center"
                         style={{
-                            width: "92%",
+                            width: "85%",
                             height: "86.25%",
                             position: "absolute",
                             top: "50%",

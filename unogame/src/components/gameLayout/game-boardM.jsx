@@ -35,6 +35,7 @@ export default function UnoGameBoardMobile() {
   const [gameState, setGameState] = useState(null)
   const [playerHand, setPlayerHand] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [debugInfo, setDebugInfo] = useState(null) // For debugging
 
   // UI state
   const [error, setError] = useState("")
@@ -74,6 +75,12 @@ export default function UnoGameBoardMobile() {
 
       if (state.success) {
         setGameState(state)
+        // Save debug info
+        setDebugInfo({
+          playerCount: state.players?.length || 0,
+          playerPosition: state.players?.findIndex((p) => p.playerID === playerID) || -1,
+          players: state.players || [],
+        })
 
         // Redirect if game is finished
         if (String(state.gameStatus) === "finished") {
@@ -285,11 +292,9 @@ export default function UnoGameBoardMobile() {
     if (playerIndex === -1) return null
 
     // Rotate players so current player is always at index 0
-    const rotatedPlayers = [
-      ...gameState.players.slice(playerIndex),
-      ...gameState.players.slice(0, playerIndex),
-    ].reverse()
+    const rotatedPlayers = [...gameState.players.slice(playerIndex), ...gameState.players.slice(0, playerIndex)]
 
+    // The first player is the current player, so we skip it
     const otherPlayers = rotatedPlayers.slice(1)
     const totalPlayers = otherPlayers.length
 
@@ -389,6 +394,8 @@ export default function UnoGameBoardMobile() {
           )}
         </div>
       </div>
+
+     
 
       {/* Notifications */}
       {error && (

@@ -149,6 +149,13 @@ export default function WinningScreen() {
     <button
       onClick={() => {
         navigate(`/waiting-host/${gameID}`);
+        /*
+        if (playerID === hostID) {
+        navigate(`/host-game-lobby/${gameID}`);
+        } else {
+        navigate(`/waiting-host/${gameID}`);
+        }
+        */
       }}
       className="flex-1 h-14 text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center"
     >

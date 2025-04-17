@@ -986,16 +986,8 @@ export default function UnoGameBoard() {
         setGameState(state)
 
         // Redirect if game is finished
-        if (String(state.gameStatus) === "finished") {
-          // if (state.host === playerID) {
-          //   navigate(`/host-game-lobby/${gameID}`)
-          // } else {
-          //   navigate(`/waiting-host/${gameID}`)
-          // }
-
-          if (String(state.gameStatus) === "finished" && !showWinner) {
-            handleGameEnd();
-          }
+        if (String(state.gameStatus) === "finished" && !showWinner) {
+          handleGameEnd();
         }
 
         // Update player hand
@@ -1013,6 +1005,7 @@ export default function UnoGameBoard() {
       setIsLoading(false)
     }
   }
+  
   const handleGameEnd = async () => {
     try {
       const playerRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);

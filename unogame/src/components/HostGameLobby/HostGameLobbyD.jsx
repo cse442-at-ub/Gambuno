@@ -170,7 +170,7 @@ const HostGameLobby = () => {
   }, [gameCode, username]);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-4 sm:p-6 relative">
       {/* Back Button */}
       <button
         className="absolute top-4 left-4 p-2"
@@ -196,7 +196,8 @@ const HostGameLobby = () => {
       )}
 
       {/* Title */}
-      <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mt-16">Waiting for Players</h1>
+
 
       {/* Bet Amount */}
       <div className="text-center mt-4 text-xl font-semibold">
@@ -211,8 +212,8 @@ const HostGameLobby = () => {
         {players.map((player) => (
           <div
             key={player.id}
-            className="flex justify-between items-center w-96 p-4 bg-white rounded-lg shadow-md border"
-          >
+            className="flex justify-between items-center w-full max-w-xs sm:w-96 p-3 sm:p-4 bg-white rounded-lg shadow border"
+            >
             <span className="text-lg font-semibold">
               {player.name} {player.isHost && "(Host)"}
             </span>

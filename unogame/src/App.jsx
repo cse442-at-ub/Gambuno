@@ -41,7 +41,7 @@ import React from 'react';
                               <Route path="/host-game" element={isMobile ? <HostGameM /> : <HostGameD />} />
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
                               <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
-                              <Route path="/leaderboard" element={<Leaderboard />} 
+                              <Route path="/leaderboard" element={<Leaderboard />} />
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
                             </Routes>
                           </Router>

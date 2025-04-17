@@ -1,888 +1,863 @@
+// import React, { useState, useEffect } from 'react';
+// import { UnoCard, WildCard, CardBack, ColorPicker } from './cards/cards';
+// import { getGameState, playCard, drawCard, initializeGame } from './../lib/api';
+
+// export default function UnoGameBoard({ gameID, playerID }) {
+//   const [gameState, setGameState] = useState(null);
+//   const [playerHand, setPlayerHand] = useState([]);
+//   const [error, setError] = useState('');
+//   const [showColorPicker, setShowColorPicker] = useState(false);
+//   const [selectedCard, setSelectedCard] = useState(null);
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [gameMessage, setGameMessage] = useState('');
+
+//   // Fetch game state at regular intervals
+//   useEffect(() => {
+//     fetchGameState();
+    
+//     const intervalId = setInterval(() => {
+//       fetchGameState();
+//     }, 3000); // Poll every 3 seconds
+    
+//     return () => clearInterval(intervalId);
+//   }, []);
+
+//   const fetchGameState = async () => {
+//     try {
+//       setIsLoading(true);
+//       const state = await getGameState(gameID, playerID);
+      
+//       if (state.success) {
+//         setGameState(state);
+        
+//         // Find the current player's data to get their hand
+//         const currentPlayerData = state.players.find(player => player.playerID === playerID);
+//         if (currentPlayerData && currentPlayerData.cardList) {
+//           setPlayerHand(currentPlayerData.cardList.split(','));
+//         }
+//       } else {
+//         setError(state.message || 'Failed to load game state');
+//       }
+//     } catch (error) {
+//       console.error('Error fetching game state:', error);
+//       setError('Error connecting to the game server');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const handleCardPlay = async (card) => {
+//     // If card is wild, show color picker
+//     if (card.startsWith('wild_')) {
+//       setSelectedCard(card);
+//       setShowColorPicker(true);
+//       return;
+//     }
+    
+//     try {
+//       setIsLoading(true);
+//       const result = await playCard(playerID, gameID, card);
+      
+//       if (result.success) {
+//         setGameMessage(result.message);
+//         await fetchGameState(); // Refresh game state after playing
+//       } else {
+//         setError(result.message || 'Failed to play card');
+//       }
+//     } catch (error) {
+//       console.error('Error playing card:', error);
+//       setError('Error connecting to the game server');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const handleColorSelect = async (color) => {
+//     if (!selectedCard) return;
+    
+//     // Format the wild card with the selected color
+//     const playableCard = selectedCard;
+//     setShowColorPicker(false);
+    
+//     try {
+//       setIsLoading(true);
+//       const result = await playCard(playerID, gameID, playableCard);
+      
+//       if (result.success) {
+//         setGameMessage(result.message);
+//         await fetchGameState(); // Refresh game state after playing
+//       } else {
+//         setError(result.message || 'Failed to play wild card');
+//       }
+//     } catch (error) {
+//       console.error('Error playing wild card:', error);
+//       setError('Error connecting to the game server');
+//     } finally {
+//       setIsLoading(false);
+//       setSelectedCard(null);
+//     }
+//   };
+
+//   const handleDrawCard = async () => {
+//     try {
+//       setIsLoading(true);
+//       const result = await drawCard(gameID, playerID);
+      
+//       if (result.success) {
+//         setGameMessage(`Drew a card: ${result.new_card}`);
+//         await fetchGameState(); // Refresh game state after drawing
+//       } else {
+//         setError(result.message || 'Failed to draw card');
+//       }
+//     } catch (error) {
+//       console.error('Error drawing card:', error);
+//       setError('Error connecting to the game server');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const startGame = async () => {
+//     try {
+//       setIsLoading(true);
+//       const result = await initializeGame(gameID, playerID);
+      
+//       if (result.success) {
+//         setGameMessage('Game started!');
+//         await fetchGameState(); // Refresh game state after starting
+//       } else {
+//         setError(result.message || 'Failed to start game');
+//       }
+//     } catch (error) {
+//       console.error('Error starting game:', error);
+//       setError('Error connecting to the game server');
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   // Render card component based on card string (color_value)
+//   const renderCard = (card, index, playable = false) => {
+//     if (!card) return null;
+    
+//     const [color, number] = card.split('_');
+    
+//     if (color === 'wild') {
+//       return (
+//         <WildCard
+//           key={index}
+//           className="w-16 h-24 sm:w-20 sm:h-28"
+//           onClick={playable ? () => handleCardPlay(card) : undefined}
+//           disabled={!playable}
+//         />
+//       );
+//     } else {
+//       return (
+//         <UnoCard
+//           key={index}
+//           color={color}
+//           number={number}
+//           className="w-16 h-24 sm:w-20 sm:h-28"
+//           onClick={playable ? () => handleCardPlay(card) : undefined}
+//           disabled={!playable}
+//         />
+//       );
+//     }
+//   };
+
+//   const isPlayerTurn = gameState?.currentPlayer === playerID;
+
+//   // Layout for other players based on total number of players
+//   const renderOtherPlayers = () => {
+//     if (!gameState || !gameState.players) return null;
+    
+//     const otherPlayers = gameState.players.filter(player => player.playerID !== playerID);
+    
+//     // Center players evenly around the top of the board
+//     return (
+//       <div className="flex flex-wrap justify-center">
+//         {otherPlayers.map((player, index) => (
+//           <div 
+//             key={player.playerID} 
+//             className={`flex flex-col items-center m-2 p-4 rounded-lg ${gameState.currentPlayer === player.playerID ? 'bg-yellow-100' : 'bg-gray-100'}`}
+//           >
+//             <div className="font-bold mb-2">{player.playerName || player.playerID}</div>
+//             <div className="flex">
+//               {Array(player.cardCount || 0).fill(0).map((_, i) => (
+//                 <div key={i} className="transform -rotate-90 -ml-10 first:ml-0">
+//                   <CardBack 
+//                     className="w-12 h-16 sm:w-14 sm:h-20" 
+//                     isDark={true}
+//                     onClick={isPlayerTurn ? handleDrawCard : undefined}
+//                   />
+//                 </div>
+//               ))}
+//             </div>
+//             <div className="mt-2 text-sm">{player.cardCount || 0} cards</div>
+//           </div>
+//         ))}
+//       </div>
+//     );
+//   };
+
+//   if (isLoading && !gameState) {
+//     return <div className="flex items-center justify-center h-screen">Loading game...</div>;
+//   }
+
+//   return (
+//     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-900 to-black p-4">
+//       {error && (
+//         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+//           {error}
+//           <button 
+//             className="float-right" 
+//             onClick={() => setError('')}
+//           >
+//             &times;
+//           </button>
+//         </div>
+//       )}
+      
+//       {gameMessage && (
+//         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+//           {gameMessage}
+//           <button 
+//             className="float-right" 
+//             onClick={() => setGameMessage('')}
+//           >
+//             &times;
+//           </button>
+//         </div>
+//       )}
+      
+//       {gameState?.gameStatus === 'waiting' && gameState.host === playerID && (
+//         <div className="text-center mb-4">
+//           <button 
+//             className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+//             onClick={startGame}
+//           >
+//             Start Game
+//           </button>
+//         </div>
+//       )}
+      
+//       {gameState?.gameStatus === 'waiting' && (
+//         <div className="text-center mb-4 text-white">
+//           <h2 className="text-xl font-bold">Waiting for players...</h2>
+//           <p>Game Code: {gameID}</p>
+//           <p>Players: {gameState?.players?.length || 0}</p>
+//         </div>
+//       )}
+
+//       {/* Other players */}
+//       <div className="mb-8">
+//         {renderOtherPlayers()}
+//       </div>
+      
+//       {/* Center play area */}
+//       <div className="flex items-center justify-center mb-8">
+//         <div className="flex flex-row items-center space-x-8">
+//           {/* Draw pile */}
+//           <div className="text-center">
+//             <CardBack 
+//               className="w-20 h-32 sm:w-24 sm:h-36 mb-2" 
+//               isDark={true} 
+//               onClick={isPlayerTurn ? handleDrawCard : undefined}
+//             />
+//             <p className="text-white text-sm">Draw</p>
+//           </div>
+          
+//           {/* Current card */}
+//           <div className="text-center">
+//             {gameState?.currentCard && renderCard(gameState.currentCard)}
+//             <p className="text-white text-sm mt-2">Current Card</p>
+//           </div>
+//         </div>
+//       </div>
+      
+//       {/* Game info */}
+//       <div className="text-center mb-4 text-white">
+//         <h3 className="text-lg font-bold">
+//           {isPlayerTurn ? "Your Turn!" : `Waiting for ${gameState?.currentPlayer}'s turn`}
+//         </h3>
+//         <p>Betting Amount: ${gameState?.bettingAmount || 0}</p>
+//       </div>
+      
+//       {/* Player's hand */}
+//       <div className="mt-auto">
+//         <h3 className="text-white text-lg font-bold mb-2 text-center">Your Hand</h3>
+//         <div className="flex flex-wrap justify-center">
+//           {playerHand.map((card, index) => (
+//             <div key={index} className="transform hover:-translate-y-4 transition-transform duration-200 mx-1">
+//               {renderCard(card, index, isPlayerTurn)}
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+      
+//       {/* Color picker dialog */}
+//       {showColorPicker && (
+//         <ColorPicker 
+//           onSelectColor={handleColorSelect} 
+//           onClose={() => {
+//             setShowColorPicker(false);
+//             setSelectedCard(null);
+//           }} 
+//         />
+//       )}
+//     </div>
+//   );
+// }
+
 "use client"
 
+import { useState, useEffect } from "react"
+import { useNavigate , useParams} from "react-router-dom";
+import { UnoCard, WildCard, CardBack } from "./cards/cards"
+import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
+import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
-import { useState, useEffect, useRef} from "react"
-import {useParams} from "react-router-dom";
-import { UnoCard, WildCard, CardBack, ColorPicker } from "./cards/cards"
-import { motion, AnimatePresence } from "framer-motion"
-import * as gameAPI from "./../lib/api";
-
-export function GameBoard({ numPlayers = 5 }) {
+export default function UnoGameBoard() {
+  const { gameID, playerID } = useParams()
   const [gameState, setGameState] = useState(null)
+  const [playerHand, setPlayerHand] = useState([])
+  const [error, setError] = useState("")
   const [showColorPicker, setShowColorPicker] = useState(false)
-  const [pendingWildCard, setPendingWildCard] = useState(null)
-  const [winner, setWinner] = useState(null)
-  const [gameStarted, setGameStarted] = useState(false)
-  const { gameCode } = useParams(); 
-  const [playerNames, setPlayerNames] = useState(
-    
-      Array(numPlayers)
-          .fill("")
-          .map((_, i) => `Player ${i + 1}`),
-  )
-  const [animatingCard, setAnimatingCard] = useState(null)
-  const [drawingPlayer, setDrawingPlayer] = useState(null)
-  const [animations, setAnimations] = useState([])
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const tableRef = useRef(null)
-  const animationIdRef = useRef(0)
-  const windowSize = useRef({
-    width: typeof window !== "undefined" ? window.innerWidth : 1200,
-    height: typeof window !== "undefined" ? window.innerHeight : 800,
-  })
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [gameMessage, setGameMessage] = useState("")
+  const [selectedColor, setSelectedColor] = useState(null)
+  const navigate = useNavigate()
+  const [showWinner, setShowWinner] = useState(false)
+  const [winnerInfo, setWinnerInfo] = useState({ winner: "Unknown", bettingRemain: 0 })
 
-  // Initialize game
-  const initGame = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/game.php?action=intialize&gameID=045AMH");
-      if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`);
-      }
-  
-      // Check if there's content to parse
-      const text = await response.json();
-      if(text.success){
-        setIsLoading(true);
-        setGameStarted(false);
-        setGameState(false);
-        console.log("Game Intialized: ", text.gameInfo);
-      }
-      else{
-        console.log("Game Intialization Failed: ", text.error);
-      }
-      } 
-     catch (err) {
-      console.error("Failed to initialize game:", err);
-      setError("Failed to start the game. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  // Update window size on resize
+  // Fetch game state at regular intervals
   useEffect(() => {
-    const handleResize = () => {
-      windowSize.current = {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      }
-    }
+    fetchGameState()
 
-    window.addEventListener("resize", handleResize)
-    handleResize() // Initial call
+    const intervalId = setInterval(() => {
+      fetchGameState()
+    }, 1000) // Poll every 3 seconds
 
-    return () => window.removeEventListener("resize", handleResize)
+    return () => clearInterval(intervalId)
   }, [])
 
-  // Add a new animation
-  const addAnimation = (type, card, from, to, onComplete) => {
-    const id = animationIdRef.current++
-
-    // Add animation with improved timing and sequencing
-    setAnimations((prev) => [
-      ...prev,
-      {
-        id,
-        type,
-        card,
-        from,
-        to,
-        onComplete,
-        startTime: Date.now(),
-      },
-    ])
-
-    // Auto-remove animation after it completes
-    // Use a longer duration to ensure smooth transitions
-    setTimeout(() => {
-      setAnimations((prev) => prev.filter((anim) => anim.id !== id))
-      if (onComplete) onComplete()
-    }, 800) // Slightly longer animation for smoother feel
-  }
-
-  // Handle drawing a card with animation
-  const handleDrawCard = async () => {
-    // Prevent drawing if not player's turn, there's a winner, or already drawing
-    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
-
+  const handleGameEnd = async () => {
     try {
-      // Set drawing state to prevent multiple draws
-      setIsDrawing(true)
-      setIsLoading(true)
-      setError(null)
-
-      // Call the API to draw a card
-      const updatedGameState = await gameAPI.drawCard(0, gameState)
-
-      // Get the newly drawn card (last card in player's hand)
-      const newCard = updatedGameState.players[0][updatedGameState.players[0].length - 1]
-
-      // Add draw animation
-      addAnimation("draw", newCard, "drawPile", "player", () => {
-        setGameState(updatedGameState)
-        setIsDrawing(false)
-
-        // If it's AI's turn after drawing, trigger AI move
-        if (updatedGameState.currentPlayer !== 0) {
-          setTimeout(() => {
-            playAITurn()
-          }, 800)
+      const playerRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
+      const playerData = await playerRes.json();
+      const players = typeof playerData.players === "string" ? JSON.parse(playerData.players) : playerData.players;
+  
+      let winnerName = "Unknown";
+      let winnerID = "";
+      const betAmount = playerData.betAmount || 0;
+      const totalPlayer = players.length;
+      const moneyToSet = (betAmount * totalPlayer).toFixed(2);
+  
+      for (const player of players) {
+        const cardRes = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}`);
+        const cardData = await cardRes.json();
+        const cardList = cardData.cardList ? cardData.cardList.split(",") : [];
+  
+        if (cardList.length === 0) {
+          winnerName = player.playerName || player.playerID;
+          winnerID = player.playerID;
+          break;
         }
-      })
+      }
+  
+      if (winnerID) {
+        await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/setMoney.php?action=setMoney&playerID=${winnerID}&money=${moneyToSet}`);
+      }
+  
     } catch (err) {
-      console.error("Failed to draw card:", err)
-      setError("Failed to draw a card. Please try again.")
-      setIsDrawing(false)
+      setError("Failed to fetch winner info");
+    }
+  };
+  
+
+
+
+  const fetchGameState = async () => {
+    try {
+      setIsLoading(true)
+      const state = await getGameState(gameID, playerID)
+
+      if (state.success) {
+        setGameState(state)
+        if (String(state.gameStatus) === "finished" && !showWinner) {
+          handleGameEnd();
+        }
+        
+
+        // Find the current player's data to get their hand
+        const currentPlayerData = state.players.find((player) => player.playerID === playerID)
+        if (currentPlayerData && currentPlayerData.cardList) {
+          setPlayerHand(currentPlayerData.cardList.split(","))
+        }
+      } else {
+        setError(state.message || "Failed to load game state")
+      }
+    } catch (error) {
+      console.error("Error fetching game state:", error)
+      setError("Error connecting to the game server")
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Handle playing a card with animation
-  const handlePlayCard = async (card, index) => {
-    if (gameState.currentPlayer !== 0 || winner || isDrawing || isLoading) return
+  const handleCardPlay = async (card) => {
+    const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
+
+    // If card is wild, show color picker
+    //if (card.startsWith("wild_")) {
+     // setSelectedCard(card)
+      //setShowColorPicker(true)
+      //return
+    //}
+    console.log("Playing card:", cleaned)
 
     try {
+        console.log("Playing card in console:", cleaned)
       setIsLoading(true)
-      setError(null)
+      const result = await playCard(playerID, gameID, String(cleaned))
+    console.log("Result:", result);
+      if (result.success) {
 
-      // Check if the card can be played
-      const isPlayable = await gameAPI.checkCardPlayable(card, gameState.lastCard, gameState.currentColor)
-
-      if (!isPlayable) {
-        setIsLoading(false)
-        return
+        setGameMessage(result.message)
+        await fetchGameState() // Refresh game state after playing
+      } else {
+        setError(result.message || "Failed to play card")
       }
-
-      // Handle wild cards
-      if (card.type === "special") {
-        setPendingWildCard({ card, index })
-        setShowColorPicker(true)
-        setIsLoading(false)
-        return
-      }
-
-      // First visually remove the card from the hand
-      setGameState((prev) => {
-        const newState = { ...prev }
-        // Create a temporary copy without the card to be played
-        // This makes it visually disappear from the hand
-        const tempHand = [...newState.players[0]]
-        tempHand.splice(index, 1)
-        newState.players[0] = tempHand
-        return newState
-      })
-
-      // Then add play animation
-      setTimeout(() => {
-        addAnimation("play", card, "player", "discardPile", async () => {
-          // Call the API to play the card
-          const updatedGameState = await gameAPI.playCard(0, card, index, gameState)
-          setGameState(updatedGameState)
-
-          // Check for winner
-          if (updatedGameState.players[0].length === 0) {
-            setWinner(0)
-          } else if (updatedGameState.currentPlayer !== 0) {
-            // If it's AI's turn after playing, trigger AI move
-            setTimeout(() => {
-              playAITurn()
-            }, 800)
-          }
-
-          setIsLoading(false)
-        })
-      }, 50) // Small delay to ensure the card is visually removed first
-    } catch (err) {
-      console.error("Failed to play card:", err)
-      setError("Failed to play the card. Please try again.")
+    } catch (error) {
+      console.error("Error playing card:", error)
+      setError("Error connecting to the game server")
+    } finally {
       setIsLoading(false)
     }
   }
 
-  // Handle color selection for wild cards
   const handleColorSelect = async (color) => {
+    if (!selectedCard) return
+
+    setSelectedColor(color)
+    // Format the wild card with the selected color
+    const playableCard = selectedCard
     setShowColorPicker(false)
 
-    if (!pendingWildCard || isLoading) return
-
     try {
       setIsLoading(true)
-      setError(null)
+      const result = await playCard(playerID, gameID, playableCard)
 
-      // First visually remove the card from the hand
-      setGameState((prev) => {
-        const newState = { ...prev }
-        // Create a temporary copy without the card to be played
-        // This makes it visually disappear from the hand
-        const tempHand = [...newState.players[0]]
-        tempHand.splice(pendingWildCard.index, 1)
-        newState.players[0] = tempHand
-        return newState
-      })
-
-      // Then add play animation
-      setTimeout(() => {
-        addAnimation("play", pendingWildCard.card, "player", "discardPile", async () => {
-          // Call the API to play the wild card with selected color
-          const updatedGameState = await gameAPI.playWildCard(
-              0,
-              pendingWildCard.card,
-              pendingWildCard.index,
-              color,
-              gameState,
-          )
-
-          setGameState(updatedGameState)
-          setPendingWildCard(null)
-
-          // Check for winner
-          if (updatedGameState.players[0].length === 0) {
-            setWinner(0)
-          } else if (updatedGameState.currentPlayer !== 0) {
-            // If it's AI's turn after playing, trigger AI move
-            setTimeout(() => {
-              playAITurn()
-            }, 800)
-          }
-
-          setIsLoading(false)
-        })
-      }, 50)
-    } catch (err) {
-      console.error("Failed to play wild card:", err)
-      setError("Failed to play the wild card. Please try again.")
-      setPendingWildCard(null)
-      setIsLoading(false)
-    }
-  }
-
-  // AI player turn logic with animations
-  const playAITurn = async () => {
-    if (!gameState || gameState.currentPlayer === 0 || winner || isLoading) return
-
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const currentPlayerIndex = gameState.currentPlayer
-
-      // Call the API to get the AI move
-      const aiMoveResult = await gameAPI.getAIMove(currentPlayerIndex, gameState)
-
-      // Handle different AI move types
-      if (aiMoveResult.moveType === "draw") {
-        // AI is drawing a card
-        const drawnCard = aiMoveResult.drawnCard
-
-        // Add draw animation for AI
-        const playerPosition = getPlayerPosition(currentPlayerIndex).position
-        addAnimation("draw", drawnCard, "drawPile", playerPosition, () => {
-          setGameState(aiMoveResult.gameState)
-
-          // If AI can play the drawn card, it will be handled in the next AI turn
-          if (aiMoveResult.gameState.currentPlayer !== 0) {
-            setTimeout(() => {
-              playAITurn()
-            }, 800)
-          }
-
-          setIsLoading(false)
-        })
-      } else if (aiMoveResult.moveType === "play") {
-        // AI is playing a card
-        const cardToPlay = aiMoveResult.playedCard
-        const playerPosition = getPlayerPosition(currentPlayerIndex).position
-
-        // Add play animation for AI
-        addAnimation("play", cardToPlay, playerPosition, "discardPile", () => {
-          setGameState(aiMoveResult.gameState)
-
-          // Check for winner
-          if (aiMoveResult.gameState.players[currentPlayerIndex].length === 0) {
-            setWinner(currentPlayerIndex)
-          } else if (aiMoveResult.gameState.currentPlayer !== 0) {
-            // If it's still AI's turn, continue AI moves
-            setTimeout(() => {
-              playAITurn()
-            }, 800)
-          }
-
-          setIsLoading(false)
-        })
+      if (result.success) {
+        setGameMessage(result.message)
+        await fetchGameState() // Refresh game state after playing
+      } else {
+        setError(result.message || "Failed to play wild card")
       }
-    } catch (err) {
-      console.error("Failed to process AI turn:", err)
-      setError("Failed to process AI turn. Please try again.")
+    } catch (error) {
+      console.error("Error playing wild card:", error)
+      setError("Error connecting to the game server")
+    } finally {
       setIsLoading(false)
+      setSelectedCard(null)
     }
   }
 
-  // Say UNO button handler
-  const handleSayUno = async () => {
-    if (gameState.players[0].length !== 1 || isLoading) return
-
+  const handleDrawCard = async () => {
     try {
       setIsLoading(true)
-      setError(null)
+      const result = await drawCard(gameID, playerID)
 
-      // Call the API to say UNO
-      const updatedGameState = await gameAPI.sayUno(0, gameState)
-
-      setGameState(updatedGameState)
-    } catch (err) {
-      console.error("Failed to say UNO:", err)
-      setError("Failed to say UNO. Please try again.")
+      if (result.success) {
+        const newCard = (result.new_card.charAt(0).toUpperCase() + result.new_card.slice(1)).replace("_", ' ');
+        setGameMessage(`Drew a card: ${newCard}`)
+        await fetchGameState() // Refresh game state after drawing
+      } else {
+        setError(result.message || "Failed to draw card")
+      }
+    } catch (error) {
+      console.error("Error drawing card:", error)
+      setError("Error connecting to the game server")
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Get player position based on player index and total number of players
-  const getPlayerPosition = (playerIndex) => {
-    // Player 0 is always at the bottom
-    if (playerIndex === 0) return { position: "bottom", rotation: 0 }
+  const startGame = async () => {
+    try {
+      setIsLoading(true)
+      const result = await initializeGame(gameID, playerID)
 
-    if (numPlayers === 3) {
-      // 3 player layout: bottom, top-left, top-right
-      if (playerIndex === 1) return { position: "top-left", rotation: -20 }
-      if (playerIndex === 2) return { position: "top-right", rotation: 20 }
-    } else if (numPlayers === 4) {
-      // 4 player layout: bottom, left, top, right
-      if (playerIndex === 1) return { position: "left", rotation: 90 }
-      if (playerIndex === 2) return { position: "top", rotation: 0 }
-      if (playerIndex === 3) return { position: "right", rotation: -90 }
-    } else if (numPlayers === 5) {
-      // 5 player layout: bottom, left, top-left, top-right, right
-      if (playerIndex === 1) return { position: "left", rotation: 90 }
-      if (playerIndex === 2) return { position: "top-left", rotation: -20 }
-      if (playerIndex === 3) return { position: "top-right", rotation: 20 }
-      if (playerIndex === 4) return { position: "right", rotation: -90 }
-    } else if (numPlayers === 6) {
-      // 6 player layout: bottom, left, top-left, top, top-right, right
-      if (playerIndex === 1) return { position: "left", rotation: 90 }
-      if (playerIndex === 2) return { position: "top-left", rotation: -20 }
-      if (playerIndex === 3) return { position: "top", rotation: 0 }
-      if (playerIndex === 4) return { position: "top-right", rotation: 20 }
-      if (playerIndex === 5) return { position: "right", rotation: -90 }
-    }
-
-    // Default fallback
-    return { position: "top", rotation: 0 }
-  }
-
-  // Get position coordinates for animations
-  const getPositionCoordinates = (position) => {
-    // Use window dimensions or fixed values based on the game board
-    const centerX = windowSize.current.width / 2
-    const centerY = windowSize.current.height / 2
-
-    switch (position) {
-      case "drawPile":
-        return { x: centerX - 60, y: centerY }
-      case "discardPile":
-        // Add slight randomness to the landing position for a more natural stack
-        const randomX = Math.random() * 10 - 5
-        const randomY = Math.random() * 10 - 5
-        return { x: centerX + 60 + randomX, y: centerY + randomY }
-      case "player":
-      case "bottom":
-        return { x: centerX, y: centerY + 200 }
-      case "top":
-        return { x: centerX, y: centerY - 200 }
-      case "top-left":
-        return { x: centerX - 180, y: centerY - 180 }
-      case "top-right":
-        return { x: centerX + 180, y: centerY - 180 }
-      case "left":
-        return { x: centerX - 270, y: centerY - 20 } // Adjusted to be higher
-      case "right":
-        return { x: centerX + 270, y: centerY - 20 } // Adjusted to be higher
-      default:
-        return { x: centerX, y: centerY }
+      if (result.success) {
+        setGameMessage("Game started!")
+        await fetchGameState() // Refresh game state after starting
+      } else {
+        setError(result.message || "Failed to start game")
+      }
+    } catch (error) {
+      console.error("Error starting game:", error)
+      setError("Error connecting to the game server")
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  // Start a new game
-  useEffect(() => {
-    if (!gameStarted) {
-      initGame()
-    }
-  }, [gameStarted])
+  // Render card component based on card string (color_value)
+  const renderCard = (cardC, index, playable = false) => {
+    const card = cardC.replace(/[^a-zA-Z0-9_]/g, '');
+    if (!card) return null
 
-  if (!gameState) {
+    const [color, number] = card.split("_");
+    if (color === "wild") {
+      return (
+        <WildCard
+          key={index}
+          className="w-16 h-24 sm:w-20 sm:h-28"
+          onClick={playable ? () => handleCardPlay(card): undefined}
+          disabled={!playable}
+        />
+      )
+    } else {
+      return (
+        <UnoCard
+          key={index}
+          color={color}
+          number={number}
+          className="w-16 h-24 sm:w-20 sm:h-28"
+          onClick={playable ? () => handleCardPlay(card) : undefined}
+          disabled={!playable}
+        />
+      )
+    }
+  }
+
+  const isPlayerTurn = gameState?.currentPlayer === playerID
+  const currentPlayerData = gameState?.players?.find((player) => player.playerID === playerID)
+  const currentPlayerName = currentPlayerData?.playerName || playerID
+
+  // Get the current player's position in the array
+  const getPlayerPosition = () => {
+    if (!gameState?.players) return -1
+    return gameState.players.findIndex((player) => player.playerID === playerID)
+  }
+
+  // Arrange other players in a circular layout
+  const renderOtherPlayers = () => {
+    if (!gameState?.players) return null;
+
+    const playerIndex = getPlayerPosition();
+    if (playerIndex === -1) return null;
+
+    // Rotate players so current player is always at index 0
+    const rotatedPlayers = [
+      ...gameState.players.slice(playerIndex),
+      ...gameState.players.slice(0, playerIndex),
+    ].reverse();
+
+    const otherPlayers = rotatedPlayers.slice(1);
+    const totalPlayers = otherPlayers.length;
+
+    if (totalPlayers === 0) return null;
+
+    // Calculate positions based on number of players
     return (
-        <div className="flex items-center justify-center h-screen bg-[#3E8914]">
-          <button
-              className="px-6 py-3 bg-black text-white rounded-lg text-xl font-bold shadow-lg hover:bg-gray-800 transition-colors"
-              onClick={initGame}
-              disabled={isLoading}
-          >
-            {isLoading ? "Starting Game..." : "Start Game"}
-          </button>
-          {error && <div className="absolute bottom-10 bg-red-500 text-white p-4 rounded-lg">{error}</div>}
-        </div>
-    )
-  }
+      <div className="relative w-full h-full">
+        {otherPlayers.map((player, index) => {
+          // Calculate position based on total players and current index
+          let positionClass = ""
 
-  // Render player's hand with fan effect
-  const renderPlayerHand = (playerIndex) => {
-    if (!gameState.players[playerIndex]) return null
+          if (totalPlayers <= 2) {
+            // For 3 players total (2 opponents)
+            positionClass = index === 0 ? "left-0" : "right-0"
+          } else if (totalPlayers === 3) {
+            // For 4 players total (3 opponents)
+            if (index === 0) positionClass = "left-0"
+            else if (index === 1) positionClass = "top-0 left-1/2 -translate-x-1/2"
+            else positionClass = "right-0"
+          } else if (totalPlayers === 4) {
+            // For 5 players total (4 opponents)
+            if (index === 0) positionClass = "left-0 top-1/4"
+            else if (index === 1) positionClass = "left-1/4 top-0"
+            else if (index === 2) positionClass = "right-1/4 top-0"
+            else positionClass = "right-0 top-1/4"
+          } else {
+            // For 6 players total (5 opponents)
+            if (index === 0) positionClass = "left-0 top-1/3"
+            else if (index === 1) positionClass = "left-1/5 top-0"
+            else if (index === 2) positionClass = "top-0 left-1/2 -translate-x-1/2"
+            else if (index === 3) positionClass = "right-1/5 top-0"
+            else positionClass = "right-0 top-1/3"
+          }
 
-    const { position, rotation } = getPlayerPosition(playerIndex)
-    const isCurrentPlayer = gameState.currentPlayer === playerIndex
-    const cards = gameState.players[playerIndex]
-    const totalCards = cards.length
-
-    // Calculate fan properties based on position
-    let fanWidth, fanHeight, transformOrigin, baseTransform
-
-    let containerStyle = {} // Define containerStyle here
-
-    switch (position) {
-      case "bottom":
-        // Calculate fan width based on number of cards, but ensure it's centered
-        fanWidth = Math.min(totalCards * 20, 400) // Limit max width
-        transformOrigin = "bottom center"
-        // This transform ensures cards grow from the center
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20 // 20px spacing between cards
-          const angle = (index - centerIndex) * 3 // 3 degrees rotation per card
-          return `translateX(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          bottom: "4rem",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "800px",
-          display: "flex",
-          justifyContent: "center",
-        }
-        break
-      case "top":
-        fanWidth = Math.min(totalCards * 20, 300)
-        transformOrigin = "top center"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3
-          return `translateX(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          top: "4rem",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "400px",
-          display: "flex",
-          justifyContent: "center",
-        }
-        break
-      case "top-left":
-        fanWidth = Math.min(totalCards * 20, 250)
-        transformOrigin = "top center"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3 - 20 // -20 degree base rotation
-          return `translateX(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          top: "4rem",
-          left: "25%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "300px",
-          display: "flex",
-          justifyContent: "center",
-        }
-        break
-      case "top-right":
-        fanWidth = Math.min(totalCards * 20, 250)
-        transformOrigin = "top center"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3 + 20 // +20 degree base rotation
-          return `translateX(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          top: "4rem",
-          right: "25%",
-          transform: "translateX(50%)",
-          width: "100%",
-          maxWidth: "300px",
-          display: "flex",
-          justifyContent: "center",
-        }
-        break
-      case "left":
-        fanHeight = Math.min(totalCards * 20, 250)
-        transformOrigin = "center right"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3 + 90 // +90 degree base rotation
-          return `translateY(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          top: "40%", // Move up from 50% to 40% to match the screenshot
-          left: "4rem",
-          transform: "translateY(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          height: "300px",
-        }
-        break
-      case "right":
-        fanHeight = Math.min(totalCards * 20, 250)
-        transformOrigin = "center left"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3 - 90 // -90 degree base rotation
-          return `translateY(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          top: "40%", // Move up from 50% to 40% to match the screenshot
-          right: "4rem",
-          transform: "translateY(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          height: "300px",
-        }
-        break
-      default:
-        fanWidth = Math.min(totalCards * 20, 300)
-        transformOrigin = "bottom center"
-        baseTransform = (index, totalCards) => {
-          const centerIndex = (totalCards - 1) / 2
-          const offset = (index - centerIndex) * 20
-          const angle = (index - centerIndex) * 3
-          return `translateX(${offset}px) rotate(${angle}deg)`
-        }
-        containerStyle = {
-          bottom: "4rem",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: "800px",
-          display: "flex",
-          justifyContent: "center",
-        }
-    }
-
-    return (
-        <div className={`absolute ${isCurrentPlayer ? "z-10" : ""} player-${position}`} style={containerStyle}>
-          {/* Player name with improved positioning */}
-          <div
-              className="player-name-tag"
-              style={{
-                position: "absolute",
-                left: "50%",
-                top: position === "top" || position.includes("top") ? "-3.5rem" : "auto",
-                bottom: position === "bottom" ? "-3.5rem" : "auto",
-                right: "auto",
-                transform: "translateX(-50%)",
-                zIndex: 30,
-              }}
-          >
-          <span className="bg-black/70 text-white font-bold px-3 py-1 rounded-md whitespace-nowrap">
-            {playerNames[playerIndex]} {isCurrentPlayer ? "(Playing)" : ""}
-          </span>
-          </div>
-
-          <div
-              className="relative"
-              style={{
-                height: position.includes("left") || position.includes("right") ? "250px" : "120px",
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-              }}
-          >
-            {cards.map((card, index) => {
-              const canPlay =
-                  isCurrentPlayer &&
-                  (card.type === "special" ||
-                      card.color === gameState.currentColor ||
-                      (gameState.lastCard && card.value === gameState.lastCard.value))
-
-              // For player 0 (user), we need special handling for playable cards
-              const transform = baseTransform(index, totalCards)
-              const hoverTransform =
-                  playerIndex === 0 && canPlay ? `${baseTransform(index, totalCards)} translateY(-30px)` : transform
-
-              return (
-                  <div
-                      key={playerIndex === 0 ? card.id : `${playerIndex}-${index}`}
-                      className="absolute transition-all duration-200"
-                      style={{
-                        transform: playerIndex === 0 && canPlay ? `${transform} translateY(-10px)` : transform,
-                        transformOrigin: transformOrigin,
-                        zIndex: index,
-                      }}
-                      onMouseEnter={
-                        playerIndex === 0 && canPlay
-                            ? (e) => {
-                              e.currentTarget.style.transform = hoverTransform
-                            }
-                            : undefined
-                      }
-                      onMouseLeave={
-                        playerIndex === 0 && canPlay
-                            ? (e) => {
-                              e.currentTarget.style.transform = `${transform} translateY(-10px)`
-                            }
-                            : undefined
-                      }
-                  >
-                    {playerIndex === 0 ? (
-                        card.type === "special" ? (
-                            <WildCard
-                                onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay || isLoading}
-                                className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                            />
-                        ) : (
-                            <UnoCard
-                                color={card.color}
-                                number={card.value}
-                                onClick={canPlay ? () => handlePlayCard(card, index) : undefined}
-                                disabled={!canPlay || isLoading}
-                                className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                            />
-                        )
-                    ) : (
-                        <CardBack
-                            isDark={true}
-                            className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                            onClick={() => {}}
-                        />
-                    )}
-                  </div>
-              )
-            })}
-          </div>
-        </div>
-    )
-  }
-
-  // Render animations
-  const renderAnimations = () => {
-    return (
-        <AnimatePresence mode="sync">
-          {animations.map((anim) => {
-            const fromPos = getPositionCoordinates(anim.from)
-            const toPos = getPositionCoordinates(anim.to)
-
-            // Determine rotation based on positions
-            let fromRotation = 0
-            if (anim.from === "left") fromRotation = 90
-            if (anim.from === "right") fromRotation = -90
-
-            let toRotation = 0
-            if (anim.to === "left") toRotation = 90
-            if (anim.to === "right") toRotation = -90
-
-            // Animation variants with improved transitions - properly typed for Framer Motion
-            const variants = {
-              initial: {
-                x: fromPos.x - 40, // Adjust for card width
-                y: fromPos.y - 60, // Adjust for card height
-                scale: 1,
-                rotate: fromRotation,
-                zIndex: 100,
-                opacity: 1,
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-              },
-              animate: {
-                x: toPos.x - 40, // Adjust for card width
-                y: toPos.y - 60, // Adjust for card height
-                scale: [1, 1.1, 1], // Smoother scale effect
-                rotate: toRotation,
-                zIndex: 100,
-                opacity: 1,
-                boxShadow: [
-                  "0 4px 8px rgba(0, 0, 0, 0.2)",
-                  "0 8px 16px rgba(0, 0, 0, 0.3)",
-                  "0 4px 8px rgba(0, 0, 0, 0.2)",
-                ],
-                transition: {
-                  duration: 0.8, // Longer duration for smoother motion
-                  ease: [0.34, 1.56, 0.64, 1], // Custom spring-like easing
-                  scale: {
-                    times: [0, 0.5, 1],
-                    duration: 0.8,
-                  },
-                  boxShadow: {
-                    times: [0, 0.5, 1],
-                    duration: 0.8,
-                  },
-                },
-              },
-              exit: {
-                opacity: 0,
-                transition: { duration: 0.3 },
-              },
-            }
-
-            return (
-                <motion.div
-                    key={anim.id}
-                    style={{ width: "80px", height: "120px", position: "fixed" }}
-                    initial="initial"
-                    animate="animate"
-                    exit="exit"
-                    variants={variants}
-                    onAnimationComplete={anim.onComplete}
+          return (
+            <div key={player.playerID} className={`absolute ${positionClass} transform p-2`}>
+              <div
+                className={`flex flex-col items-center p-3 rounded-lg ${
+                  gameState.currentPlayer === player.playerID
+                    ? "bg-yellow-100 ring-2 ring-yellow-400"
+                    : "bg-gray-800 bg-opacity-70"
+                }`}
+              >
+                <div
+                  className={`font-bold mb-1 text-sm ${
+                    gameState.currentPlayer === player.playerID ? "text-yellow-800" : "text-white"
+                  }`}
                 >
-                  {anim.card.type === "special" ? (
-                      <WildCard
-                          className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                          onClick={() => {}}
-                          disabled={false}
-                      />
-                  ) : (
-                      <UnoCard
-                          color={anim.card.color}
-                          number={anim.card.value}
-                          className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40"
-                          onClick={() => {}}
-                          disabled={false}
-                      />
+                  {player.playerName || `Player ${index + 1}`}
+                </div>
+                <div className="flex">
+                  {Array(Math.min(player.cardCount || 0, 7))
+                    .fill(0)
+                    .map((_, i) => (
+                      <div key={i} className="transform -ml-6 first:ml-0" style={{ zIndex: 10 - i }}>
+                        <CardBack className="w-10 h-14" isDark={gameState.currentPlayer !== player.playerID} onClick={undefined}/>
+                      </div>
+                    ))}
+                  {player.cardCount > 7 && (
+                    <div className="ml-1 flex items-center justify-center text-white text-xs">
+                      +{player.cardCount - 7}
+                    </div>
                   )}
-                </motion.div>
-            )
-          })}
-        </AnimatePresence>
+                </div>
+                <div
+                  className={`mt-1 text-xs ${
+                    gameState.currentPlayer === player.playerID ? "text-yellow-800" : "text-white"
+                  }`}
+                >
+                  {player.cardCount || 0} cards
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  if (isLoading && !gameState) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-emerald-900 to-black">
+        <div className="text-white text-xl">Loading game...</div>
+      </div>
     )
   }
 
   return (
-      <div className="min-h-screen bg-[#3E8914] relative overflow-hidden" ref={tableRef}>
-        {/* Loading overlay */}
-        {isLoading && (
-            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40 pointer-events-none">
-              <div className="bg-white p-4 rounded-lg shadow-lg">
-                <div className="animate-spin h-8 w-8 border-4 border-[#3E8914] border-t-transparent rounded-full mx-auto"></div>
-                <p className="mt-2 text-center">Processing...</p>
-              </div>
-            </div>
-        )}
-
-        {/* Error message */}
-        {error && (
-            <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg z-50">
-              {error}
-            </div>
-        )}
-
-        {/* Winner announcement */}
-        {winner !== null && (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-              <div className="bg-white p-8 rounded-xl shadow-2xl text-center">
-                <h2 className="text-3xl font-bold mb-4">{winner === 0 ? "You Win!" : `${playerNames[winner]} Wins!`}</h2>
-                <button
-                    className="px-6 py-3 bg-[#3E8914] text-white rounded-lg text-xl font-bold shadow-lg hover:bg-[#2d6610] transition-colors"
-                    onClick={initGame}
-                    disabled={isLoading}
-                >
-                  Play Again
-                </button>
-              </div>
-            </div>
-        )}
-
-        {/* Color picker for wild cards */}
-        {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} onClose={() => setShowColorPicker(false)} />}
-
-        {/* Game board */}
-        <div className="relative w-full h-[calc(100vh-8rem)]">
-          {/* Render all player hands */}
-          {Array.from({ length: numPlayers }).map((_, index) => renderPlayerHand(index))}
-
-          {/* Center area with draw and discard piles */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-8">
-            {/* Draw pile */}
-            <div className="relative">
-              <CardBack
-                  isDark={true}
-                  onClick={gameState.currentPlayer === 0 && !isDrawing && !isLoading ? handleDrawCard : undefined}
-                  className={`w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40 ${
-                      gameState.currentPlayer === 0 && !isDrawing && !isLoading
-                          ? "cursor-pointer hover:scale-105"
-                          : isDrawing || isLoading
-                              ? "opacity-75"
-                              : ""
-                  }`}
-              />
-            </div>
-
-            {/* Discard pile - stacked cards */}
-            <div className="relative">
-              {/* Stack of cards */}
-              {(gameState.visibleDiscardPile || [gameState.lastCard]).map((card, index, array) => {
-                const isTopCard = index === array.length - 1
-                // Calculate offset for each card in the stack
-                const offset = index * 3 // pixels
-                const rotation = (index - Math.floor(array.length / 2)) * 5 // degrees
-
-                return (
-                    <div
-                        key={`discard-${index}-${card.id}`}
-                        className="absolute transition-all duration-300"
-                        style={{
-                          transform: `rotate(${rotation}deg) translate(${offset - 10}px, ${offset - 10}px)`,
-                          zIndex: index,
-                        }}
-                    >
-                      {card.type === "special" ? (
-                          <WildCard
-                              className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40 opacity-100"
-                              onClick={() => {}}
-                              disabled={false}
-                          />
-                      ) : (
-                          <UnoCard
-                              color={card.color}
-                              number={card.value}
-                              className="w-24 h-36 sm:w-28 sm:h-40 md:w-28 md:h-40 lg:w-28 lg:h-40 opacity-100"
-                              onClick={() => {}}
-                              disabled={false}
-                          />
-                      )}
-                    </div>
-                )
-              })}
-            </div>
+    <div className="flex flex-col h-screen bg-[#3e8914] from-emerald-900 to-black p-4 overflow-hidden">
+      {/* Game header with info */}
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-white">
+          <h2 className="text-lg font-bold">UNO Game</h2>
+          <p className="text-sm">Game ID: {gameID}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
+            <Users className="w-4 h-4 mr-1" />
+            <span>{gameState?.players?.length || 0} players</span>
           </div>
+          {gameState?.bettingAmount > 0 && (
+            <div className="bg-black flex flex-col bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
+                <div className="flex items-center">
+                    <DollarSign className="w-4 h-4 mr-1" />
+                    <span>{gameState.bettingAmount}</span>
+                </div>
 
-          {/* Say UNO button */}
-          {gameState.players[0].length === 1 && !gameState.sayUno && (
-              <div className="absolute bottom-4 right-4">
-                <button
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold shadow-md hover:bg-red-700"
-                    onClick={handleSayUno}
-                    disabled={isLoading}
-                >
-                  Say UNO!
-                </button>
-              </div>
+                <div className="flex items-center">
+                    <Trophy className="w-4 h-4 mr-1" />
+                    <span>${(gameState.bettingAmount * gameState?.players?.length).toFixed(2)}</span>
+                </div>
+            </div>
+            
           )}
-
-          {/* Render all animations */}
-          {renderAnimations()}
         </div>
       </div>
+
+      {/* Notifications */}
+      {error && (
+        <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded shadow-lg flex items-center">
+          <AlertCircle className="w-5 h-5 mr-2" />
+          <span>{error}</span>
+          <button className="ml-4" onClick={() => setError("")}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {gameMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg flex items-center">
+          <CheckCircle2 className="w-5 h-5 mr-2" />
+          <span>{gameMessage}</span>
+          <button className="ml-4" onClick={() => setGameMessage("")}>
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Waiting room */}
+      {gameState?.gameStatus === "waiting" && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-80 z-40">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full text-center">
+            <h2 className="text-2xl font-bold mb-4">Waiting for players...</h2>
+            <p className="mb-2">
+              Game Code: <span className="font-mono font-bold">{gameID}</span>
+            </p>
+            <p className="mb-4">Players: {gameState?.players?.length || 0}</p>
+
+            <div className="grid grid-cols-2 gap-2 mb-6">
+              {gameState?.players?.map((player, index) => (
+                <div key={player.playerID} className="bg-gray-100 p-2 rounded">
+                  {player.playerName || `Player ${index + 1}`}
+                  {player.playerID === gameState.host && (
+                    <span className="ml-2 text-xs bg-yellow-200 px-1 rounded">Host</span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {gameState.host === playerID && (
+              <button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full transition-colors"
+                onClick={startGame}
+              >
+                Start Game
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Game board */}
+      <div className="flex-1 relative">
+        {/* Other players positioned around the board */}
+        {renderOtherPlayers()}
+
+        {/* Center play area */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+          <div className="flex flex-row items-center space-x-8 bg-black bg-opacity-30 p-6 rounded-xl">
+            {/* Draw pile */}
+            <div className="text-center">
+              <CardBack
+                className="w-20 h-32 sm:w-24 sm:h-36 mb-2 transition-transform hover:scale-105"
+                isDark={true}
+                onClick={isPlayerTurn ? handleDrawCard : undefined}
+              />
+              <p className="text-white text-sm">Draw Pile</p>
+            </div>
+
+            {/* Current card */}
+            <div className="text-center">
+              {gameState?.currentCard ? (
+                <div className="relative">
+                  {renderCard(gameState.currentCard)}
+                  {selectedColor && gameState.currentCard.startsWith("wild_") && (
+                    <div
+                      className="absolute inset-0 rounded-lg opacity-50"
+                      style={{ backgroundColor: selectedColor }}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div className="w-20 h-32 sm:w-24 sm:h-36 border-2 border-dashed border-white/30 rounded-lg flex items-center justify-center">
+                  <span className="text-white/50">No Card</span>
+                </div>
+              )}
+              <p className="text-white text-sm mt-2">Current Card</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Game status */}
+        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 text-center">
+          <div
+            className={`px-4 py-2 rounded-full ${
+              isPlayerTurn ? "bg-yellow-400 text-yellow-900" : "bg-white/10 text-white"
+            }`}
+          >
+            {isPlayerTurn
+              ? "Your Turn!"
+              : `Waiting for ${gameState?.players.find((p) => p.playerID === gameState?.currentPlayer)?.playerName || "opponent"}'s turn`}
+          </div>
+        </div>
+      </div>
+
+      {/* Player's hand */}
+      <div className="mt-auto pt-4 pb-2">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-white text-lg font-bold">Your Hand ({currentPlayerName})</h3>
+          <div className="text-white text-sm">{playerHand.length} cards</div>
+        </div>
+
+        <div className="flex justify-center overflow-x-auto pb-4 px-4">
+          <div className="flex">
+            {playerHand.map((card, index) => (
+              <div
+                key={index}
+                className={`transform transition-all duration-200 -ml-8 first:ml-0 hover:translate-y--16 ${
+                  isPlayerTurn ? "hover:-translate-y-8" : ""
+                }`}
+                style={{ zIndex: index + 1 }}
+              >
+                {renderCard(card, index, isPlayerTurn)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Color picker dialog */}
+      {showColorPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-xl font-bold mb-4 text-center">Choose a color</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                className="bg-red-500 hover:bg-red-600 h-24 rounded-lg transition-colors"
+                onClick={() => handleColorSelect("red")}
+              />
+              <button
+                className="bg-blue-500 hover:bg-blue-600 h-24 rounded-lg transition-colors"
+                onClick={() => handleColorSelect("blue")}
+              />
+              <button
+                className="bg-yellow-500 hover:bg-yellow-600 h-24 rounded-lg transition-colors"
+                onClick={() => handleColorSelect("yellow")}
+              />
+              <button
+                className="bg-green-500 hover:bg-green-600 h-24 rounded-lg transition-colors"
+                onClick={() => handleColorSelect("green")}
+              />
+            </div>
+            <button
+              className="mt-4 w-full bg-gray-200 hover:bg-gray-300 py-2 rounded-lg transition-colors"
+              onClick={() => {
+                setShowColorPicker(false)
+                setSelectedCard(null)
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showWinner && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">Game Over</h2>
+            <p className="text-lg mb-2">Winner: {winnerInfo.winner}</p>
+            <p className="text-lg mb-4">Remaining Betting: ${winnerInfo.bettingRemain}</p>
+            <button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full"
+              onClick={() => navigate("/")}
+            >
+              Back to Main Menu
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
   )
 }
-

@@ -18,62 +18,65 @@ if ($conn->connect_error) {
     exit;
 }
 
-// Get the player's authToken from cookies
-if (!isset($_COOKIE['authToken']) || empty($_COOKIE['authToken'])) {
+// Get the raw POST data and decode it as JSON
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
+
+// Validate input
+if (!$data || empty($data['gameID']) || empty($data['playerName'])) {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Authentication token is missing.'
+        'message' => 'Invalid data provided. Expected gameID and playerName.'
     ]);
     exit;
 }
 
-$authToken =  "32ebcd82f38bf944ff4d8014429d2342"; //$_COOKIE['authToken'];
-echo $authToken;
-$hashedToken = hash('sha256', $authToken); // Hash the auth token before using it
+// Sanitize input values
+$gameID = trim($conn->real_escape_string($data['gameID']));
+$playerName = "name45643";
 
-// Fetch the player's ID and name using the hashed authToken
-$query = "SELECT playerID, playerName FROM players WHERE authTokenHash = ?";
+// Fetch the player's ID using the provided playerName
+$query = "SELECT playerID FROM players WHERE playerName = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("s", $hashedToken);
+$stmt->bind_param("s", $playerName);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Player not found. Ensure you are logged in.'
+        'message' => 'Player not found. Ensure you have registered.'
     ]);
     exit;
 }
 
 $row = $result->fetch_assoc();
 $playerID = $row['playerID'];
-$playerName = $row['playerName'];
 $stmt->close();
 
-// Get the raw POST data and decode it as JSON
-$rawData = file_get_contents('php://input');
-$data = json_decode($rawData, true);
+// Ensure the game exists
+$gameCheckQuery = "SELECT gameID FROM games WHERE gameID = ?";
+$gameCheckStmt = $conn->prepare($gameCheckQuery);
+$gameCheckStmt->bind_param("s", $gameID);
+$gameCheckStmt->execute();
+$gameCheckResult = $gameCheckStmt->get_result();
 
-// Validate input
-if (!$data || empty($data['gameID'])) {
+if ($gameCheckResult->num_rows === 0) {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Invalid data provided. Expected gameID.'
+        'message' => 'Game not found. Please check the game ID.'
     ]);
     exit;
 }
+$gameCheckStmt->close();
 
-// Trim and sanitize input values
-$gameID = trim(mysqli_real_escape_string($conn, $data['gameID']));
-
-// Prepare and execute a safe SQL statement to insert/update player in the game
-$query = "INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games, authTokenHash) 
-          VALUES (?, ?, ?, '[]', '', 0, 0, 0, ?)
-          ON DUPLICATE KEY UPDATE gameID = VALUES(gameID)";
+// Insert the player into the game_players table to link them to the game
+$query = "INSERT INTO game_players (gameID, playerID, playerName) 
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE playerName = VALUES(playerName)";
 
 $stmt = $conn->prepare($query);
-$stmt->bind_param("ssss", $gameID, $playerID, $playerName, $hashedToken);
+$stmt->bind_param("sss", $gameID, $playerID, $playerName);
 
 if ($stmt->execute()) {
     echo json_encode(['status' => 'success', 'playerName' => $playerName]);

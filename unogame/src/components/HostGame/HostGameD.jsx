@@ -5,9 +5,11 @@ const HostGame = () => {
   const navigate = useNavigate();
   const [betAmount, setBetAmount] = useState(null);
   const [username, setUsername] = useState("");
+  const [gameID, setGameCode] = useState("");
   const [money, setMoney] = useState(null);
   const [cookie, setCookie] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   
   // Use useEffect for API calls
   useEffect(() => {
@@ -45,77 +47,41 @@ const HostGame = () => {
     initializeAuth();
   }, []); // Empty dependency array means this runs once on component mount
 
-  const generateGameCode = async () => {
+  const handleHostGame = async (user, bet) => {
+    // First, validate bet amount
+    console.log("Bet amount: ", bet);
+    console.log("Username: ", user);
     try {
-      const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
+      const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: "create_game",
+          bettingAmount: Number(bet),
+          playerID: user,
+        })
+      });
+  
       const data = await response.json();
-    
+  
       if (data.success) {
-        console.log("Game code generated successfully:", data.message); // Store the generated game code in a variable
-        return data.message; // This is the generated game code
-        
+        setGameCode(data.gameID); // Store the generated game code in state
+        console.log('Game ID: ', data.gameID); // Log the game ID for debugging
+        navigate(`/host-game-lobby/${data.gameID}`); // Navigate to the lobby page with the game ID
       } else {
-        console.error("Failed to generate game code:", data.error);
-        return null;
+        setError(data.message);
+        console.error('Failed to make game:', data.message);
       }
     } catch (error) {
-      console.error("Error contacting gamecode.php:", error);
-      return null;
-    }
-  };
+      console.error('Database error:', error);
+  }
 
-  const handleHostGame = async () => {
-    // First, validate bet amount
-    if (betAmount === "") {
-      alert("Please enter a betting amount.")
-      return
-    }
-    if (Number(betAmount) > money) {
-      alert("You do not have enough money to bet that amount.")
-      return
-    }
-    let gameCode = await generateGameCode(); // Call the function to generate game code
-    // If game code generation fails
-    // Calculate new balance
-    const newBalance = money - Number(betAmount);
-    setMoney(newBalance);
-
-    // Update money in database
-    const updateMoneyInDatabase = async (username, money) => {
-      try {
-        const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/update_money.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: username,
-            money: parseFloat(money)
-          })
-        });
-    
-        const data = await response.json();
-    
-        if (data.status === 'success') {
-          console.log('Money updated successfully');
-        } else {
-          console.error('Failed to update money:', data.message);
-        }
-      } catch (error) {
-        console.error('Error updating money:', error);
-      }
-    };
-    
-    // Get username and update money
-    await updateMoneyInDatabase(username, newBalance);
-  
-    // Navigate to game lobby with game code and bet amount
-    navigate(`/host-game-lobby/${gameCode}`, { state: { betAmount } });
-  
 };
 
 return (
-    <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
+<div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
       <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/select-game")}>
         <svg
@@ -168,12 +134,14 @@ return (
       {/* Host Game Button */}
       <button
         className="px-6 py-3 bg-red-500 text-white text-xl font-bold shadow-lg rounded-xl border-4 border-orange-700"
-        onClick={handleHostGame}
+        onClick={() => handleHostGame(username, betAmount)}
       >
         Host Game
       </button>
+      {/* Error Message */}
+      {error && <p className="text-red-500 mt-4">{error}</p>}
     </div>
   );
 };
 
-export default HostGame;
+export default HostGame

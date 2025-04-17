@@ -1,12 +1,20 @@
 "use client"
+import React from "react" 
+import redS from "./images/unoLogoRed.png"
+import blueS from "./images/unoLogoblue.png"
+import yellowS from "./images/unoLogoYellow.png"
+import greenS from "./images/unoLogogreen.png"
+import back from "./images/unoLogoback.png"
+import wild from "./images/unoLogoWild.png"
 
 export function UnoCard({ color, number, className, onClick, disabled }) {
     // Map colors to their respective star images
     const colorStarMap = {
-        red: "/images/unoLogoRed.png",
-        blue: "/images/unoLogoblue.png",
-        yellow: "/images/unoLogoYellow.png",
-        green: "/images/unoLogogreen.png",
+        red: redS,
+        blue: blueS,
+        yellow: yellowS,
+        green: greenS,
+        
     }
 
     // Map colors to exact hex color values from the reference
@@ -97,7 +105,7 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
                                 }}
                             >
                                 <img
-                                    src={colorStarMap[color] || "/placeholder.svg"}
+                                    src={colorStarMap[color]}
                                     alt={`${color} star`}
                                     className="w-full h-full object-contain"
                                 />
@@ -139,7 +147,7 @@ export function WildCard({ className, onClick, disabled }) {
                     {/* Star in top left */}
                     <div className="absolute top-1 left-1 w-4 h-4 sm:w-5 sm:h-5">
                         <img
-                            src="/images/unoLogoWild.png"
+                            src = {wild}
                             alt="Wild star"
                             className="w-full h-full object-contain"
                             style={{ transform: "rotate(0deg)" }}
@@ -149,7 +157,7 @@ export function WildCard({ className, onClick, disabled }) {
                     {/* Star in bottom right */}
                     <div className="absolute bottom-1 right-1 w-4 h-4 sm:w-5 sm:h-5">
                         <img
-                            src="/images/unoLogoWild.png"
+                            src={wild}
                             alt="Wild star"
                             className="w-full h-full object-contain"
                             style={{ transform: "rotate(0deg)" }}
@@ -169,7 +177,7 @@ export function WildCard({ className, onClick, disabled }) {
                         }}
                     >
                         <div className="w-3/4 h-3/4 flex items-center justify-center">
-                            <img src="/images/unoLogoWild.png" alt="Wild star" className="w-full h-full object-contain" />
+                            <img src={wild} alt="Wild star" className="w-full h-full object-contain" />
                         </div>
                     </div>
                 </div>
@@ -180,7 +188,7 @@ export function WildCard({ className, onClick, disabled }) {
 
 export function CardBack({ className, isDark = false, onClick }) {
     const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
-    const starImage = isDark ? "/images/unoLogoback.png" : "/images/unoLogoWild.png"
+    const starImage = isDark ? {back} : {wild}
 
     // Add white border class only for dark mode cards
     const borderClass = isDark ? "border-[2px] border-white" : ""
@@ -195,8 +203,8 @@ export function CardBack({ className, isDark = false, onClick }) {
             <div className="absolute inset-0 bg-black rounded-lg">
                 <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
                     {/* Normal card back with single star - much bigger */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12">
-                        <img src={starImage || "/placeholder.svg"} alt="UNO star" className="w-full h-full object-contain" />
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-6 sm:h-6">
+                        <img src={back} alt="UNO star" className="w-full h-full object-contain" />
                     </div>
                 </div>
             </div>

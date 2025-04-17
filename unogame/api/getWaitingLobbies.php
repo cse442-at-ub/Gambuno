@@ -20,7 +20,7 @@ if ($conn->connect_error) {
 
 // Handle getWaitingLobbies action
 if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
-    $query = "SELECT gameID, playerList, gameStatus FROM lobby WHERE gameStatus = 'waiting'";
+    $query = "SELECT gameID, playerList, gameStatus, betting_amt FROM lobby WHERE gameStatus = 'waiting'";
     $result = $conn->query($query);
 
     $lobbies = [];
@@ -29,7 +29,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
             // Ensure that playerList is a valid JSON array
             if ($row['playerList'] === 'null' || $row['playerList'] === null) {
                 $row['playerList'] = '[]';
-                echo $row['playerList'];
             }
             $lobbies[] = $row;
         }

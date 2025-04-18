@@ -156,22 +156,24 @@ export default function WinningScreen() {
           </div>
   
           <div className="flex flex-col gap-3 w-full max-w-md px-4 sm:px-0">
+           
             <button
               onClick={() => {
                 navigate(`/waiting-host/${gameID}`)
               }}
-              className="w-full h-12 md:h-14 text-base md:text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 active:bg-[#3183ff]/60 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center transition-colors"
+              className="w-64 h-16 md:h-14 text-base md:text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 active:bg-[#3183ff]/60 text-white border-2 border-white/30 shadow-lg rounded-lg flex items-center justify-center transition-colors  transform translate-x-20"
               aria-label="Back to Lobby"
             >
               <Users className="mr-2 h-5 w-5" />
               Back to Lobby
             </button>
+            
   
             <button
               onClick={() => {
                 navigate("/")
               }}
-              className="w-full h-12 md:h-14 text-base md:text-lg font-bold bg-[#25cb78] hover:bg-[#25cb78]/80 active:bg-[#25cb78]/60 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center transition-colors"
+              className="w-64 h-16 md:h-14 text-base md:text-lg font-bold bg-[#25cb78] hover:bg-[#25cb78]/80 active:bg-[#25cb78]/60 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center transition-colors transform translate-x-20"
               aria-label="Home Screen"
             >
               <Home className="mr-2 h-5 w-5" />

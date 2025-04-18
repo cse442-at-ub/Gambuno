@@ -199,24 +199,27 @@ function processCardEffect($gameID, $card) {
     switch ($effect):
         case 'draw5':
             $player = getNextPlayer($gameID);
+            
             $s = json_encode(getCardList($player));
             $playerCards = json_decode($s, true)["cardList"];
             $playerCardsArray = explode(',', $playerCards);
+            
 
             $newCards = generateCards(5);
             $newCards = implode(",", $newCards);
             $playerCardsArray[] = $newCards;
             setCardList($gameID, $player, implode(',', $playerCardsArray));
 
-            $effect = 'skip';
+            $effect = 'draw5';
             setCardEffect($gameID, $effect);
             // Draw 5 cards logic
             break;
         case 'reverse':
             setCardEffect($gameID, $effect);
+
             $s = json_encode(getGameOrder($gameID));
             $gameOrder =json_decode($s, true)["gameOrder"];
-            $gameOrderArray = explode(',', $gameOrder);
+            $gameOrderArray = explode(',', implode(",", $gameOrder));
             $gameOrderArray = array_reverse($gameOrderArray);
             setGameOrder($gameID, implode(',', $gameOrderArray));
             setCardEffect($gameID, $effect);
@@ -239,7 +242,7 @@ function getNextPlayer($gameID) {
     // Get game order
     $b = json_encode(getGameOrder($gameID));
     $gameOrderArray = json_decode($b, true)["gameOrder"];
-    $gameOrderArray = explode(',', $gameOrderArray);
+    $gameOrderArray = explode(',', implode(",",$gameOrderArray));
 
     // Find current player's index
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
@@ -261,21 +264,22 @@ function moveToNextPlayer($gameID) {
     // Find current player index
     $b = json_encode(getGameOrder($gameID));
     $gameOrderArray = json_decode($b, true)["gameOrder"];
-    $gameOrderArray = explode(',', $gameOrderArray);
-    $currentIndex = array_search($currentPlayer, $gameOrderArray);
+    $gameOrderArray = explode(',', implode(",",$gameOrderArray));
 
+    $currentIndex = array_search($currentPlayer, $gameOrderArray);
+    
     // Get card effect if any
     $h = json_encode(getCardEffect($gameID));
     $cardEffect = json_decode($h, true)["effect"];
-
     // Determine next player index
     $nextIndex = ($currentIndex + 1) % count($gameOrderArray); // ensures circular ordering
 
 //    // Handle skip effect
     if ($cardEffect === 'skip') {
         $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
+        $effect = 'NULL';
         // Reset card effect after applying
-        setCardEffect($gameID, ' ');
+        setCardEffect($gameID, $effect);
     }
     
     // Set next player
@@ -317,9 +321,11 @@ function drawCard($gameID, $playerID) {
     $currentCard = json_decode($h, true)["curCard"];
 
     // Check if card is valid to play
-    if (!isValidCardPlay($currentCard, $newCard)) {
+    if(!isValidCardPlay($currentCard, $newCard)){
         moveToNextPlayer($gameID);
     }
+    
+    
     
     return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
 }
@@ -372,8 +378,8 @@ function createGame($playerID, $bettingAmount) {
     $initialCard = generateCards(1)[0];
     $conn = getDatabaseConnection();
 
-    $s = json_encode(getTotalGame($playerID));
-    $total_games = json_decode($h, true)["totalgames"];
+    //$s = json_encode(getTotalGame($playerID));
+    //$total_games = json_decode($h, true)["totalgames"];
 
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect, host) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '', ?)");
@@ -390,7 +396,7 @@ function createGame($playerID, $bettingAmount) {
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
     
-    setTotalGame($playerID, ((int) $total_games) + 1);
+    //setTotalGame($playerID, ((int) $total_games) + 1);
     
 
 
@@ -653,6 +659,7 @@ if ($requestMethod === 'POST') {
             break;
         
         case 'move':
+            $card = $data["card"];
             echo moveToNextPlayer($gameID);
             break;
 

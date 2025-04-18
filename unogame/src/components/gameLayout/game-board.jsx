@@ -348,7 +348,7 @@ export default function UnoGameBoard() {
       if (state.success) {
         setGameState(state)
         if (String(state.gameStatus) === "finished") {
-          navigate("/");
+          navigate(`/winning/${gameID}`);
         }
 
         // Find the current player's data to get their hand

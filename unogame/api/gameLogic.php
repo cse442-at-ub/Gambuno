@@ -615,6 +615,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Betting amount required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $data['bettingAmount'] = htmlspecialchars($data['bettingAmount'], ENT_QUOTES, 'UTF-8');
             echo createGame( $playerID, $data['bettingAmount']);
             break;
 
@@ -623,6 +625,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo joinGame($gameID, $playerID);
             break;
 
@@ -631,6 +635,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo startGame($gameID, $playerID);
             break;
 
@@ -639,6 +645,9 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID and card required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
+            $data['card'] = htmlspecialchars($data['card'], ENT_QUOTES, 'UTF-8');
             echo placeCard( $gameID, $playerID, $data['card']);
             break;
 
@@ -647,6 +656,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo drawCard($gameID, $playerID);
             break;
 
@@ -655,11 +666,14 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo getGameState($gameID, $playerID);
             break;
         
         case 'move':
             $card = $data["card"];
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo moveToNextPlayer($gameID);
             break;
 

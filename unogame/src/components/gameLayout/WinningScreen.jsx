@@ -112,7 +112,7 @@ export default function WinningScreen() {
 
   const { width, height } = useWindowSize();
   const [showConfetti, setShowConfetti] = useState(true);
-
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const timer = setTimeout(() => {
     setShowConfetti(false);
   }, 8000); // Confetti runs for 8 seconds
@@ -121,6 +121,69 @@ export default function WinningScreen() {
   }, [timer]);
 
 
+  
+    
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 768);
+      };
+  
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+  
+  if (isMobile){
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-900 to-black text-white">
+        {showConfetti && (
+          <Confetti width={width} height={height} recycle={false} numberOfPieces={width < 768 ? 400 : 800} />
+        )}
+  
+        <div className="relative z-10 flex flex-col items-center justify-center w-full px-4 py-8 md:py-12 text-center">
+          <div className="mb-4 md:mb-6 animate-bounce">
+            <div className="bg-white rounded-full p-3 md:p-5 shadow-xl">
+              <Trophy className="h-12 w-12 md:h-20 md:w-20 text-[#25cb78]" />
+            </div>
+          </div>
+  
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-3 md:mb-4 text-white drop-shadow-md animate-in slide-in-from-top duration-700">
+            VICTORY!
+          </h1>
+  
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-5 md:p-8 mb-6 md:mb-8 w-full max-w-md border-2 border-white/30 shadow-2xl">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-1 md:mb-2 text-white">{winner}</h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-white/90 font-medium">is the WINNER!</p>
+          </div>
+  
+          <div className="flex flex-col gap-3 w-full max-w-md px-4 sm:px-0">
+           
+            <button
+              onClick={() => {
+                navigate(`/waiting-host/${gameID}`)
+              }}
+              className="w-64 h-16 md:h-14 text-base md:text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 active:bg-[#3183ff]/60 text-white border-2 border-white/30 shadow-lg rounded-lg flex items-center justify-center transition-colors  transform translate-x-20"
+              aria-label="Back to Lobby"
+            >
+              <Users className="mr-2 h-5 w-5" />
+              Back to Lobby
+            </button>
+            
+  
+            <button
+              onClick={() => {
+                navigate("/")
+              }}
+              className="w-64 h-16 md:h-14 text-base md:text-lg font-bold bg-[#25cb78] hover:bg-[#25cb78]/80 active:bg-[#25cb78]/60 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center transition-colors transform translate-x-20"
+              aria-label="Home Screen"
+            >
+              <Home className="mr-2 h-5 w-5" />
+              Home Screen
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (    
   <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-900 to-black text-white">

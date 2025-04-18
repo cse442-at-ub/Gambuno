@@ -6,7 +6,7 @@ import { Trophy, Medal, Award } from "lucide-react"
 
 const Leaderboard = () => {
   const navigate = useNavigate()
-  const [sortBy, setSortBy] = useState("money") // "money" or "wins"
+  const [sortBy, setSortBy] = useState("") // "money" or "wins"
   const [leaderboardData, setLeaderboardData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -90,6 +90,7 @@ const Leaderboard = () => {
             : typeof entry.money === "string"
               ? Number.parseInt(entry.money, 10)
               : 0,
+        wins: entry.wins
       }))
 
       setLeaderboardData(sanitizedData)
@@ -154,7 +155,6 @@ const Leaderboard = () => {
             sortBy === "wins" ? "bg-red-500 text-white border-orange-700" : "bg-white text-black border-black"
           }`}
           onClick={() => setSortBy("wins")}
-          disabled // Disable until wins is implemented
         >
           By Wins
         </button>
@@ -174,13 +174,48 @@ const Leaderboard = () => {
       )}
 
       {/* Leaderboard Container */}
-      {!loading && !error && (
+      {!loading && !error && sortBy === 'money' && (
         <div className="w-full max-w-3xl bg-white/90 rounded-xl border-4 border-orange-700 shadow-xl overflow-hidden">
           {/* Header */}
           <div className="bg-red-500 text-white p-4 grid grid-cols-12 font-bold text-lg border-b-4 border-orange-700">
             <div className="col-span-1 text-center">#</div>
             <div className="col-span-5 sm:col-span-4">Player</div>
             <div className="col-span-6 sm:col-span-7 text-center">Money</div>
+          </div>
+
+          {/* Leaderboard Entries */}
+          <div className="max-h-[60vh] overflow-y-auto">
+            
+            {leaderboardData.length > 0 ? (
+              leaderboardData.map((player, index) => (
+                <div
+                  key={`${player.username}-${index}`}
+                  className={`grid grid-cols-12 p-4 ${
+                    index % 2 === 0 ? "bg-orange-100" : "bg-white"
+                  } border-b border-orange-200 items-center`}
+                >
+                  <div className="col-span-1 flex justify-center">{getRankIcon(index + 1)}</div>
+                  <div className="col-span-5 sm:col-span-4 font-semibold truncate">{player.username}</div>
+                  <div className="col-span-6 sm:col-span-7 text-center font-bold text-orange-700">
+                    {formatMoney(player.money)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center">No leaderboard data available</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard Container */}
+      {!loading && !error && sortBy === 'wins' && (
+        <div className="w-full max-w-3xl bg-white/90 rounded-xl border-4 border-orange-700 shadow-xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-red-500 text-white p-4 grid grid-cols-12 font-bold text-lg border-b-4 border-orange-700">
+            <div className="col-span-1 text-center">#</div>
+            <div className="col-span-5 sm:col-span-4">Player</div>
+            <div className="col-span-6 sm:col-span-7 text-center">Wins</div>
           </div>
 
           {/* Leaderboard Entries */}
@@ -196,7 +231,7 @@ const Leaderboard = () => {
                   <div className="col-span-1 flex justify-center">{getRankIcon(index + 1)}</div>
                   <div className="col-span-5 sm:col-span-4 font-semibold truncate">{player.username}</div>
                   <div className="col-span-6 sm:col-span-7 text-center font-bold text-orange-700">
-                    {formatMoney(player.money)}
+                    {player.wins}
                   </div>
                 </div>
               ))

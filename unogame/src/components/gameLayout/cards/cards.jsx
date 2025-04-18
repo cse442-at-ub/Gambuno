@@ -387,30 +387,52 @@ export function PlusFiveCard({ className, onClick, disabled }) {
     )
 }
 
-export function CardBack({ className, isDark = false, onClick }) {
+export function CardBack({ className, isDark = false, isPile, onClick }) {
     const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
     const starImage = isDark ? { back } : { wild }
 
     // Add white border class only for dark mode cards
     const borderClass = isDark ? "border-[2px] border-white" : ""
 
-    return (
-        <button
-            className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
-            onClick={onClick}
-            type="button"
-        >
-            {/* Card background */}
-            <div className="absolute inset-0 bg-black rounded-lg">
-                <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
-                    {/* Normal card back with single star - much bigger */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-6 sm:h-6">
-                        <img src={back || "/placeholder.svg"} alt="UNO star" className="w-full h-full object-contain" />
+    if (isPile == true){
+        return (
+            <button
+                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
+                onClick={onClick}
+                type="button"
+            >
+                {/* Card background */}
+                <div className="absolute inset-0 bg-black rounded-lg">
+                    <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
+                        {/* Normal card back with single star - much bigger */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-[60px] sm:h-[60px]">
+                            <img src={back || "/placeholder.svg"} alt="UNO star" className="w-full h-full object-contain" />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </button>
-    )
+            </button>
+        )
+    }
+    else{
+        return (
+            <button
+                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
+                onClick={onClick}
+                type="button"
+            >
+                {/* Card background */}
+                <div className="absolute inset-0 bg-black rounded-lg">
+                    <div className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}>
+                        {/* Normal card back with single star - much bigger */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 sm:w-6 sm:h-6">
+                            <img src={back || "/placeholder.svg"} alt="UNO star" className="w-full h-full object-contain" />
+                        </div>
+                    </div>
+                </div>
+            </button>
+        )
+    }
+    
 }
 
 export function SkipCard({ color, className, onClick, disabled }) {

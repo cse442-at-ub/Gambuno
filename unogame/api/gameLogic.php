@@ -127,7 +127,7 @@ function placeCard($gameID, $playerID, $card) {
 
 
     // Check if player has this card
-    $s = json_encode(getCardList($playerID));
+    $s = json_encode(getCardList($playerID, $gameID));
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
@@ -200,7 +200,7 @@ function processCardEffect($gameID, $card) {
         case 'draw5':
             $player = getNextPlayer($gameID);
             
-            $s = json_encode(getCardList($player));
+            $s = json_encode(getCardList($player, $gameID));
             $playerCards = json_decode($s, true)["cardList"];
             $playerCardsArray = explode(',', $playerCards);
             
@@ -294,7 +294,7 @@ function drawCard($gameID, $playerID) {
     }
 
     // Get player's current cards
-    $s = json_encode(getCardList($playerID));
+    $s = json_encode(getCardList($playerID, $gameID));
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
@@ -334,12 +334,12 @@ function drawCard($gameID, $playerID) {
 function handleGameWin($gameID, $playerID) {
     //should have the follow methods, updatePlayerWins($gameID, $playerID), updatePlayersStats($gameID, $playerID)
     // Update game status
-    setGameStatus( $gameID, 'finished');
+    setGameStatus($gameID, 'finished');
     $i = json_encode(getBettingAmount($gameID));
     $bettingAmt = json_decode($i, true)["betting"];
     
-    $w = json_encode(getWins($playerID));
-    $win = json_decode($w, true)["wins"];
+    //$w = json_encode(getWins($playerID));
+    //$win = json_decode($w, true)["wins"];
 
     $b = json_encode(getPlayerList($gameID));
     $playersObj= json_decode($b, true)["playerList"];
@@ -352,7 +352,7 @@ function handleGameWin($gameID, $playerID) {
     $currentMoney = json_decode($h, true)["money"];
     setMoney($playerID, ($currentMoney + $totalPot));
 
-    setWins($playerID, ((int)$wins)+1);
+    //setWins($playerID, ((int)$wins)+1);
 }
 
 // Create a new game
@@ -536,7 +536,7 @@ function startGame($gameID, $playerID) {//just call
     }
 
     // Update game status
-    setGameStatus( $gameID, 'inProgress');
+    setGameStatus($gameID, 'inProgress');
 
     return json_encode(['success' => true, 'message' => 'Game started successfully']);
 }

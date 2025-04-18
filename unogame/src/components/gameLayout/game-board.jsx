@@ -585,7 +585,7 @@ export default function UnoGameBoard() {
     const rotatedPlayers = [
       ...gameState.players.slice(playerIndex),
       ...gameState.players.slice(0, playerIndex),
-    ].reverse();
+    ];
 
     const otherPlayers = rotatedPlayers.slice(1);
     const totalPlayers = otherPlayers.length;
@@ -643,7 +643,7 @@ export default function UnoGameBoard() {
                     .fill(0)
                     .map((_, i) => (
                       <div key={i} className="transform -ml-6 first:ml-0" style={{ zIndex: 10 - i }}>
-                        <CardBack className="w-10 h-14" isDark={gameState.currentPlayer !== player.playerID} onClick={undefined}/>
+                        <CardBack className="w-10 h-14" isDark={gameState.currentPlayer !== player.playerID} isPile = {false} onClick={undefined}/>
                       </div>
                     ))}
                   {player.cardCount > 7 && (
@@ -788,6 +788,7 @@ export default function UnoGameBoard() {
               <CardBack
                 className="w-20 h-32 sm:w-24 sm:h-36 mb-2 transition-transform hover:scale-105"
                 isDark={true}
+                isPile = {true}
                 onClick={isPlayerTurn ? handleDrawCard : undefined}
               />
               <p className="text-white text-sm">Draw Pile</p>

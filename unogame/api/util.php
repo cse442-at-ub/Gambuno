@@ -47,8 +47,8 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         return callApi($url, 'GET');
     }
 
-    function getCardList($playerID) {
-        $url = API_URL . "getPlayerCardList.php?action=getPlayerCardList&playerID=$playerID";
+    function getCardList($playerID, $gameID) {
+        $url = API_URL . "getPlayerCardList.php?action=getPlayerCardList&playerID=$playerID&gameID=$gameID";
         return callApi($url, 'GET');
     }
 

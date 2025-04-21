@@ -59,7 +59,7 @@ const Tutorial = () => {
                         each with numbers 0-9, and special action cards.
                     </p>
                     <p className="text-lg">
-                        Each player is dealt seven cards. The rest of the deck is placed face down as the draw pile.
+                        Each sss is dealt seven cards. The rest of the deck is placed face down as the draw pile.
                     </p>
                     <p className="text-lg">The top card from the draw pile is turned over to start the discard pile.</p>
                 </div>

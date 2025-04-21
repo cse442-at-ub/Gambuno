@@ -98,7 +98,7 @@ const toggleSettings = () => {
         </div>
         <nav className="menu">
           <button className= "menu-button" onClick={() => navigate('/select-game')}>Play</button>
-          <button className= "menu-button" onClick={toggleSettings} >Settings</button>
+          {/*<button className= "menu-button" onClick={toggleSettings} >Settings</button>*/}
         </nav>
 
         <footer className="footer">

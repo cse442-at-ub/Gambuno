@@ -138,10 +138,6 @@ const HostGameLobby = () => {
       {/* Title */}
       <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
 
-      {/* Bet Amount */}
-      <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${bet}
-      </div>
 
       {/* Error Message */}
       {error && <p className="text-red-700 text-center mt-2">{error}</p>}

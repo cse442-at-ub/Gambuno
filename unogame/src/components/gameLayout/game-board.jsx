@@ -328,6 +328,10 @@ export default function UnoGameBoard() {
   const [gameMessage, setGameMessage] = useState("")
   const [selectedColor, setSelectedColor] = useState(null)
   const navigate = useNavigate()
+  const [lastActionTime, setLastActionTime] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(10);
+  const [inactivityTimer, setInactivityTimer] = useState(null);
+  const isPlayerTurn = gameState?.currentPlayer === playerID;
 
   // Fetch game state at regular intervals
   useEffect(() => {
@@ -339,6 +343,63 @@ export default function UnoGameBoard() {
 
     return () => clearInterval(intervalId)
   }, [])
+
+  
+  useEffect(() => {
+    if (!gameState || !isPlayerTurn) {
+      // Clear timer if it's not our turn
+      if (inactivityTimer) {
+        clearInterval(inactivityTimer);
+        setInactivityTimer(null);
+      }
+      setTimeLeft(10);
+      return;
+    }
+  
+    // Reset timer when our turn starts
+    setLastActionTime(Date.now());
+    setTimeLeft(10);
+  
+    // Set up new timer if one doesn't exist
+    if (!inactivityTimer) {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            // Time's up - draw card automatically
+            handleAutoDraw();
+            return 10;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      setInactivityTimer(timer);
+    }
+  
+    return () => {
+      if (inactivityTimer) {
+        clearInterval(inactivityTimer);
+      }
+    };
+  }, [gameState?.currentPlayer, isPlayerTurn]);
+
+  const handleAutoDraw = async () => {
+    try {
+      setIsLoading(true);
+      const result = await drawCard(gameID, playerID);
+      
+      if (result.success) {
+        setGameMessage(`Time's up! Automatically drew a card: ${result.new_card}`);
+        await fetchGameState(); // Refresh game state after drawing
+      } else {
+        setError(result.message || 'Failed to draw card automatically');
+      }
+    } catch (error) {
+      console.error('Error drawing card automatically:', error);
+      setError('Error connecting to the game server');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchGameState = async () => {
     try {
@@ -369,7 +430,7 @@ export default function UnoGameBoard() {
 
   const handleCardPlay = async (card) => {
     const cleaned = card.replace(/[^a-zA-Z0-9_]/g, '');
-    
+    setLastActionTime(Date.now());
     // If card is wild, show color picker
     //TODO: add colorpicker to work
      if (card.startsWith("wild_")) {
@@ -459,6 +520,7 @@ export default function UnoGameBoard() {
   }
 
   const handleDrawCard = async () => {
+    setLastActionTime(Date.now());
     try {
       setIsLoading(true)
       const result = await drawCard(gameID, playerID)
@@ -564,7 +626,6 @@ export default function UnoGameBoard() {
     }
   }
 
-  const isPlayerTurn = gameState?.currentPlayer === playerID
   const currentPlayerData = gameState?.players?.find((player) => player.playerID === playerID)
   const currentPlayerName = currentPlayerData?.playerName || playerID
 
@@ -1040,16 +1101,26 @@ export default function UnoGameBoard() {
 
     {/* Game status */}
     <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-center">
-      <div
-        className={`px-4 py-2 rounded-full ${
-          isPlayerTurn ? "bg-yellow-400 text-yellow-900" : "bg-white/10 text-white"
-        }`}
-      >
-        {isPlayerTurn
-          ? "Your Turn!"
-          : `Waiting for ${gameState?.players.find((p) => p.playerID === gameState?.currentPlayer)?.playerName || "opponent"}'s turn`}
-      </div>
-    </div>
+  <div
+    className={`px-4 py-2 rounded-full ${
+      isPlayerTurn ? "bg-yellow-400 text-yellow-900" : "bg-white/10 text-white"
+    }`}
+  >
+    {isPlayerTurn ? (
+      <>
+        Your Turn! ({timeLeft}s)
+        <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+          <div 
+            className="bg-yellow-800 h-1.5 rounded-full" 
+            style={{ width: `${(timeLeft / 10) * 100}%` }}
+          />
+        </div>
+      </>
+    ) : (
+      `Waiting for ${gameState?.players.find((p) => p.playerID === gameState?.currentPlayer)?.playerName || "opponent"}'s turn`
+    )}
+  </div>
+</div>
   </div>
 
   {/* Player's hand */}

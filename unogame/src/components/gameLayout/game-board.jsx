@@ -332,6 +332,7 @@ export default function UnoGameBoard() {
   const [timeLeft, setTimeLeft] = useState(10);
   const [inactivityTimer, setInactivityTimer] = useState(null);
   const isPlayerTurn = gameState?.currentPlayer === playerID;
+  
 
   // Fetch game state at regular intervals
   useEffect(() => {
@@ -346,41 +347,26 @@ export default function UnoGameBoard() {
 
   
   useEffect(() => {
-    if (!gameState || !isPlayerTurn) {
-      // Clear timer if it's not our turn
-      if (inactivityTimer) {
-        clearInterval(inactivityTimer);
-        setInactivityTimer(null);
-      }
-      setTimeLeft(10);
-      return;
-    }
-  
-    // Reset timer when our turn starts
-    setLastActionTime(Date.now());
+  if (!gameState || !isPlayerTurn) {
     setTimeLeft(10);
-  
-    // Set up new timer if one doesn't exist
-    if (!inactivityTimer) {
-      const timer = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            // Time's up - draw card automatically
-            handleAutoDraw();
-            return 10;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      setInactivityTimer(timer);
-    }
-  
-    return () => {
-      if (inactivityTimer) {
-        clearInterval(inactivityTimer);
+    return;
+  }
+
+  // Reset timeLeft on new turn
+  setTimeLeft(10);
+
+  const timer = setInterval(() => {
+    setTimeLeft(prev => {
+      if (prev <= 1) {
+        handleAutoDraw();
+        return 10; // Restart timer
       }
-    };
-  }, [gameState?.currentPlayer, isPlayerTurn]);
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(timer); // Clear timer on dependency change or unmount
+}, [gameState?.currentPlayer, isPlayerTurn]);
 
   const handleAutoDraw = async () => {
     try {
@@ -388,7 +374,7 @@ export default function UnoGameBoard() {
       const result = await drawCard(gameID, playerID);
       
       if (result.success) {
-        setGameMessage(`Time's up! Automatically drew a card: ${result.new_card}`);
+        setGameMessage(`Time's up! Drew a card:`);
         await fetchGameState(); // Refresh game state after drawing
       } else {
         setError(result.message || 'Failed to draw card automatically');

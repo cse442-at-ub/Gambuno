@@ -1,20 +1,21 @@
 "use client"
 
-import React, { useState } from "react"
-import { X } from "lucide-react"
+import { useState } from "react"
+import { X, ArrowRight } from "lucide-react"
 import { Button } from "./ui/button"
-import { Dialog, DialogContent } from "@radix-ui/react-dialog"
+import * as Dialog from "@radix-ui/react-dialog"
 import { Card } from "./ui/card"
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom"
+import { UnoCard, WildCard, ReverseCard, SkipCard, PlusFiveCard } from "./gameLayout/cards/cards"
 
 const Tutorial = ({ isOpen, onClose }) => {
-    const navigate = useNavigate();
+    const navigate = useNavigate()
     const [currentScreenId, setCurrentScreenId] = useState("intro")
     const [currentBranch, setCurrentBranch] = useState("intro")
+
     const goToTGame = () => {
-        navigate("/single-game");
-      
-    };
+        navigate("/single-game")
+    }
 
     const screens = {
         intro: {
@@ -31,10 +32,11 @@ const Tutorial = ({ isOpen, onClose }) => {
                                 setCurrentScreenId("setup")
                             }}
                         >
-                            Game's Setup
+                            Game&apos;s Setup
                         </Button>
                         <Button
-                            className="w-full py-10 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]" onClick={() => {
+                            className="w-full py-10 text-xl bg-[#FFB30F] hover:bg-[#FFB30F]"
+                            onClick={() => {
                                 setCurrentBranch("howToPlay")
                                 setCurrentScreenId("howToPlay")
                             }}
@@ -63,16 +65,52 @@ const Tutorial = ({ isOpen, onClose }) => {
             content: (
                 <div className="space-y-4">
                     <p className="text-3xl">
-                        UNO is played with a deck of 108 cards. The deck consists of four colors (red, blue, green, and yellow),
-                        each with numbers 0-9, and special action cards.
+                        UNO is a card game with cards of consists of four colors (red, blue, green, and yellow), each with numbers 0-9, and special action cards
                     </p>
+                    <br/>
                     <p className="text-3xl">
-                        Each player is dealt seven cards. The rest of the deck is placed face down as the draw pile.
+                        Each player is dealt 7 cards with one card set as the starting card.
                     </p>
-                    <p className="text-3xl">The top card from the draw pile is turned over to start the discard pile.</p>
+
+                    <div className="flex space-x-4 p-4">
+                        <UnoCard
+                            color="blue"
+                            number="9"
+                            className="h-36 w-24 p-4"
+                        />
+                        <UnoCard
+                            color="red"
+                            number="2"
+                            className="h-36 w-24 p-4"
+                        />
+
+                        <UnoCard
+                            color="green"
+                            number="3"
+                            className="h-36 w-24 p-4"
+                        />
+
+                        <UnoCard
+                            color="green"
+                            number="4"
+                            className="h-36 w-24 p-4"
+                        />
+
+                        <div className="flex items-center gap-4">
+                            <PlusFiveCard className="h-36 w-24 p-4" />
+
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <WildCard className="h-36 w-24 p-4" />
+
+                        </div>
+                    </div>
+
+
+
                 </div>
             ),
-            
         },
         placingCards: {
             id: "placingCards",
@@ -85,23 +123,24 @@ const Tutorial = ({ isOpen, onClose }) => {
                         <div>
                             <p className="text-3xl mb-4">Same Color: A card can be placed on top of a card of the same color</p>
                             <div className="flex items-center justify-center gap-4">
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sameColor%201-8Ty5JFrAaroq2zJUPqnicW0AD1Qjbt.png" alt="Yellow card with number 3" className="h-24 w-auto" />
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Arrow%20right-1-CLWw7TBfP8mnOWcr1NmyC22ZLDBidC.png" alt="Right arrow" className="h-8 w-auto" />
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/sameColor%202-oh3l6iQsbeitnmPTWPh5yMjCvI5fX1.png" alt="Yellow card with number 1" className="h-24 w-auto" />
+                                <UnoCard color="yellow" number="3" className="h-36 w-24" />
+                                <ArrowRight className="h-8 w-8" />
+                                <UnoCard color="yellow" number="1" className="h-36 w-24" />
                             </div>
                         </div>
                         <div>
                             <p className="text-3xl mb-4">Same Number: A card can be placed on top of a card of the same number</p>
                             <div className="flex items-center justify-center gap-4">
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Dif%20color%201-fXV1pYOmCE3emdMAk94HKDBU1BWFeW.png" alt="Blue card with number 3" className="h-24 w-auto" />
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Arrow%20right-ydUhZGU0m72wXJCP4B3VyQ56k7YB4k.png" alt="Right arrow" className="h-8 w-auto" />
-                                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dif%20color%202-dgN2ZUOaIeM3E9B2riaFHJNC0Fw5Lf.png" alt="Yellow card with number 3" className="h-24 w-auto" />
+                                <UnoCard color="blue" number="3" className="h-36 w-24" />
+                                <ArrowRight className="h-8 w-8" />
+                                <UnoCard color="yellow" number="3" className="h-36 w-24" />
                             </div>
                         </div>
                     </div>
                 </div>
             ),
             previous: "setup",
+            next: "howToPlay",
         },
         // How to Play Branch
         howToPlay: {
@@ -130,25 +169,21 @@ const Tutorial = ({ isOpen, onClose }) => {
                 <div className="space-y-4">
                     <div className="grid gap-4">
                         <div className="flex items-center gap-4">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/skip%20card-s6fcL3wT5VbGHQT8kTEiKaSAVmrHBy.png" alt="Skip card" className="h-24 w-auto" />
+                            <SkipCard color="red" className="h-36 w-24" />
                             <p className="text-3xl">Skip: Next player loses their turn</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/draw%202%20card-kxEuMnxs4WQMGnlcKUXq8zQBSHXlE4.png" alt="Draw Two card" className="h-24 w-auto" />
-                            <p className="text-3xl">Draw Two: Next player draws two cards and loses their turn</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/reverse%20card-J3vxjIpjBchMuGkjmqf3TNj5ZvQ0EX.png" alt="Reverse card" className="h-24 w-auto" />
+                            <ReverseCard color="green" className="h-36 w-24" />
                             <p className="text-3xl">Reverse: Reverses the order of play</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wild%20card-i42gPcJ9GtgK8m6zP74JhYN5wj08Kj.png" alt="Wild card" className="h-24 w-auto" />
+                            <WildCard className="h-36 w-24" />
                             <p className="text-3xl">Wild: Player chooses the next color to be matched</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/plus%204%20card-Uo5ipxH5EEeP1RZnmL9d7kNIBWj4M5.png" alt="Wild Draw Four card" className="h-24 w-auto" />
+                            <PlusFiveCard className="h-36 w-28" />
                             <p className="text-3xl">
-                                Wild Draw Four: Choose the next color, and the next player draws four cards and loses their turn
+                                Wild Draw Five: A wild card, and the next player draws five cards and is Skipped
                             </p>
                         </div>
                     </div>
@@ -163,10 +198,10 @@ const Tutorial = ({ isOpen, onClose }) => {
             branch: "howToPlay",
             content: (
                 <div className="space-y-4">
-                    <p className="text-3xl">When a player has only one card left, they must call out "UNO!"</p>
+                    <p className="text-3xl">When a player has only one card left, they must call out &quot;UNO!&quot;</p>
                     <p className="text-3xl">
-                        If another player catches them not saying "UNO" before the next player begins their turn, the player who
-                        didn't call "UNO" must draw two cards.
+                        If another player catches them not saying &quot;UNO&quot; before the next player begins their turn, the
+                        player who didn&apos;t call &quot;UNO&quot; must draw two cards.
                     </p>
                     <p className="text-3xl">The round ends when a player has played all of their cards.</p>
                 </div>
@@ -181,7 +216,7 @@ const Tutorial = ({ isOpen, onClose }) => {
             content: (
                 <div className="space-y-4">
                     <p className="text-3xl">
-                        At the end of each round, the winner scores points based on the cards left in their opponents' hands:
+                        At the end of each round, the winner scores points based on the cards left in their opponents&apos; hands:
                     </p>
                     <ul className="space-y-2 text-2xl list-disc list-inside">
                         <li>Number cards (0-9): Face value</li>
@@ -193,17 +228,12 @@ const Tutorial = ({ isOpen, onClose }) => {
                         Alternatively, you can set a specific number of rounds, and the player with the highest score at the end
                         wins.
                     </p>
-                    <Button
-                        className="w-full py-8 text-xl bg-green-600 hover:bg-green-700"
-                        onClick={goToTGame}
-                    >
+                    <Button className="w-full py-8 text-xl bg-green-600 hover:bg-green-700" onClick={goToTGame}>
                         Play A Basic Tutorial
                     </Button>
-
                 </div>
             ),
             previous: "unoRules",
-            
         },
         // Betting Branch
         betting: {
@@ -234,20 +264,16 @@ const Tutorial = ({ isOpen, onClose }) => {
     const currentScreen = screens[currentScreenId]
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
-                <div className="fixed inset-0 min-h-screen p-4 flex items-center justify-center z-50">
+        <Dialog.Root open={isOpen} onOpenChange={onClose}>
+            <Dialog.Portal>
+                <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+                <Dialog.Content className="fixed inset-0 flex items-center justify-center p-4 z-50">
                     <Card className="w-full max-w-[1000px] h-auto bg-blue-500 rounded-3xl overflow-hidden">
                         <div className="p-6 relative min-h-[500px]">
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-3xl font-bold">{currentScreen.title}</h1>
                                 {currentScreenId === "intro" && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="rounded-full"
-                                        onClick={onClose}
-                                    >
+                                    <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
                                         <X className="h-6 w-6" />
                                     </Button>
                                 )}
@@ -287,9 +313,9 @@ const Tutorial = ({ isOpen, onClose }) => {
                             </div>
                         )}
                     </Card>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog.Root>
     )
 }
 

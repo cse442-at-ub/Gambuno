@@ -11,6 +11,46 @@ export default function WinningScreen() {
   const [winner, setWinner] = useState("Unknown");
   const [playerResults, setPlayerResults] = useState([]);
   const [error, setError] = useState("");
+  const [isHost, setIsHost] = useState("");
+  const [currentPlayerID, setCurrentPlayerID] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [cookie, setCookie] = useState("");
+  const [username, setUsername] = useState("");
+
+
+  useEffect(() => {
+      const initializeAuth = async () => {
+        try {
+          setIsLoading(true);
+          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResult = await cookieResponse.json();
+          
+          if (cookieResult.status) {
+            console.log("Cookie acquired:", cookieResult.cookie);
+            setCookie(cookieResult.cookie);
+            
+            // Get user metadata with the cookie
+            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResult = await metaResponse.json();
+            
+            if (metaResult.status) {
+              setUsername(metaResult.username);
+              console.log("Username:", metaResult.username, "Money:", metaResult.money);
+            } else {
+              console.error("Failed to get user metadata:", metaResult);
+            }
+          } else {
+            console.error("Failed to get cookie:", cookieResult);
+          }
+        } catch (error) {
+          console.error("Error during initialization:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      initializeAuth();
+    }, []); // Empty dependency array means this runs once on component mount
 
   useEffect(() => {
     const fetchWinnerAndMoney = async () => {
@@ -26,6 +66,15 @@ export default function WinningScreen() {
             ? JSON.parse(playerData.currentPlayer)
             : playerData.currentPlayer;
         console.log(player);
+
+        setCurrentPlayerID(player);
+
+        // Get Host ID to check if current player is host
+        const hostRes = await fetch(
+          `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getHost.php?action=getHost&gameID=${gameID}`
+        );
+        const hostData = await hostRes.json();
+        setIsHost(hostData.currentPlayer);
 
         /*
         // Get Betting Amount
@@ -151,14 +200,11 @@ export default function WinningScreen() {
   <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
     <button
       onClick={() => {
-        navigate(`/waiting-host/${gameID}`);
-        /*
-        if (playerID === hostID) {
-        navigate(`/host-game-lobby/${gameID}`);
+        if (username == isHost) {
+          navigate(`/host-game-lobby/${gameID}`);
         } else {
-        navigate(`/waiting-host/${gameID}`);
+          navigate(`/waiting-host/${gameID}`);
         }
-        */
       }}
       className="flex-1 h-14 text-lg font-bold bg-[#3183ff] hover:bg-[#3183ff]/80 text-white border-2 border-white/30 shadow-lg rounded-md flex items-center justify-center"
     >

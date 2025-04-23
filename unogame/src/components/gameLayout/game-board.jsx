@@ -316,8 +316,7 @@ import { useNavigate , useParams} from "react-router-dom";
 import { UnoCard, WildCard, CardBack, SkipCard, ReverseCard, PlusFiveCard, ColoredWildCard, ColoredPlusFiveCard} from "./cards/cards"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
 import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
-import {AppState, StyleSheet, Text} from 'react-native';
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+
 
 export default function UnoGameBoard() {
   const { gameID, playerID } = useParams()
@@ -335,7 +334,6 @@ export default function UnoGameBoard() {
   const [timeLeft, setTimeLeft] = useState(10);
   const [inactivityTimer, setInactivityTimer] = useState(null);
   const isPlayerTurn = gameState?.currentPlayer === playerID;
-  
 
   // Fetch game state at regular intervals
   useEffect(() => {
@@ -350,7 +348,7 @@ export default function UnoGameBoard() {
 
   
   useEffect(() => {
-  if (!gameState || !isPlayerTurn) {
+  if (!gameState) {
     setTimeLeft(10);
     return;
   }
@@ -369,9 +367,20 @@ export default function UnoGameBoard() {
 }, [gameState?.currentPlayer, isPlayerTurn]);
 
   const handleAutoDraw = async () => {
+    const playerRes = await fetch(
+      `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`
+    );
+    const playerData = await playerRes.json();
+    console.log(playerData);
+    const player =
+      typeof playerData.curPlayer === "string"
+        ? JSON.parse(playerData.currentPlayer)
+        : playerData.currentPlayer;
+    console.log(player);
+
     try {
       setIsLoading(true);
-      const result = await drawCard(gameID, playerID, true);
+      const result = await drawCard(gameID, player, true);
       
       if (result.success) {
         const newCard = (result.new_card.charAt(0).toUpperCase() + result.new_card.slice(1)).replace("_", ' ');

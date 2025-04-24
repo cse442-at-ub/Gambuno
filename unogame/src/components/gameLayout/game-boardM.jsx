@@ -610,7 +610,7 @@ import {
   PlusFiveCard,
   ColoredWildCard,
   ColoredPlusFiveCard,
-} from "./cards/cards"
+} from "./cards/cardsM"
 import { getGameState, playCard, drawCard, initializeGame } from "./../lib/api"
 import { AlertCircle, CheckCircle2, X, Users, Trophy, DollarSign } from "lucide-react"
 
@@ -934,7 +934,7 @@ export default function UnoGameBoardMobile() {
                     .fill(0)
                     .map((_, i) => (
                       <div key={i} className="transform -ml-4 first:ml-0" style={{ zIndex: 10 - i }}>
-                        <CardBack className="w-8 h-12" isDark={!isCurrentTurn} isPile={false} onClick={undefined} />
+                        <CardBack className="w-8 h-12" isDark={!isCurrentTurn} onClick={undefined} />
                       </div>
                     ))}
                   {player.cardCount > 5 && (
@@ -1058,7 +1058,6 @@ export default function UnoGameBoardMobile() {
               <CardBack
                 className="w-14 h-20 sm:w-16 sm:h-24 mb-1 transition-transform active:scale-95"
                 isDark={true}
-                isPile={true}
                 onClick={isPlayerTurn ? handleDrawCard : undefined}
               />
               <p className="text-white text-xs">Draw</p>

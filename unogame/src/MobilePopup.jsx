@@ -2,14 +2,31 @@
 
 import { useState } from "react"
 import { X, ArrowRight, ArrowLeft } from "lucide-react"
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
+import { UnoCard, WildCard, ReverseCard, SkipCard, ColoredWildCard, PlusFiveCard } from "./components/gameLayout/cards/cardsM"
 
 export default function MobilePopup({ onClose }) {
     const [currentScreen, setCurrentScreen] = useState("main")
+    const [page, setPage] = useState(1)
+    const totalPages = 4
     const navigate = useNavigate()
+
     const goToSingle = () => {
-        navigate("/single-game");
-      } 
+        navigate("/single-game")
+    }
+
+    const nextPage = () => {
+        if (page < totalPages) {
+            setPage((p) => p + 1)
+        }
+    }
+
+    const prevPage = () => {
+        if (page > 1) {
+            setPage((p) => p - 1)
+        }
+    }
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200">
             <div
@@ -22,6 +39,7 @@ export default function MobilePopup({ onClose }) {
                             onClose()
                         } else {
                             setCurrentScreen("main")
+                            setPage(1)
                         }
                     }}
                     className="absolute right-6 top-6 rounded-full border-2 border-black bg-transparent p-1.5"
@@ -58,7 +76,9 @@ export default function MobilePopup({ onClose }) {
                                 onClick={goToSingle}
                                 className="w-full rounded-full border-4 border-black bg-[#a43eed] py-4 px-8 text-center shadow-md hover:brightness-110 active:scale-[0.98] transition-all"
                             >
-                                <span className="text-2xl font-bold text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">Play a Tutorial</span>
+                <span className="text-2xl font-bold text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
+                  Play a Tutorial
+                </span>
                             </button>
                         </>
                     ) : currentScreen === "setup" ? (
@@ -66,7 +86,7 @@ export default function MobilePopup({ onClose }) {
                     ) : currentScreen === "betting" ? (
                         <BettingScreen />
                     ) : currentScreen === "howto" ? (
-                        <HowToScreen />
+                        <HowToScreen page={page} nextPage={nextPage} prevPage={prevPage} totalPages={totalPages} />
                     ) : null}
                 </div>
             </div>
@@ -131,22 +151,7 @@ function BettingScreen() {
     )
 }
 
-function HowToScreen() {
-    const [page, setPage] = useState(1)
-    const totalPages = 4
-
-    const nextPage = () => {
-        if (page < totalPages) {
-            setPage((p) => p + 1)
-        }
-    }
-
-    const prevPage = () => {
-        if (page > 1) {
-            setPage((p) => p - 1)
-        }
-    }
-
+function HowToScreen({ page, nextPage, prevPage, totalPages }) {
     return (
         <div className="w-full flex flex-col items-start justify-start gap-6">
             <div className="w-full space-y-8 text-black text-xl font-bold">
@@ -155,45 +160,17 @@ function HowToScreen() {
                         <h2 className="text-3xl font-bold text-black text-center mb-6">Color Placing</h2>
 
                         <div className="flex items-center justify-center gap-4">
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%205-jmSHaqTsDzmlPqxHfWk2cycuaybCft.png"
-                                    alt="Yellow 1 card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
-
+                            <UnoCard color="yellow" number="1" className="w-24 h-36" onClick={() => {}} disabled={false} />
                             <div className="text-2xl">←</div>
-
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%207-XPlpWVm8kGMcRo19Kq5uDudJZewGCX.png"
-                                    alt="Yellow 3 card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
                         </div>
 
                         <h2 className="text-3xl font-bold text-black text-center my-4">Number Placing</h2>
 
                         <div className="flex items-center justify-center gap-4">
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%206-OND6IFFWIo5d5BK3fBXbP3FmK9n1jx.png"
-                                    alt="Yellow 3 card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
-
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
                             <div className="text-2xl">←</div>
-
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%204-mj6G3V8UkQM7YYhqgrkc3clQhdmAEu.png"
-                                    alt="Blue 3 card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
+                            <UnoCard color="blue" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
                         </div>
                     </>
                 ) : page === 2 ? (
@@ -202,55 +179,25 @@ function HowToScreen() {
 
                         <div className="flex items-center justify-center gap-2">
                             <div className="relative">
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%204-mj6G3V8UkQM7YYhqgrkc3clQhdmAEu.png"
-                                    alt="Blue 3 card"
-                                    className="w-24 h-auto relative z-10"
-                                />
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%206-OND6IFFWIo5d5BK3fBXbP3FmK9n1jx.png"
-                                    alt="Yellow 3 card"
-                                    className="w-24 h-auto absolute -bottom-4 -left-4"
-                                />
+                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" onClick={() => {}} disabled={false} />
+                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -left-4" onClick={() => {}} disabled={false} />
                             </div>
 
                             <div className="text-2xl">→</div>
 
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%207-XPlpWVm8kGMcRo19Kq5uDudJZewGCX.png"
-                                    alt="Yellow 3 card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
                         </div>
                     </>
                 ) : page === 3 ? (
                     <>
-                        <h2 className="text-3xl font-bold text-black text-center mb-6">If Don't have card to play</h2>
+                        <h2 className="text-3xl font-bold text-black text-center mb-6">If Don&apos;t have card to play</h2>
 
                         <div className="flex items-center justify-center gap-6">
-                            <div>
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%201-I7HKVCwyEs17USCb9CxaZiXC1zRmY0.png"
-                                    alt="Wild card"
-                                    className="w-24 h-auto"
-                                />
-                            </div>
-
+                            <WildCard className="w-24 h-36" onClick={() => {}} disabled={false} />
                             <div className="text-2xl">→</div>
-
                             <div className="relative">
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%204-mj6G3V8UkQM7YYhqgrkc3clQhdmAEu.png"
-                                    alt="Blue 3 card"
-                                    className="w-24 h-auto relative z-10"
-                                />
-                                <img
-                                    src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/8671%206-OND6IFFWIo5d5BK3fBXbP3FmK9n1jx.png"
-                                    alt="Yellow 3 card"
-                                    className="w-24 h-auto absolute -bottom-4 -right-4"
-                                />
+                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" onClick={() => {}} disabled={false} />
+                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -right-4" onClick={() => {}} disabled={false} />
                             </div>
                         </div>
                     </>
@@ -261,50 +208,30 @@ function HowToScreen() {
                         <div className="flex flex-col gap-6">
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center">
-                                    <img
-                                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-09%20at%206.34.49%E2%80%AFPM%201-u6Zg1CsPGpTa7L9VtbqZMNikpWDE7y.png"
-                                        alt="Skip card"
-                                        className="w-16 h-auto mb-1"
-                                    />
+                                    <SkipCard color="red" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
                                     <span className="text-xs font-medium text-center">Skip Next Player</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <img
-                                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-09%20at%206.32.23%E2%80%AFPM%201-rinkXBTWRibRK0LiY3uJFYZVvdaV8A.png"
-                                        alt="Draw 2 card"
-                                        className="w-16 h-auto mb-1"
-                                    />
-                                    <span className="text-xs font-medium text-center">Next Player draws 2</span>
+                                    <PlusFiveCard className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <span className="text-xs font-medium text-center">Next Player draws 5</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <img
-                                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-09%20at%206.39.51%E2%80%AFPM%201-P6caDDP3gQ4ZdL4JdULUUrtL45leVI.png"
-                                        alt="Wild card"
-                                        className="w-16 h-auto mb-1"
-                                    />
+                                    <WildCard className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
                                     <span className="text-xs font-medium text-center">Swap Current Color</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center">
-                                    <img
-                                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-09%20at%206.35.42%E2%80%AFPM%201-EZeSUv0vdZm5BSinCmMDAyNAX7sqpq.png"
-                                        alt="Reverse card"
-                                        className="w-16 h-auto mb-1"
-                                    />
-                                    <span className="text-xs font-medium text-center">Flip game's order</span>
+                                    <ReverseCard color="green" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <span className="text-xs font-medium text-center">Flip game&apos;s order</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <img
-                                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Screenshot%202025-02-09%20at%206.44.03%E2%80%AFPM%201-I4Ax8YUtjf1TbYv6ZYHO2RQPHgQjoC.png"
-                                        alt="Draw 4 Wild card"
-                                        className="w-16 h-auto mb-1"
-                                    />
-                                    <span className="text-xs font-medium text-center">Wild card + 2 plus 2's</span>
+                                    <ColoredWildCard color="blue" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <span className="text-xs font-medium text-center">Wild card + color</span>
                                 </div>
                             </div>
                         </div>
@@ -333,27 +260,3 @@ function HowToScreen() {
         </div>
     )
 }
-
-
-
-/*
-"use client"
-
-import { useState } from "react"
-import { CircleHelp } from "lucide-react"
-import MobilePopup from "@/components/mobile-popup"
-
-export default function App() {
-  const [showPopup, setShowPopup] = useState(false)
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <CircleHelp
-        className="h-12 w-12 text-[#1789fc] cursor-pointer hover:scale-110 transition-transform"
-        onClick={() => setShowPopup(true)}
-      />
-      {showPopup && <MobilePopup onClose={() => setShowPopup(false)} />}
-    </div>
-  )
-}
- */

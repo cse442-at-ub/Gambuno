@@ -101,6 +101,8 @@ export function UnoCard({ color, number, className, onClick, disabled }) {
                                     top: position.top,
                                     left: position.left,
                                     transform: position.transform,
+
+                                    
                                 }}
                             >
                                 <img

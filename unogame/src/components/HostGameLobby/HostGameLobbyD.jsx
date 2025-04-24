@@ -1,3 +1,4 @@
+import { set } from "js-cookie";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
@@ -68,6 +69,20 @@ const HostGameLobby = () => {
       const result = await response.json();
       
       if (result.success) {
+        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+          method: "POST",
+            headers: { 
+            "Content-Type": "application/json" 
+          },
+          body: JSON.stringify({
+            gameID: gameID,
+            action: "get_game_state",
+            playerID : username
+          })
+        });
+        const result = await response.json();
+        setBetAmount(result.bettingAmount);
+        
         const playerID = username;
         navigate(`/game-board/${gameID}/${playerID}`);
       } else {

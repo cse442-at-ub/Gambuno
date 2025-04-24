@@ -71,7 +71,7 @@ const HostGameLobby = () => {
         const playerID = username;
         navigate(`/game-board/${gameID}/${playerID}`);
       } else {
-        alert("Error: " + result.error);
+        alert("Error: " + result.message);
       }
     } catch (error) {
       console.error("Join failed:", error);

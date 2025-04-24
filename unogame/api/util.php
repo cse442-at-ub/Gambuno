@@ -47,8 +47,18 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         return callApi($url, 'GET');
     }
 
-    function getCardList($playerID) {
-        $url = API_URL . "getPlayerCardList.php?action=getPlayerCardList&playerID=$playerID";
+    function getCardList($playerID, $gameID) {
+        $url = API_URL . "getPlayerCardList.php?action=getPlayerCardList&playerID=$playerID&gameID=$gameID";
+        return callApi($url, 'GET');
+    }
+
+    function getTotalGame($username) {
+        $url = API_URL . "getTotalGame.php?action=getTotalGame&username=$username";
+        return callApi($url, 'GET');
+    }
+
+    function getWins($username) {
+        $url = API_URL . "getWins.php?action=getWins&username=$username";
         return callApi($url, 'GET');
     }
 
@@ -68,6 +78,11 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
 
     function getPlayers($lobbyID) {
         $url = API_URL . "getPlayers.php?action=getPlayers&lobbyID=$lobbyID";
+        return callApi($url, 'GET');
+    }
+
+    function getCardEffect($gameID) {
+        $url = API_URL . "getCardEffect.php?action=getCardEffect&gameID=$gameID";
         return callApi($url, 'GET');
     }
 
@@ -91,6 +106,27 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
         ];
         return callApi($url, 'POST', $data);
     }
+
+    function setTotalGame($username, $val){
+        $url = API_URL . "setTotalGame.php";
+        $data = [
+            'action' => 'setTotalGame',
+            'username' => $username,
+            'val' => $val
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setWins($username, $val){
+        $url = API_URL . "setWins.php";
+        $data = [
+            'action' => 'setWins',
+            'username' => $username,
+            'win' => $val
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
     function setCurrentPlayer($gameID, $playerID) {
         $url = API_URL . "setCurrentPlayer.php";
         $data = [
@@ -127,6 +163,26 @@ const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/
             'action' => 'setHost',
             'gameID' => $gameID,
             'playerID' => $playerID
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setCardEffect($gameID, $effect) {
+        $url = API_URL . "setCardEffect.php";
+        $data = [
+            'action' => 'setCardEffect',
+            'gameID' => $gameID,
+            'fx' => $effect
+        ];
+        return callApi($url, 'POST', $data);
+    }
+
+    function setGameOrder($gameID, $gameOrder) {
+        $url = API_URL . "setGameOrder.php";
+        $data = [
+            'action' => 'setGameOrder',
+            'gameID' => $gameID,
+            'gameOrder' => $gameOrder
         ];
         return callApi($url, 'POST', $data);
     }

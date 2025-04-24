@@ -45,8 +45,23 @@ function isPlayerTurn($gameID, $playerID)
     
 }
 
+$colorMap = [
+    '0' => 'red',
+    '1' => 'blue',
+    '2' => 'green',
+    '3' => 'yellow',
+
+    '5' => 'red',
+    '6' => 'blue',
+    '7' => 'green',
+    '8' => 'yellow'
+];
+
+
 // Validate if a card can be played based on current card in play
-function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 0 as false
+function isValidCardPlay($currentCard, $playedCard): bool
+{//php treats 1 as true and 0 as false
+    global $colorMap;
     if (empty($currentCard) || empty($playedCard)) {
         return false; // If either card is empty, invalid play
     }
@@ -63,11 +78,26 @@ function isValidCardPlay($currentCard, $playedCard) {//php treats 1 as true and 
     list($currentColor, $currentValue) = explode('_', $currentCard);//explode = split
     list($playedColor, $playedValue) = explode('_', $playedCard);
 
+
+//    if($playedValue < '0' || $playedValue > '9'){
+//        return false;
+//    }
+
     // Wild card can always be played
-    if ($playedColor === 'wild' || $currentColor === 'wild') {
+    if ($playedColor === 'wild') {
+//        if($playedValue > '8' || $playedValue === '4'){
+//            return false;
+//        }
         return true;
     }
-    //add code here for +5 and +2
+
+
+    if($currentColor === 'wild'){
+        $currentColor = $colorMap[$currentValue];
+//        if($currentColor === $playedColor){
+//            return true;
+//        }
+    }
 
     // Same color or same value is a valid play
     if ($currentColor === $playedColor || $currentValue === $playedValue) {
@@ -95,27 +125,28 @@ function placeCard($gameID, $playerID, $card) {
         //returns: {"success":false,"message":"Invalid card play"}
     }
 
+
     // Check if player has this card
-    $s = json_encode(getCardList($playerID));
+    $s = json_encode(getCardList($playerID, $gameID));
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
-    if (!in_array($card, $playerCardsArray)) {
+    if (!in_array(wildConversion($card), $playerCardsArray)) {
         return json_encode(['success' => false, 'message' => 'You do not have this card']);
     }
 
     // Set the placed card
-    setPlacedCard($gameID, $playerID, $card);
+    setPlacedCard($gameID, $playerID, $card);//might need to be wildConversion($card) instead of $card
 
     // Remove card from player's hand
-    $playerCardsArray = array_diff($playerCardsArray, [$card]);//returns array of cards without the played card
+    $playerCardsArray = array_diff($playerCardsArray, [wildConversion($card)]);//returns array of cards without the played card
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Update current card in play
     setCurrentCard($gameID, $card);
 
     // Process card effects if any
-//    processCardEffect( $gameID, $card);
+    processCardEffect($gameID, $card);
 
     // Check if player has won (no cards left)
     if (count($playerCardsArray) === 0) {
@@ -129,100 +160,174 @@ function placeCard($gameID, $playerID, $card) {
     return json_encode(['success' => true, 'message' => 'Card played successfully']);
 }
 
-// Process special card effects
-function processCardEffect( $gameID, $card) {
+
+function wildConversion($card){
     list($color, $value) = explode('_', $card);
-    $effect = null;
-
-    // Determine card effect based on value
-    if ($value === 'skip') {
-        $effect = 'skip';
-    } else if ($value === 'reverse') {
-        $effect = 'reverse';
-        // Reverse the game order
-        $gameOrder = getGameOrder( $gameID);
-        $gameOrderArray = explode(',', $gameOrder);
-        $gameOrderArray = array_reverse($gameOrderArray);
-        setGameOrder($gameID, implode(',', $gameOrderArray));
-    } else if ($value === 'draw2') {
-        $effect = 'draw2';
-        // Implementation for drawing 2 cards will be added later
-    } else if ($color === 'wild') {
-        $effect = 'wild';
-        // Wild card effect handled by front-end choice
+    $value = (int) ($value);
+    if($color === 'wild'){
+        if($value >= "0" && $value <= "3"){
+            $card = 'wild_0';
+        }
+        elseif ($value >= 5 && $value <= 8){
+            $card = 'wild_5';
+        }
     }
-
-    // Set card effect in the database
-    if ($effect) {
-        setCardEffect( $gameID, $effect);
-    }
+    return $card;
 }
 
-// Move to the next player's turn
-function moveToNextPlayer($gameID) {
+
+// Process special card effects
+function processCardEffect($gameID, $card) {
+    list($color, $value) = explode('_', $card);
+    $effect = null;
+    
+
+    if($value === 'skip'){
+        $effect = 'skip';
+    }
+    else if($value === 'reverse'){
+        $effect = 'reverse';
+    }
+    else if($color === 'wild'){
+        $value = (int) ($value);
+        if($value >= 5 && $value <= 8){
+            $effect = 'draw5';
+        }
+    }
+    else{return;}
+
+    switch ($effect):
+        case 'draw5':
+            $player = getNextPlayer($gameID);
+            
+            $s = json_encode(getCardList($player, $gameID));
+            $playerCards = json_decode($s, true)["cardList"];
+            $playerCardsArray = explode(',', $playerCards);
+            
+
+            $newCards = generateCards(5);
+            $newCards = implode(",", $newCards);
+            $playerCardsArray[] = $newCards;
+            setCardList($gameID, $player, implode(',', $playerCardsArray));
+
+            $effect = 'draw5';
+            setCardEffect($gameID, $effect);
+            // Draw 5 cards logic
+            break;
+        case 'reverse':
+            setCardEffect($gameID, $effect);
+
+            $s = json_encode(getGameOrder($gameID));
+            $gameOrder =json_decode($s, true)["gameOrder"];
+            $gameOrderArray = explode(',', implode(",", $gameOrder));
+            $gameOrderArray = array_reverse($gameOrderArray);
+            setGameOrder($gameID, implode(',', $gameOrderArray));
+            setCardEffect($gameID, $effect);
+            break;
+        case 'skip':
+            setCardEffect($gameID, $effect);
+            break;
+        default:
+//            setCardEffect($gameID, $effect);
+    endswitch;
+
+}
+
+
+function getNextPlayer($gameID) {
+    // Get current player
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
 
-    //$h = json_encode(getGameOrder($gameID));
-    //$currentPlayer = json_decode($s, true)["currentPlayer"];
+    // Get game order
+    $b = json_encode(getGameOrder($gameID));
+    $gameOrderArray = json_decode($b, true)["gameOrder"];
+    $gameOrderArray = explode(',', implode(",",$gameOrderArray));
 
-    //$gameOrder = getGameOrder($gameID);
-    //$gameOrderArray = explode(',', $gameOrder);
-
-    // Find current player index
-    $b = json_encode(getPlayerList($gameID));
-    $gameOrderArray = json_decode($b, true)["playerList"];
-    $gameOrderArray = explode(',', $gameOrderArray);
+    // Find current player's index
     $currentIndex = array_search($currentPlayer, $gameOrderArray);
 
-    // Get card effect if any
-//    $cardEffect = getCardEffect( $gameID);
+    // Determine next player index with wrap-around
+    $nextIndex = ($currentIndex + 1) % count($gameOrderArray);
 
+    // Return next player
+    return $gameOrderArray[$nextIndex];
+}
+
+
+// Move to the next player's turn
+function moveToNextPlayer($gameID) {
+
+    $s = json_encode(getCurrentPlayer($gameID));
+    $currentPlayer = json_decode($s, true)["currentPlayer"];
+
+    // Find current player index
+    $b = json_encode(getGameOrder($gameID));
+    $gameOrderArray = json_decode($b, true)["gameOrder"];
+    $gameOrderArray = explode(',', implode(",",$gameOrderArray));
+
+    $currentIndex = array_search($currentPlayer, $gameOrderArray);
+    
+    // Get card effect if any
+    $h = json_encode(getCardEffect($gameID));
+    $cardEffect = json_decode($h, true)["effect"];
     // Determine next player index
     $nextIndex = ($currentIndex + 1) % count($gameOrderArray); // ensures circular ordering
 
 //    // Handle skip effect
-//    if ($cardEffect === 'skip') {
-//        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
-//        // Reset card effect after applying
-//        setCardEffect( $gameID, '');
-//    }
-//
+    if ($cardEffect === 'skip') {
+        $nextIndex = ($nextIndex + 1) % count($gameOrderArray);
+        $effect = 'NULL';
+        // Reset card effect after applying
+        setCardEffect($gameID, $effect);
+    }
+    
     // Set next player
     setCurrentPlayer($gameID, $gameOrderArray[$nextIndex]);
 }
 
 // Handle player drawing a card
-function drawCard($gameID, $playerID) {
+function drawCard($gameID, $playerID, $auto) {
     // Check if it's player's turn
     if (!isPlayerTurn($gameID, $playerID)) {
         return json_encode(['success' => false, 'message' => 'Not your turn']);
     }
 
     // Get player's current cards
-    $s = json_encode(getCardList($playerID));
+    $s = json_encode(getCardList($playerID, $gameID));
     $playerCards = json_decode($s, true)["cardList"];
     $playerCardsArray = explode(',', $playerCards);
 
-    // Generate a random card (in a real game, you'd draw from a deck)
-    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];//, 'skip', 'reverse', 'draw2'
+//    // Generate a random card (in a real game, you'd draw from a deck)
+//    $colors = ['red', 'blue', 'green', 'yellow', 'wild'];
+//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];//, 'skip', 'reverse', 'draw2'
+//
+//    if (rand(0, 10) > 8) {  // 20% chance of wild card
+//        $newCard = 'wild_' . rand(0, 0); // Only wild_0 for now
+//    } else {
+//        $color = $colors[rand(0, 3)]; // Exclude wild
+//        $value = $values[rand(0, count($values) - 1)];
+//        $newCard = $color . '_' . $value;
+//    }
 
-    if (rand(0, 10) > 8) {  // 20% chance of wild card
-        $newCard = 'wild_' . rand(0, 0); // Only wild_0 for now
-    } else {
-        $color = $colors[rand(0, 3)]; // Exclude wild
-        $value = $values[rand(0, count($values) - 1)];
-        $newCard = $color . '_' . $value;
-    }
-
+    $newCard = generateCards(1)[0];
     // Add card to player's hand
     $playerCardsArray[] = $newCard;
     setCardList($gameID, $playerID, implode(',', $playerCardsArray));
 
     // Move to next player's turn
-    moveToNextPlayer($gameID);
 
+    $h = json_encode(getCurrentCard($gameID));
+    $currentCard = json_decode($h, true)["curCard"];
+
+    // Check if card is valid to play
+
+    if(!isValidCardPlay($currentCard, $newCard) || $auto){
+        moveToNextPlayer($gameID);
+    }
+    
+    
+    
     return json_encode(['success' => true, 'message' => 'Card drawn successfully', 'new_card' => $newCard]);
 }
 
@@ -230,10 +335,12 @@ function drawCard($gameID, $playerID) {
 function handleGameWin($gameID, $playerID) {
     //should have the follow methods, updatePlayerWins($gameID, $playerID), updatePlayersStats($gameID, $playerID)
     // Update game status
-    setGameStatus( $gameID, 'finished');
+    setGameStatus($gameID, 'finished');
     $i = json_encode(getBettingAmount($gameID));
     $bettingAmt = json_decode($i, true)["betting"];
     
+    //$w = json_encode(getWins($playerID));
+    //$win = json_decode($w, true)["wins"];
 
     $b = json_encode(getPlayerList($gameID));
     $playersObj= json_decode($b, true)["playerList"];
@@ -245,6 +352,8 @@ function handleGameWin($gameID, $playerID) {
     $h = json_encode(getMoney($playerID));
     $currentMoney = json_decode($h, true)["money"];
     setMoney($playerID, ($currentMoney + $totalPot));
+
+    //setWins($playerID, ((int)$wins)+1);
 }
 
 // Create a new game
@@ -263,12 +372,16 @@ function createGame($playerID, $bettingAmount) {
     // Deduct betting amount
     setMoney($playerID, $playerMoney - $bettingAmount);
 
-    // Generate initial card
-    $colors = ['red', 'blue', 'green', 'yellow'];
-    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
-
+//    // Generate initial card
+//    $colors = ['red', 'blue', 'green', 'yellow'];
+//    $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+//    $initialCard = $colors[rand(0, 3)] . '_' . $values[rand(0, 9)];
+    $initialCard = generateCards(1)[0];
     $conn = getDatabaseConnection();
+
+    //$s = json_encode(getTotalGame($playerID));
+    //$total_games = json_decode($h, true)["totalgames"];
+
     // Create lobby entry
     $stmt = $conn->prepare("INSERT INTO lobby (gameID, curCard, curPlayer, playerList, gameOrder, betting_amt, gameStatus, cardEffect, host) VALUES (?, ?, ?, ?, ?, ?, 'waiting', '', ?)");
     $playerList = json_encode([$playerID]);
@@ -279,10 +392,14 @@ function createGame($playerID, $bettingAmount) {
 
     // Create player entry
     $playerName = $playerID;
-    $initialCards = json_encode(generateInitialCards());
-    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $initialCards = json_encode(generateCards(7));
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) VALUES (?, ?, ?, ?, '', 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerName, $initialCards);
     $stmt->execute();
+    
+    //setTotalGame($playerID, ((int) $total_games) + 1);
+    
+
 
     return json_encode(['success' => true, 'message' => 'Game created successfully', 'gameID' => $gameID]);
 }
@@ -340,8 +457,8 @@ function joinGame($gameID, $playerID) {
     $stmt->execute();
 
     // Add player to player table
-    $initialCards = json_encode(generateInitialCards());
-    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped, wins, total_games) VALUES (?, ?, ?, ?, '', 0, 0, 0)");
+    $initialCards = json_encode(generateCards(7));
+    $stmt = $conn->prepare("INSERT INTO players (gameID, playerID, playerName, cardList, placedCard, skipped) VALUES (?, ?, ?, ?, '', 0)");
     $stmt->bind_param("ssss", $gameID, $playerID, $playerID, $initialCards);
     $stmt->execute();
 
@@ -349,14 +466,33 @@ function joinGame($gameID, $playerID) {
 }
 
 // Generate initial cards for a player (7 random cards)
-function generateInitialCards() {
+function generateCards($numberOfCards): array
+{
     $colors = ['red', 'blue', 'green', 'yellow'];
     $values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $cards = [];
 
-    for ($i = 0; $i < 7; $i++) {
-        if (rand(0, 10) > 8) {  // 20% chance of wild card
-            $cards[] = 'wild_0';
+    for ($i = 0; $i < $numberOfCards; $i++) {
+        if (rand(0, 3) > 2) {  // 25% chance of special card
+            $randomValue = rand(0, 2);// 0 = skip, 1 = reverse, 2 = wilds
+            $color = $colors[rand(0, 3)];
+
+            if($randomValue === 0){
+                $cards[] = $color . '_skip';
+            }
+
+            if($randomValue === 1){
+                $cards[] = $color . '_reverse';
+            }
+
+            if($randomValue === 2){
+               if(rand(0, 1) === 0){
+                    $cards[] = 'wild_0';
+                }else{
+                    $cards[] = 'wild_5';
+                }
+            }
+
         } else {
             $color = $colors[rand(0, 3)];
             $value = $values[rand(0, count($values) - 1)];
@@ -401,7 +537,7 @@ function startGame($gameID, $playerID) {//just call
     }
 
     // Update game status
-    setGameStatus( $gameID, 'inProgress');
+    setGameStatus($gameID, 'inProgress');
 
     return json_encode(['success' => true, 'message' => 'Game started successfully']);
 }
@@ -480,6 +616,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Betting amount required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $data['bettingAmount'] = htmlspecialchars($data['bettingAmount'], ENT_QUOTES, 'UTF-8');
             echo createGame( $playerID, $data['bettingAmount']);
             break;
 
@@ -488,6 +626,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo joinGame($gameID, $playerID);
             break;
 
@@ -496,6 +636,8 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo startGame($gameID, $playerID);
             break;
 
@@ -504,6 +646,9 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID and card required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
+            $data['card'] = htmlspecialchars($data['card'], ENT_QUOTES, 'UTF-8');
             echo placeCard( $gameID, $playerID, $data['card']);
             break;
 
@@ -512,7 +657,11 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
-            echo drawCard($gameID, $playerID);
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
+            $auto = $data["auto"];
+            $auto = htmlspecialchars($auto, ENT_QUOTES, 'UTF-8');
+            echo drawCard($gameID, $playerID, $auto);
             break;
 
         case 'get_game_state':
@@ -520,12 +669,17 @@ if ($requestMethod === 'POST') {
                 echo json_encode(['success' => false, 'message' => 'Game ID required']);
                 break;
             }
+            $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
             echo getGameState($gameID, $playerID);
             break;
         
-        case "handlewin":
-            echo handleGameWin($gameID, $playerID);
+        case 'move':
+            $card = $data["card"];
+            $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
+            echo moveToNextPlayer($gameID);
             break;
+
         default:
             echo json_encode(['success' => false, 'message' => 'Unknown action']);
     }

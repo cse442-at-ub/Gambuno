@@ -81,6 +81,8 @@ function create_leaderboard($conn, $sort_by) {
     $query = "SELECT username, money, wins FROM users ORDER BY $sort_column DESC";
 
     // Using string interpolation for column names is safe here because we validated them
+
+    $query = "SELECT username, money, wins FROM users ORDER BY $sort_column DESC";
     $result = $conn->query($query);
 
     $leaderboard = [];

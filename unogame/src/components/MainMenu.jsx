@@ -16,7 +16,7 @@ function MainMenu() {
   const navigate = useNavigate();
 
   const goToPlayPage = () => {
-    navigate("/play");
+    navigate("/select-game");
 
   }
 

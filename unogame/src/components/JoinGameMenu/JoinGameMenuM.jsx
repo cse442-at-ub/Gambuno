@@ -14,7 +14,7 @@ const JoinGameMenu = () => {
     setError("");
     try {
       const requestURL =
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getWaitingLobbies.php?action=getWaitingLobbies";
+        "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getWaitingLobbies.php?action=getWaitingLobbies";
       const response = await fetch(requestURL);
       const responseText = await response.text();
 
@@ -47,7 +47,7 @@ const JoinGameMenu = () => {
     }
 
     try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
+      const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

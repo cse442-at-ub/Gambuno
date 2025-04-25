@@ -1,4 +1,6 @@
 import React from 'react';
+
+
                       import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                       import MainMenu from './components/MainMenu';
                       import PlayGame from './components/PlayGameMenu';
@@ -22,6 +24,7 @@ import React from 'react';
                       import UnoGame from './components/uno-game'; // Import UnoGame if needed
                       import MainMenuMobile from './components/MainMenuM';
                       import UnoGameBoard from "./components/gameLayout/game-board";
+                      import UnoGameBoard2 from "./components/gameLayout/game-boardM";
                       import WinningScreen from "./components/gameLayout/WinningScreen";
 
 
@@ -42,7 +45,7 @@ import React from 'react';
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
                               <Route path="/host-game-lobby/:gameID" element={<HostGameLobby />} />
                               <Route path="/leaderboard" element={<Leaderboard />} />
-                              <Route path="/game-board/:gameID/:playerID" element={<UnoGameBoard />} />,
+                              <Route path="/game-board/:gameID/:playerID" element={isMobile ? <UnoGameBoard2 /> : <UnoGameBoard/>} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
                               <Route path="/winning-screen/:gameID" element={<WinningScreen />} />
                             </Routes>

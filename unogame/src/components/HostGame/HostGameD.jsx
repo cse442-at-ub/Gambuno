@@ -16,7 +16,7 @@ const HostGame = () => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+        const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
         const cookieResult = await cookieResponse.json();
         
         if (cookieResult.status) {
@@ -24,7 +24,7 @@ const HostGame = () => {
           setCookie(cookieResult.cookie);
           
           // Get user metadata with the cookie
-          const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+          const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
           const metaResult = await metaResponse.json();
           
           if (metaResult.status) {
@@ -52,7 +52,7 @@ const HostGame = () => {
     console.log("Bet amount: ", bet);
     console.log("Username: ", user);
     try {
-      const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php', {
+      const response = await fetch('https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ const HostGame = () => {
 return (
 <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
-      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/play")}>
+      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/select-game")}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           height="24px"

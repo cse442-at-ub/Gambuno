@@ -1,7 +1,11 @@
 <?php
-header("Access-Control-Allow-Origin: *");
+//header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
+header('Access-Control-Allow-Origin: ' . $origin);
+header('Access-Control-Allow-Credentials: true');
+
+
 
 require_once 'auth.php';
 
@@ -32,9 +36,10 @@ function insertUser($data, $conn) {
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
             setcookie("auth", $authToken, time() + 3600, "/", "", true, true);
 
-            $sql = "INSERT INTO users (username, hashed_password, auth, money, wins, total_games) VALUES ('$username', '$hashedPassword', '$hashedAuthToken', '$money', 0, 0)";
-
-            if ($conn->query($sql) === TRUE) {
+            $sql = "INSERT INTO users (username, hashed_password, auth, money, wins, total_games) VALUES (?, ?, ?, ?, 0, 0)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssss", $username, $hashedPassword, $hashedAuthToken, $money);
+            if ( $stmt->execute()) {
                 echo json_encode(["status" => "success", "message" => "User created successfully"]);
             }
             else {
@@ -45,6 +50,7 @@ function insertUser($data, $conn) {
     else {
         echo json_encode(["status" => "error", "message" => "check"]);
     }
+    $stmt->close();
     $conn->close();
 }
 

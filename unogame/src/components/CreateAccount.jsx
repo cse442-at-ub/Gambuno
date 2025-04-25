@@ -41,7 +41,7 @@ const CreateAccount = () => {
         
         try{
         
-          const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
+          const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
             {
               method: 'POST',
               headers: {
@@ -68,88 +68,6 @@ const CreateAccount = () => {
             
       }
     }
-
-
-
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  
-    useEffect(() => {
-      const handleResize = () => {
-        setIsMobile(window.innerWidth <= 768);
-      };
-  
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-  if (isMobile){
-    return(
-      <div className="p-log-in-screen">
-        <div className="container">
-        <div className="login-card">
-          <h1 className="logo">NEXT GEN UNO</h1>
-          
-          <form onSubmit = {handleSubmit}>
-          <div className="input-group">
-            <label htmlFor="username">Username</label>
-            <input 
-            type="text" 
-            id="username" 
-            name="username"
-            placeholder="Enter your username"
-            onChange={(e) => setUsername(e.target.value)} 
-            />
-          </div>
-
-          <div className="input-group">
-            <label htmlFor="password">Create Password</label>
-            <input 
-            type="text" 
-            id="password" 
-            name="password"
-            placeholder="Enter your password"
-            onChange={(e) => setPassword(e.target.value)} 
-            />
-          </div>
-
-          <div className="input-group">
-            <label htmlFor="password">Confirm Password</label>
-            <input 
-            type="text" 
-            id="password" 
-            name="password"
-            placeholder="Enter your password"
-            onChange={(e) => setPassword2(e.target.value)} 
-            />
-          </div>
-
-          <div className="whitespace-pre-line">
-              <p className = "text-red-500 font-bold">{valid.message}</p>
-            </div>
-
-          <button type="submit" className="login-button1">Sign up</button>
-          </form>
-          <span className = "new-acct"><p>
-          Already have an account?{" "}
-          <button onClick={goToLogin} className="create-account">
-            Log In
-          </button>
-          </p>
-          </span>
-        </div>
-
-        <div className="logo-group1" onClick={() => navigate('/')}>
-          <div className="logo-container1">
-            <div className= "logo-background1"/>
-            <img className="next-gen-logo1" src={NEXTGEN} alt="Next GEN" />
-            <img className="uno-logo1" src={UNO2} alt="Uno" />
-          </div>
-        </div>
-        </div>
-      </div>
-    )
-  }
-
 
     
   return (

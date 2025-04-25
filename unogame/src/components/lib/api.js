@@ -3,7 +3,7 @@
  * Handles all communication with the backend PHP game logic
  */
 
-const API_PATH = "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php";
+const API_PATH = "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php";
 
 /**
  * Initialize a new game with the specified number of players
@@ -44,9 +44,10 @@ export async function initializeGame(gameId, playerId) {
  * Draw a card for the specified player
  * @param gameId
  * @param {String} playerId - ID of the player drawing a card
+ * @param {Boolean} auto
  * @returns {Promise<Object>} - Updated game state with new card
  */
-export async function drawCard(gameId,playerId) {
+export async function drawCard(gameId,playerId, auto) {
     try {
         const response = await fetch(`${API_PATH}`, {
             method: 'POST',
@@ -58,6 +59,7 @@ export async function drawCard(gameId,playerId) {
                 "gameID": gameId.toString(),
                 "playerID": playerId.toString(),
                 "playerName" : "",
+                "auto" : auto,
                 "card" : "",
                 "host" : "",
                 "bettingAmount": "",
@@ -144,7 +146,7 @@ export async function getGameState(gameId, playerId) {
 
 export async function createGame(playerID, bettingAmount) {
     try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+        const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -174,7 +176,7 @@ export async function createGame(playerID, bettingAmount) {
 
 export async function joinGame(gameId, playerId) {
     try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+        const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

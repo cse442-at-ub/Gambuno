@@ -18,7 +18,7 @@ const HostGameLobby = () => {
       const initializeAuth = async () => {
         try {
           setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
           const cookieResult = await cookieResponse.json();
           
           if (cookieResult.status) {
@@ -26,7 +26,7 @@ const HostGameLobby = () => {
             setCookie(cookieResult.cookie);
             
             // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
             const metaResult = await metaResponse.json();
             
             if (metaResult.status) {
@@ -54,7 +54,7 @@ const HostGameLobby = () => {
   const handleStartGame = async () => {
     
     try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+      const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
         method: "POST",
           headers: { 
           "Content-Type": "application/json" 
@@ -71,7 +71,7 @@ const HostGameLobby = () => {
         const playerID = username;
         navigate(`/game-board/${gameID}/${playerID}`);
       } else {
-        alert("Error: " + result.error);
+        alert("Error: " + result.message);
       }
     } catch (error) {
       console.error("Join failed:", error);
@@ -85,7 +85,7 @@ const HostGameLobby = () => {
     const fetchPlayersInLobby = async () => {
       console.log(gameID);
       try {
-        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
+        const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
 
         const data = await response.json();
 
@@ -110,7 +110,7 @@ const HostGameLobby = () => {
   }, [gameID, username]);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-4 sm:p-6 relative">
       {/* Back Button */}
       <button
         className="absolute top-4 left-4 p-2"
@@ -136,12 +136,9 @@ const HostGameLobby = () => {
       )}
 
       {/* Title */}
-      <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mt-16">Waiting for Players</h1>
 
-      {/* Bet Amount */}
-      <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${bet}
-      </div>
+
 
       {/* Error Message */}
       {error && <p className="text-red-700 text-center mt-2">{error}</p>}
@@ -151,8 +148,8 @@ const HostGameLobby = () => {
         {players.map((player) => (
           <div
             key={player.id}
-            className="flex justify-between items-center w-96 p-4 bg-white rounded-lg shadow-md border"
-          >
+            className="flex justify-between items-center w-full max-w-xs sm:w-96 p-3 sm:p-4 bg-white rounded-lg shadow border"
+            >
             <span className="text-lg font-semibold">
               {player.name} {player.isHost && "(Host)"}
             </span>

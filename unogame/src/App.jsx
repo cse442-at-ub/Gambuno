@@ -47,7 +47,7 @@ import React from 'react';
                               <Route path="/leaderboard" element={<Leaderboard />} />
                               <Route path="/game-board/:gameID/:playerID" element={isMobile ? <UnoGameBoard2 /> : <UnoGameBoard/>} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
-                              <Route path="/winning/:gameID" element={<WinningScreen />} />
+                              <Route path="/winning-screen/:gameID" element={<WinningScreen />} />
                             </Routes>
                           </Router>
                         );

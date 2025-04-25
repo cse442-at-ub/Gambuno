@@ -77,7 +77,6 @@ export default function WinningScreen() {
         const hostData = await hostRes.json();
         setIsHost(hostData.currentPlayer);
 
-
         /*
         // Get Betting Amount
         const betRes = await fetch(
@@ -86,8 +85,6 @@ export default function WinningScreen() {
         const betData = await betRes.json();
         const betAmount = betData.betting || 0;
         console.log(betAmount);
-
-
         const totalPlayer = playerList.length;
         console.log(totalPlayer);
         */
@@ -169,6 +166,7 @@ export default function WinningScreen() {
 
   const { width, height } = useWindowSize();
   const [showConfetti, setShowConfetti] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const timer = setTimeout(() => {
     setShowConfetti(false);

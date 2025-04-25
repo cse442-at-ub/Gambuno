@@ -407,11 +407,8 @@ export default function UnoGameBoard() {
         setGameState(state)
         if (String(state.gameStatus) === "finished") {
           navigate(`/winning/${gameID}`);
-
         }
         
-
-        // Find the current player's data to get their hand
         const currentPlayerData = state.players.find((player) => player.playerID === playerID)
         if (currentPlayerData && currentPlayerData.cardList) {
           setPlayerHand(currentPlayerData.cardList.split(","))
@@ -750,6 +747,7 @@ export default function UnoGameBoard() {
   const effectiveColor = wildColorMap[gameState?.currentCard];
   
   return (
+
     // <div className="flex flex-col h-screen bg-[#3e8914] from-emerald-900 to-black p-4 overflow-hidden">
     //   {/* Game header with info */}
     //   <div className="flex justify-between items-center mb-2">

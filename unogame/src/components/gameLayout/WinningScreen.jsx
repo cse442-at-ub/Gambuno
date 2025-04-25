@@ -52,6 +52,7 @@ export default function WinningScreen() {
       initializeAuth();
     }, []); // Empty dependency array means this runs once on component mount
 
+
   useEffect(() => {
     const fetchWinnerAndMoney = async () => {
       try {
@@ -76,6 +77,7 @@ export default function WinningScreen() {
         const hostData = await hostRes.json();
         setIsHost(hostData.currentPlayer);
 
+
         /*
         // Get Betting Amount
         const betRes = await fetch(
@@ -84,6 +86,7 @@ export default function WinningScreen() {
         const betData = await betRes.json();
         const betAmount = betData.betting || 0;
         console.log(betAmount);
+
 
         const totalPlayer = playerList.length;
         console.log(totalPlayer);
@@ -145,8 +148,10 @@ export default function WinningScreen() {
           });
         }
       */
+
         winnerID = player;
         winnerName = player;
+
         console.log(winnerID);
 
 
@@ -171,8 +176,6 @@ export default function WinningScreen() {
   useEffect(() => {
     return () => clearTimeout(timer); // Cleanup timer on unmount
   }, [timer]);
-
-
 
   return (    
   <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-green-900 to-black text-white">
@@ -254,3 +257,4 @@ export default function WinningScreen() {
     </div>
   );
 }
+

@@ -160,7 +160,7 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                         <h2 className="text-3xl font-bold text-black text-center mb-6">Color Placing</h2>
 
                         <div className="flex items-center justify-center gap-4">
-                            <UnoCard color="yellow" number="1" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="yellow" number="1" className="w-24 h-36" />
                             <div className="text-2xl">←</div>
                             <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false}/>
                         </div>
@@ -170,7 +170,7 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                         <div className="flex items-center justify-center gap-4">
                             <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false}/>
                             <div className="text-2xl">←</div>
-                            <UnoCard color="blue" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="blue" number="3" className="w-24 h-36" />
                         </div>
                     </>
                 ) : page === 2 ? (
@@ -230,6 +230,7 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                                 </div>
 
                                 <div className="flex flex-col items-center">
+
                                     <ColoredWildCard color="blue" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false}/>
                                     <span className="text-xs font-medium text-center">Wild card + color</span>
                                 </div>

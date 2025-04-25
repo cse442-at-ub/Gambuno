@@ -378,6 +378,7 @@ export default function UnoGameBoard() {
         : playerData.currentPlayer;
     console.log(player);
 
+
     try {
       setIsLoading(true);
       const result = await drawCard(gameID, player, true);
@@ -406,7 +407,9 @@ export default function UnoGameBoard() {
         setGameState(state)
         if (String(state.gameStatus) === "finished") {
           navigate(`/winning/${gameID}`);
+
         }
+        
 
         // Find the current player's data to get their hand
         const currentPlayerData = state.players.find((player) => player.playerID === playerID)

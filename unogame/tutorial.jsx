@@ -31,6 +31,7 @@ const Tutorial = () => {
                         onClick={() => {
                             setCurrentBranch("howToPlay")
                             setCurrentScreenId("howToPlay")
+
                         }}
                     >
                         How to Play

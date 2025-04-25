@@ -672,22 +672,22 @@ export default function UnoGame() {
 
         if (cardDetails.type === "wild") {
             return currentColor ? (
-                <ColoredWildCard color={currentColor} className={cardSize} disabled={true} />
+                <ColoredWildCard color={currentColor} className={cardSize} disabled={true} onClick={() => {}} />
             ) : (
-                <WildCard className={cardSize} disabled={true} />
+                <WildCard className={cardSize} disabled={true} onClick={() => {}} />
             )
         } else if (cardDetails.type === "plus5") {
             return currentColor ? (
-                <ColoredPlusFiveCard color={currentColor} className={cardSize} disabled={true} />
+                <ColoredPlusFiveCard color={currentColor} className={cardSize} disabled={true} onClick={() => {}} />
             ) : (
-                <PlusFiveCard className={cardSize} disabled={true} />
+                <PlusFiveCard className={cardSize} disabled={true} onClick={() => {}} />
             )
         } else if (cardDetails.type === "reverse") {
-            return <ReverseCard color={cardDetails.color} className={cardSize} disabled={true} />
+            return <ReverseCard color={cardDetails.color} className={cardSize} disabled={true} onClick={() => {}} />
         } else if (cardDetails.type === "skip") {
-            return <SkipCard color={cardDetails.color} className={cardSize} disabled={true} />
+            return <SkipCard color={cardDetails.color} className={cardSize} disabled={true} onClick={() => {}} />
         } else {
-            return <UnoCard color={cardDetails.color} number={cardDetails.number} className={cardSize} disabled={true} />
+            return <UnoCard color={cardDetails.color} number={cardDetails.number} className={cardSize} disabled={true} onClick={() => {}} />
         }
     }
 
@@ -783,7 +783,7 @@ export default function UnoGame() {
                                         {Array(Math.min(deck.length, isMobile ? 3 : 5))
                                             .fill(0)
                                             .map((_, i) => (
-                                                <CardBack key={i} isDark={true} className="w-6 h-9 sm:w-10 sm:h-14" />
+                                                <CardBack key={i} isDark={true} className="w-6 h-9 sm:w-10 sm:h-14" isPile={false} onClick={() => {}} />
                                             ))}
                                     </div>
                                     <p className="mt-1 sm:mt-2 text-xs sm:text-sm">{deck.length} cards</p>
@@ -795,7 +795,7 @@ export default function UnoGame() {
                         <div className="flex justify-center items-center gap-4 sm:gap-8 mb-4 sm:mb-8">
                             {/* Draw pile */}
                             <div className="flex flex-col items-center">
-                                <CardBack isDark={true} className="w-16 h-24 sm:w-20 sm:h-28 mb-1 sm:mb-2" onClick={drawCard} />
+                                <CardBack isDark={true} isPile={true} className="w-16 h-24 sm:w-20 sm:h-28 mb-1 sm:mb-2" onClick={drawCard} />
                                 <p className="text-xs sm:text-sm">{drawCardPile.length} cards</p>
                                 <button
                                     onClick={drawCard}
@@ -829,3 +829,4 @@ export default function UnoGame() {
         </div>
     )
 }
+

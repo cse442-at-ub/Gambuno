@@ -1,5 +1,5 @@
 <?php
-const API_URL = 'https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/';
+const API_URL = 'https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/';
 
 include 'util.php';
 

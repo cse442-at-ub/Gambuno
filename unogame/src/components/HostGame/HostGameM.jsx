@@ -2,20 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const HostGame = () => {
-  const navigate = useNavigate();
-  const [betAmount, setBetAmount] = useState(null);
-  const [username, setUsername] = useState("");
-  const [money, setMoney] = useState(null);
-  const [cookie, setCookie] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Use useEffect for API calls
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        setIsLoading(true);
-        const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
-        const cookieResult = await cookieResponse.json();
+    const navigate = useNavigate()
+    const [betAmount, setBetAmount] = useState("")
+    const [currentBalance, setCurrentBalance] = useState(Number(localStorage.getItem("money")));
+      
+      const generateGameCode = async () => {
+        try {
+          const response = await fetch('https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
+          const data = await response.json();
         
         if (cookieResult.status) {
           console.log("Cookie acquired:", cookieResult.cookie);
@@ -50,9 +44,31 @@ const HostGame = () => {
       const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
       const data = await response.json();
     
-      if (data.success) {
-        console.log("Game code generated successfully:", data.message); // Store the generated game code in a variable
-        return data.message; // This is the generated game code
+        // Update money in database
+        const updateMoneyInDatabase = async (username, money) => {
+          try {
+            const response = await fetch('https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/update_money.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                username: username,
+                money: parseFloat(money)
+              })
+            });
+        
+            const data = await response.json();
+        
+            if (data.status === 'success') {
+              console.log('Money updated successfully');
+            } else {
+              console.error('Failed to update money:', data.message);
+            }
+          } catch (error) {
+            console.error('Error updating money:', error);
+          }
+        };
         
       } else {
         console.error("Failed to generate game code:", data.error);

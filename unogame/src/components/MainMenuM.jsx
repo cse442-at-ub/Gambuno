@@ -21,11 +21,6 @@ function MainMenu() {
 
   }
 
-  const goToLeaderboard = () => {
-    navigate("/leaderboard");
-
-  }
-
   const goToLogin = () => {
     navigate("/login");
   
@@ -54,7 +49,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?username=${username}`);
+      const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?username=${username}`);
       const data = await response.json();
 
       if (data.money !== undefined) {
@@ -106,7 +101,7 @@ useEffect(() => {
         </nav>
 
         <footer className="footer">
-          <button className="icon-button" onClick={goToLeaderboard} >...</button>
+          <button className="icon-button">...</button>
           <img 
           className="help-icon" 
           src={tutorialCircle} 

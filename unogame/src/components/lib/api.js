@@ -3,7 +3,7 @@
  * Handles all communication with the backend PHP game logic
  */
 
-const API_PATH = "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php";
+const API_PATH = "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php";
 
 /**
  * Initialize a new game with the specified number of players
@@ -146,7 +146,7 @@ export async function getGameState(gameId, playerId) {
 
 export async function createGame(playerID, bettingAmount) {
     try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+        const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ export async function createGame(playerID, bettingAmount) {
 
 export async function joinGame(gameId, playerId) {
     try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+        const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

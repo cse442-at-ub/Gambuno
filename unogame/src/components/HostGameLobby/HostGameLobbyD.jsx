@@ -2,79 +2,119 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const HostGameLobby = () => {
-  const { gameCode } = useParams(); // Read game code from URL
+  const { gameID } = useParams(); // Read game code from URL
   const location = useLocation();
-  const [players, setPlayers] = useState([]);
   const navigate = useNavigate();
+  const [players, setPlayers] = useState([]);
+  const [error, setError] = useState("");
+  const [bet, setBetAmount] = useState("");
+  const [username, setUsername] = useState("");
+  const [money, setMoney] = useState(null);
+  const [cookie, setCookie] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+    
+    // Use useEffect for API calls
+    useEffect(() => {
+      const initializeAuth = async () => {
+        try {
+          setIsLoading(true);
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResult = await cookieResponse.json();
+          
+          if (cookieResult.status) {
+            console.log("Cookie acquired:", cookieResult.cookie);
+            setCookie(cookieResult.cookie);
+            
+            // Get user metadata with the cookie
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResult = await metaResponse.json();
+            
+            if (metaResult.status) {
+              setUsername(metaResult.username);
+              setMoney(metaResult.money);
+              console.log("Username:", metaResult.username, "Money:", metaResult.money);
+            } else {
+              console.error("Failed to get user metadata:", metaResult);
+            }
+          } else {
+            console.error("Failed to get cookie:", cookieResult);
+          }
+        } catch (error) {
+          console.error("Error during initialization:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      initializeAuth();
+    }, []); // Empty dependency array means this runs once on component mount
+    
 
-  // Extract bet amount from navigation state
-  const betAmount = location.state?.betAmount || 0;
 
-  // Create the lobby once gameCode is available
-  useEffect(() => {
-    const createLobby = async () => {
-      const username = localStorage.getItem("username");
-
-      if (!username || !gameCode) {
-        console.error("Missing username or game code");
-        return;
-      }
-
-      try {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php", {
-          method: "POST",
+  const handleStartGame = async () => {
+    
+    try {
+      const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+        method: "POST",
           headers: { 
-            "Content-Type": "application/json" 
-          },
-          body: JSON.stringify({
-            gameID: gameCode,
-            action: 'create',
-            playerID: '1',
-            playerName: username,
-            bet_amount: betAmount
-          })
-        });
+          "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({
+          gameID: gameID,
+          action: "start_game",
+          playerID : username
+        })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        const playerID = username;
+        navigate(`/game-board/${gameID}/${playerID}`);
+      } else {
+        alert("Error: " + result.message);
+      }
+    } catch (error) {
+      console.error("Join failed:", error);
+      alert("Network error while joining the game.");
+    }
+  };
+
+  // Fetch players in the lobby (polling every 3 seconds)
+  useEffect(() => {
+    
+    const fetchPlayersInLobby = async () => {
+      console.log(gameID);
+      try {
+        const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
 
         const data = await response.json();
 
-        if (data.success) {
-          console.log("Lobby created!", data);
-          setPlayers([{ 
-            id: username, 
-            name: username, 
-            ready: false,
-            isHost: true 
-          }]);
-        } else {
-          console.error("Error creating lobby:", data.error);
-          alert("Failed to create lobby: " + data.error);
+        if (data.status === "success") {
+          const players = data.playerList.split(",");
+          const updatedPlayers = players.map((id) => ({
+            id,
+            name: id,
+            ready: false, // You can extend to handle actual readiness later
+            isHost: id === username,
+          }));
+          setPlayers(updatedPlayers);
         }
       } catch (error) {
-        console.error("Failed to create lobby:", error);
-        alert("Network error. Please check your connection.");
+        console.error("Error fetching player list:", error);
+        setError("Failed to fetch player list.");
       }
     };
 
-    createLobby();
-  }, [gameCode, betAmount]);
-
-  // Toggle readiness (local only for now)
-  const toggleReady = (id) => {
-    setPlayers((prev) =>
-      prev.map((player) =>
-        player.id === id ? { ...player, ready: !player.ready } : player
-      )
-    );
-  };
-
-  const allReady = players.length > 0 && players.every((p) => p.ready);
+    const interval = setInterval(fetchPlayersInLobby, 3000);
+    return () => clearInterval(interval);
+  }, [gameID, username]);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-6 relative">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-orange-500 to-yellow-500 p-4 sm:p-6 relative">
       {/* Back Button */}
-      <button 
-        className="absolute top-4 left-4 p-2" 
-        aria-label="Back" 
+      <button
+        className="absolute top-4 left-4 p-2"
+        aria-label="Back"
         onClick={() => navigate("/play")}
       >
         <svg
@@ -88,49 +128,39 @@ const HostGameLobby = () => {
         </svg>
       </button>
 
-      {/* Display Game Code */}
-      {gameCode && (
+      {/* Game Code */}
+      {gameID && (
         <div className="absolute top-4 right-4 px-4 py-2 bg-white rounded-md shadow-md text-lg">
-          Code: {gameCode}
+          Code: {gameID}
         </div>
       )}
 
       {/* Title */}
-      <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-center mt-16">Waiting for Players</h1>
 
-      {/* Bet Amount Display */}
-      <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${betAmount}
-      </div>
 
-      {/* Players List */}
+
+      {/* Error Message */}
+      {error && <p className="text-red-700 text-center mt-2">{error}</p>}
+
+      {/* Player List */}
       <div className="mt-6 flex flex-col items-center space-y-4">
         {players.map((player) => (
           <div
             key={player.id}
-            className="flex justify-between items-center w-96 p-4 bg-white rounded-lg shadow-md border"
-          >
+            className="flex justify-between items-center w-full max-w-xs sm:w-96 p-3 sm:p-4 bg-white rounded-lg shadow border"
+            >
             <span className="text-lg font-semibold">
               {player.name} {player.isHost && "(Host)"}
             </span>
-            <button
-              className={`px-4 py-1 rounded-md font-semibold text-white ${
-                player.ready ? "bg-green-500" : "bg-red-500"
-              }`}
-              onClick={() => toggleReady(player.id)}
-            >
-              {player.ready ? "Ready" : "Waiting"}
-            </button>
           </div>
         ))}
       </div>
 
       {/* Start Game Button */}
       <button
-        className={`px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 ${
-          allReady ? "bg-red-500 text-white" : "bg-gray-400 text-gray-700 cursor-not-allowed"
-        }`}
-        disabled={!allReady}
+        className={"px-4 py-3 text-lg font-semibold rounded-lg shadow-md w-48 mx-auto block mt-12 bg-red-500 text-white"}
+        onClick={handleStartGame}
       >
         Start Game
       </button>

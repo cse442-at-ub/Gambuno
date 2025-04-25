@@ -1,61 +1,93 @@
 <?php
-// joinLobby.php
-error_reporting(0);
-header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
-// Ensure the request method is POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(["status" => "error", "message" => "Invalid request method"]);
-    exit;
-}
+include 'db_connection.php'; // Ensure this file sets up your $conn variable
 
-// Retrieve the JSON payload.
-$input = file_get_contents("php://input");
-$data = json_decode($input, true);
-
-if (!$data) {
-    echo json_encode(["status" => "error", "message" => "Invalid JSON"]);
-    exit;
-}
-
-// Ensure required parameters are present.
-if (!isset($data['gameID']) || !isset($data['playerName'])) {
-    echo json_encode(["status" => "error", "message" => "Missing parameters"]);
-    exit;
-}
-
-$gameID = $data['gameID'];
-$playerName = $data['playerName'];
-
-// Database connection parameters – update these with your actual credentials.
 $host = "localhost";
 $user = "kurianva";
 $pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
-$conn = new mysqli($host, $user, $password, $database);
+// Create connection
+$conn = new mysqli($host, $user, $pass, $dbname);
+
 if ($conn->connect_error) {
-    echo json_encode(["status" => "error", "message" => "Database connection failed"]);
+    echo json_encode(["status" => "error", "message" => "Connection failed: " . $conn->connect_error]);
     exit;
 }
 
-// Use prepared statement for insertion.
-$stmt = $conn->prepare("INSERT INTO players (gameID, playerName, ready) VALUES (?, ?, ?)");
-if (!$stmt) {
-    echo json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]);
+// Get the raw POST data and decode it as JSON
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
+
+// Validate input
+if (!$data || empty($data['gameID']) || empty($data['playerName'])) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid data provided. Expected gameID and playerName.'
+    ]);
     exit;
 }
 
-$ready = 0; // 0 for not ready
-$stmt->bind_param("ssi", $gameID, $playerName, $ready);
+// Sanitize input values
+$gameID = trim($conn->real_escape_string($data['gameID']));
+$playerName = "name45643";
+
+// Fetch the player's ID using the provided playerName
+$query = "SELECT playerID FROM players WHERE playerName = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("s", $playerName);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Player not found. Ensure you have registered.'
+    ]);
+    exit;
+}
+
+$row = $result->fetch_assoc();
+$playerID = $row['playerID'];
+$stmt->close();
+
+// Ensure the game exists
+$gameCheckQuery = "SELECT gameID FROM games WHERE gameID = ?";
+$gameCheckStmt = $conn->prepare($gameCheckQuery);
+$gameCheckStmt->bind_param("s", $gameID);
+$gameCheckStmt->execute();
+$gameCheckResult = $gameCheckStmt->get_result();
+
+if ($gameCheckResult->num_rows === 0) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Game not found. Please check the game ID.'
+    ]);
+    exit;
+}
+$gameCheckStmt->close();
+
+// Insert the player into the game_players table to link them to the game
+$query = "INSERT INTO game_players (gameID, playerID, playerName) 
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE playerName = VALUES(playerName)";
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param("sss", $gameID, $playerID, $playerName);
 
 if ($stmt->execute()) {
-    echo json_encode(["status" => "success"]);
+    echo json_encode(['status' => 'success', 'playerName' => $playerName]);
 } else {
-    echo json_encode(["status" => "error", "message" => "Database insertion failed: " . $stmt->error]);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Database error: ' . $stmt->error
+    ]);
 }
 
 $stmt->close();
 $conn->close();
+exit;
 ?>

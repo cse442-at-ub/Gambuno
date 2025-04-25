@@ -20,7 +20,7 @@ if ($conn->connect_error) {
 
 // Handle getWaitingLobbies action
 if (isset($_GET['action']) && $_GET['action'] === 'getWaitingLobbies') {
-    $query = "SELECT gameID, playerList, gameStatus FROM lobby WHERE gameStatus = 'waiting'";
+    $query = "SELECT gameID, playerList, gameStatus, betting_amt FROM lobby WHERE gameStatus = 'waiting'";
     $result = $conn->query($query);
 
     $lobbies = [];

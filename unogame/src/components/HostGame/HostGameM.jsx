@@ -10,7 +10,7 @@ const HostGame = () => {
       
       const generateGameCode = async () => {
         try {
-          const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
+          const response = await fetch('https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gamecode.php');
           const data = await response.json();
         
           if (data.success) {
@@ -48,7 +48,7 @@ const HostGame = () => {
         // Update money in database
         const updateMoneyInDatabase = async (username, money) => {
           try {
-            const response = await fetch('https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/update_money.php', {
+            const response = await fetch('https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/update_money.php', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

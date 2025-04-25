@@ -22,7 +22,7 @@ export default function WinningScreen() {
       const initializeAuth = async () => {
         try {
           setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
           const cookieResult = await cookieResponse.json();
           
           if (cookieResult.status) {
@@ -30,7 +30,7 @@ export default function WinningScreen() {
             setCookie(cookieResult.cookie);
             
             // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
             const metaResult = await metaResponse.json();
             
             if (metaResult.status) {
@@ -57,7 +57,7 @@ export default function WinningScreen() {
       try {
         // Get Player List
         const playerRes = await fetch(
-          `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`
+          `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`
         );
         const playerData = await playerRes.json();
         console.log(playerData);
@@ -71,7 +71,7 @@ export default function WinningScreen() {
 
         // Get Host ID to check if current player is host
         const hostRes = await fetch(
-          `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getHost.php?action=getHost&gameID=${gameID}`
+          `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getHost.php?action=getHost&gameID=${gameID}`
         );
         const hostData = await hostRes.json();
         setIsHost(hostData.currentPlayer);
@@ -79,7 +79,7 @@ export default function WinningScreen() {
         /*
         // Get Betting Amount
         const betRes = await fetch(
-        `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getBettingAmount.php?action=getBettingAmount&gameID=${gameID}`
+        `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getBettingAmount.php?action=getBettingAmount&gameID=${gameID}`
         );
         const betData = await betRes.json();
         const betAmount = betData.betting || 0;
@@ -95,7 +95,7 @@ export default function WinningScreen() {
         // Find Winner
         for (const player of playerList) {
           const cardRes = await fetch(
-            `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerCardList.php?action=getPlayerCardList&playerID=${player}`
+            `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerCardList.php?action=getPlayerCardList&playerID=${player}`
           );
           
           const cardData = await cardRes.json();
@@ -116,7 +116,7 @@ export default function WinningScreen() {
         const results = [];
         for (const player of players) {
           const moneyRes = await fetch(
-            "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getMoney.php?action=getMoney&playerID=${player.playerID}"
+            "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getMoney.php?action=getMoney&playerID=${player.playerID}"
           );
           const moneyData = await moneyRes.json();
           const originalMoney = parseFloat(moneyData.money) || 0;
@@ -134,7 +134,7 @@ export default function WinningScreen() {
 
           // Update Money
           await fetch(
-            "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/setMoney.php?action=setMoney&playerID=${player.playerID}&money=${finalMoney}"
+            "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/setMoney.php?action=setMoney&playerID=${player.playerID}&money=${finalMoney}"
           );
 
           results.push({

@@ -1,4 +1,3 @@
-import { set } from "js-cookie";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
@@ -19,7 +18,7 @@ const HostGameLobby = () => {
       const initializeAuth = async () => {
         try {
           setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
           const cookieResult = await cookieResponse.json();
           
           if (cookieResult.status) {
@@ -27,7 +26,7 @@ const HostGameLobby = () => {
             setCookie(cookieResult.cookie);
             
             // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
             const metaResult = await metaResponse.json();
             
             if (metaResult.status) {
@@ -55,7 +54,7 @@ const HostGameLobby = () => {
   const handleStartGame = async () => {
     
     try {
-      const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
+      const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
         method: "POST",
           headers: { 
           "Content-Type": "application/json" 
@@ -69,20 +68,6 @@ const HostGameLobby = () => {
       const result = await response.json();
       
       if (result.success) {
-        const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php", {
-          method: "POST",
-            headers: { 
-            "Content-Type": "application/json" 
-          },
-          body: JSON.stringify({
-            gameID: gameID,
-            action: "get_game_state",
-            playerID : username
-          })
-        });
-        const result = await response.json();
-        setBetAmount(result.bettingAmount);
-        
         const playerID = username;
         navigate(`/game-board/${gameID}/${playerID}`);
       } else {
@@ -100,7 +85,7 @@ const HostGameLobby = () => {
     const fetchPlayersInLobby = async () => {
       console.log(gameID);
       try {
-        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
+        const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getPlayerList.php?action=getPlayerList&gameID=${gameID}`);
 
         const data = await response.json();
 
@@ -153,10 +138,6 @@ const HostGameLobby = () => {
       {/* Title */}
       <h1 className="text-3xl font-bold text-center mt-16">Waiting for Players</h1>
 
-      {/* Bet Amount */}
-      <div className="text-center mt-4 text-xl font-semibold">
-        Bet Amount: ${bet}
-      </div>
 
       {/* Error Message */}
       {error && <p className="text-red-700 text-center mt-2">{error}</p>}

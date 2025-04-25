@@ -108,7 +108,7 @@
 //   const handleGameEnd = async () => {
 //     try {
 //       const playerRes = await fetch(
-//         `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`,
+//         `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerList.php?action=getPlayerList&gameID=${gameID}`,
 //       )
 //       const playerData = await playerRes.json()
 //       const players = typeof playerData.players === "string" ? JSON.parse(playerData.players) : playerData.players
@@ -121,7 +121,7 @@
 
 //       for (const player of players) {
 //         const cardRes = await fetch(
-//           `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}`,
+//           `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getPlayerCardList.php?action=getPlayerCardList&gameID=${gameID}&playerID=${player.playerID}`,
 //         )
 //         const cardData = await cardRes.json()
 //         const cardList = cardData.cardList ? cardData.cardList.split(",") : []
@@ -135,7 +135,7 @@
 
 //       if (winnerID) {
 //         await fetch(
-//           `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/setMoney.php?action=setMoney&playerID=${winnerID}&money=${moneyToSet}`,
+//           `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/setMoney.php?action=setMoney&playerID=${winnerID}&money=${moneyToSet}`,
 //         )
 //       }
 //     } catch (err) {
@@ -686,7 +686,7 @@ export default function UnoGameBoardMobile() {
 
   const handleAutoDraw = async () => {
     const playerRes = await fetch(
-      `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`,
+      `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`,
     )
     const playerData = await playerRes.json()
     const player =

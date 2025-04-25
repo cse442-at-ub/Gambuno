@@ -26,7 +26,7 @@ const Leaderboard = () => {
       const startTime = performance.now()
       // Use the full URL path as in the attachment
       const response = await fetch(
-        `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=leaderboard&sort_by=${sortBy}`,
+        `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=leaderboard&sort_by=${sortBy}`,
       )
 
       // Simple headers logging for JSX

@@ -368,7 +368,7 @@ export default function UnoGameBoard() {
 
   const handleAutoDraw = async () => {
     const playerRes = await fetch(
-      `https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`
+      `https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/utils/getCurrentPlayer.php?action=getCurrentPlayer&gameID=${gameID}`
     );
     const playerData = await playerRes.json();
     console.log(playerData);

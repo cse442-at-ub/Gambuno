@@ -41,7 +41,7 @@ const CreateAccount = () => {
         
         try{
         
-          const response = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
+          const response = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/index.php",
             {
               method: 'POST',
               headers: {

@@ -1,10 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
-// Import Star icon from Material-UI
-import StarIcon from "@mui/icons-material/Star"
+import {
+    UnoCard,
+    WildCard,
+    CardBack,
+    ColorPicker,
+    ReverseCard,
+    SkipCard,
+    PlusFiveCard,
+    ColoredWildCard,
+    ColoredPlusFiveCard,
+} from "./gameLayout/cards/cards"
 
 export default function UnoGame() {
+    // Map colors to their respective hex color values
+    const colorHexMap = {
+        red: "#F42C04",
+        blue: "#1789FC",
+        yellow: "#FFB30F",
+        green: "#3E8914",
+    }
+
     // CSS-in-JS styles to ensure the game works without Tailwind
     const styles = {
         container: {
@@ -226,6 +243,21 @@ export default function UnoGame() {
     const [gameMessage, setGameMessage] = useState("Your turn")
     const [showColorPicker, setShowColorPicker] = useState(false)
     const [lastPlayedWild, setLastPlayedWild] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    // Check if device is mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768)
+        }
+
+        checkMobile()
+        window.addEventListener("resize", checkMobile)
+
+        return () => {
+            window.removeEventListener("resize", checkMobile)
+        }
+    }, [])
 
     // Card mapping for display
     const getCardDetails = (card) => {
@@ -233,6 +265,10 @@ export default function UnoGame() {
 
         if (card === "W") {
             return { type: "wild", color: null, number: null }
+        }
+
+        if (card === "P5") {
+            return { type: "plus5", color: null, number: null }
         }
 
         const number = card[0]
@@ -243,6 +279,15 @@ export default function UnoGame() {
             G: "green",
             B: "blue",
             Y: "yellow",
+        }
+
+        // Check for special cards
+        if (number === "S") {
+            return { type: "skip", color: colorMap[colorCode], number: null }
+        }
+
+        if (number === "R") {
+            return { type: "reverse", color: colorMap[colorCode], number: null }
         }
 
         return {
@@ -273,6 +318,10 @@ export default function UnoGame() {
         "8R",
         "9R",
         "9R",
+        "SR",
+        "SR",
+        "RR",
+        "RR",
         "0G",
         "1G",
         "1G",
@@ -292,6 +341,10 @@ export default function UnoGame() {
         "8G",
         "9G",
         "9G",
+        "SG",
+        "SG",
+        "RG",
+        "RG",
         "0B",
         "1B",
         "1B",
@@ -311,6 +364,10 @@ export default function UnoGame() {
         "8B",
         "9B",
         "9B",
+        "SB",
+        "SB",
+        "RB",
+        "RB",
         "0Y",
         "1Y",
         "1Y",
@@ -330,10 +387,18 @@ export default function UnoGame() {
         "8Y",
         "9Y",
         "9Y",
+        "SY",
+        "SY",
+        "RY",
+        "RY",
         "W",
         "W",
         "W",
         "W",
+        "P5",
+        "P5",
+        "P5",
+        "P5",
     ]
 
     // Function to shuffle an array
@@ -353,7 +418,7 @@ export default function UnoGame() {
 
         // Extract 1 card for played pile
         let initialCard = shuffledDeck.shift()
-        while (initialCard === "W") {
+        while (initialCard === "W" || initialCard === "P5") {
             shuffledDeck.push(initialCard)
             initialCard = shuffledDeck.shift()
         }
@@ -393,7 +458,7 @@ export default function UnoGame() {
 
             // Find playable cards
             const playableCards = botDeck.filter((card) => {
-                if (card === "W") return true
+                if (card === "W" || card === "P5") return true
 
                 const cardDetails = getCardDetails(card)
                 return cardDetails.number === currentNumber || cardDetails.color === currentColor
@@ -412,18 +477,51 @@ export default function UnoGame() {
                 // Add to played pile
                 setPlayedPile((prev) => [playedCard, ...prev])
 
-                // Handle wild card
+                // Handle special cards
                 if (playedCard === "W") {
                     // Bot chooses a random color
                     const colors = ["red", "blue", "green", "yellow"]
                     const randomColor = colors[Math.floor(Math.random() * colors.length)]
                     setCurrentColor(randomColor)
                     setGameMessage(`Bot ${currentPlayer} played Wild and chose ${randomColor}`)
+                } else if (playedCard === "P5") {
+                    // Bot chooses a random color for +5
+                    const colors = ["red", "blue", "green", "yellow"]
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)]
+                    setCurrentColor(randomColor)
+
+                    // Next player draws 5 cards
+                    const nextPlayer = (currentPlayer + 1) % 4
+                    if (nextPlayer === 0) {
+                        // Player draws 5 cards
+                        const newCards = drawCardPile.slice(0, 5)
+                        const newDrawPile = drawCardPile.slice(5)
+                        setPlayerDeck([...playerDeck, ...newCards])
+                        setDrawCardPile(newDrawPile)
+                    } else {
+                        // Bot draws 5 cards
+                        const nextBotIndex = nextPlayer - 1
+                        const newCards = drawCardPile.slice(0, 5)
+                        const newDrawPile = drawCardPile.slice(5)
+
+                        const newBotDecks = [...botDecks]
+                        newBotDecks[nextBotIndex] = [...botDecks[nextBotIndex], ...newCards]
+                        setBotDecks(newBotDecks)
+                        setDrawCardPile(newDrawPile)
+                    }
+
+                    setGameMessage(`Bot ${currentPlayer} played +5 and chose ${randomColor}`)
+
+                    // Skip the next player
+                    setCurrentPlayer((currentPlayer + 2) % 4)
+                    return
                 } else {
                     // Update current card properties
                     setCurrentNumber(playedCardDetails.number)
                     setCurrentColor(playedCardDetails.color)
-                    setGameMessage(`Bot ${currentPlayer} played ${playedCardDetails.number} ${playedCardDetails.color}`)
+                    setGameMessage(
+                        `Bot ${currentPlayer} played ${playedCardDetails.number || playedCardDetails.type} ${playedCardDetails.color}`,
+                    )
                 }
 
                 // Check if bot won
@@ -462,7 +560,7 @@ export default function UnoGame() {
         const cardDetails = getCardDetails(card)
 
         // Check if the card is playable
-        const isWild = card === "W"
+        const isWild = card === "W" || card === "P5"
         const isPlayable = isWild || cardDetails.number === currentNumber || cardDetails.color === currentColor
 
         if (isPlayable) {
@@ -474,16 +572,32 @@ export default function UnoGame() {
             // Add card to played pile
             setPlayedPile([card, ...playedPile])
 
-            // Handle wild card
-            if (isWild) {
+            // Handle special cards
+            if (card === "W") {
                 setLastPlayedWild(true)
                 setShowColorPicker(true)
                 setGameMessage("Choose a color")
+            } else if (card === "P5") {
+                setLastPlayedWild(true)
+                setShowColorPicker(true)
+                setGameMessage("Choose a color for +5")
+
+                // Bot 1 draws 5 cards
+                const newCards = drawCardPile.slice(0, 5)
+                const newDrawPile = drawCardPile.slice(5)
+
+                const newBotDecks = [...botDecks]
+                newBotDecks[0] = [...botDecks[0], ...newCards]
+                setBotDecks(newBotDecks)
+                setDrawCardPile(newDrawPile)
+
+                // After color selection, we'll skip Bot 1
+                // This is handled in handleColorSelect
             } else {
                 // Update current card properties
                 setCurrentNumber(cardDetails.number)
                 setCurrentColor(cardDetails.color)
-                setGameMessage(`You played ${cardDetails.number} ${cardDetails.color}`)
+                setGameMessage(`You played ${cardDetails.number || cardDetails.type} ${cardDetails.color}`)
 
                 // Move to next player
                 setCurrentPlayer(1)
@@ -524,7 +638,7 @@ export default function UnoGame() {
 
         // Extract 1 card for played pile
         let initialCard = shuffledDeck.shift()
-        while (initialCard === "W") {
+        while (initialCard === "W" || initialCard === "P5") {
             shuffledDeck.push(initialCard)
             initialCard = shuffledDeck.shift()
         }
@@ -548,512 +662,110 @@ export default function UnoGame() {
         setLastPlayedWild(false)
     }
 
-    // Card Components
-    function UnoCard({ color, number, className, onClick, disabled }) {
-        // Map colors to their respective hex color values
-        const colorHexMap = {
-            red: "#F42C04",
-            blue: "#1789FC",
-            yellow: "#FFB30F",
-            green: "#3E8914",
-        }
-
-        // Create an array of positions for the stars in a circle
-        const starPositions = [
-            { top: "10%", left: "50%", transform: "translate(-50%, 0) rotate(0deg)" },
-            { top: "15%", left: "75%", transform: "translate(-50%, 0) rotate(45deg)" },
-            { top: "30%", left: "90%", transform: "translate(-50%, 0) rotate(90deg)" },
-            { top: "50%", left: "95%", transform: "translate(-50%, -50%) rotate(135deg)" },
-            { top: "70%", left: "90%", transform: "translate(-50%, -100%) rotate(180deg)" },
-            { top: "85%", left: "75%", transform: "translate(-50%, -100%) rotate(225deg)" },
-            { top: "90%", left: "50%", transform: "translate(-50%, -100%) rotate(270deg)" },
-            { top: "85%", left: "25%", transform: "translate(-50%, -100%) rotate(315deg)" },
-            { top: "70%", left: "10%", transform: "translate(-50%, -100%) rotate(0deg)" },
-            { top: "50%", left: "5%", transform: "translate(-50%, -50%) rotate(45deg)" },
-            { top: "30%", left: "10%", transform: "translate(-50%, 0) rotate(90deg)" },
-            { top: "15%", left: "25%", transform: "translate(-50%, 0) rotate(135deg)" },
-        ]
-
-        // Card styles
-        const cardStyles = {
-            button: {
-                position: "relative",
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                transition: "transform 0.2s",
-                cursor: disabled ? "not-allowed" : "pointer",
-                width: className?.includes("w-20") ? "5rem" : className?.includes("w-16") ? "4rem" : "5rem",
-                height: className?.includes("h-28") ? "7rem" : className?.includes("h-24") ? "6rem" : "7rem",
-            },
-            outerBorder: {
-                position: "absolute",
-                inset: "0",
-                backgroundColor: "black",
-                borderRadius: "0.5rem",
-            },
-            innerCard: {
-                position: "absolute",
-                inset: "4px",
-                backgroundColor: "#fffffb",
-                borderRadius: "0.375rem",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-            topLeftNumber: {
-                position: "absolute",
-                top: "0.25rem",
-                left: "0.25rem",
-                zIndex: "10",
-            },
-            bottomRightNumber: {
-                position: "absolute",
-                bottom: "0.25rem",
-                right: "0.25rem",
-                zIndex: "10",
-            },
-            numberText: {
-                color: colorHexMap[color],
-                fontSize: "clamp(0.8rem, 2vw, 1.5rem)",
-                textShadow: "0 0 2px rgba(255, 255, 255, 0.8)",
-                fontWeight: "900",
-            },
-            starsContainer: {
-                position: "absolute",
-                width: "92%",
-                height: "86.25%",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-            },
-            centerNumber: {
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                zIndex: "10",
-                color: colorHexMap[color],
-                fontSize: "clamp(1.5rem, 4vw, 3rem)",
-                textShadow: "0 0 3px rgba(255, 255, 255, 0.9)",
-                fontWeight: "900",
-            },
-            star: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "absolute",
-            },
-        }
-
-        return (
-            <button
-                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-                onClick={onClick}
-                disabled={disabled}
-                type="button"
-                style={cardStyles.button}
-            >
-                {/* Card background with thicker border */}
-                <div className="absolute inset-0 bg-black rounded-lg" style={cardStyles.outerBorder}>
-                    <div
-                        className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center"
-                        style={cardStyles.innerCard}
-                    >
-                        {/* Number in top left - improved visibility */}
-                        <div className="absolute top-1 left-1 z-10" style={cardStyles.topLeftNumber}>
-              <span style={cardStyles.numberText} className="font-bold">
-                {number}
-              </span>
-                        </div>
-
-                        {/* Number in bottom right - improved visibility */}
-                        <div className="absolute bottom-1 right-1 z-10" style={cardStyles.bottomRightNumber}>
-              <span style={cardStyles.numberText} className="font-bold">
-                {number}
-              </span>
-                        </div>
-
-                        {/* Ring of stars around the number */}
-                        <div className="absolute" style={cardStyles.starsContainer}>
-                            {/* Stars around the number */}
-                            {starPositions.map((position, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        ...cardStyles.star,
-                                        top: position.top,
-                                        left: position.left,
-                                        transform: position.transform,
-                                    }}
-                                >
-                                    <StarIcon
-                                        style={{
-                                            color: colorHexMap[color],
-                                            fontSize: "0.75rem",
-                                        }}
-                                    />
-                                </div>
-                            ))}
-
-                            {/* Center number - improved visibility */}
-                            <div
-                                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10"
-                                style={cardStyles.centerNumber}
-                            >
-                <span
-                    style={{
-                        color: colorHexMap[color],
-                        fontSize: "clamp(1.5rem, 4vw, 3rem)",
-                        textShadow: "0 0 3px rgba(255, 255, 255, 0.9)",
-                        fontWeight: "900",
-                    }}
-                    className="font-bold"
-                >
-                  {number}
-                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </button>
-        )
-    }
-
-    function WildCard({ className, onClick, disabled }) {
-        // Card styles
-        const cardStyles = {
-            button: {
-                position: "relative",
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                transition: "transform 0.2s",
-                cursor: disabled ? "not-allowed" : "pointer",
-                width: className?.includes("w-20") ? "5rem" : className?.includes("w-16") ? "4rem" : "5rem",
-                height: className?.includes("h-28") ? "7rem" : className?.includes("h-24") ? "6rem" : "7rem",
-            },
-            outerBorder: {
-                position: "absolute",
-                inset: "0",
-                backgroundColor: "black",
-                borderRadius: "0.5rem",
-            },
-            innerCard: {
-                position: "absolute",
-                inset: "4px",
-                backgroundColor: "#fffffb",
-                borderRadius: "0.375rem",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-            topLeftStar: {
-                position: "absolute",
-                top: "0.25rem",
-                left: "0.25rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-            bottomRightStar: {
-                position: "absolute",
-                bottom: "0.25rem",
-                right: "0.25rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-            centerOval: {
-                border: "3px solid black",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "92%",
-                height: "86.25%",
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-            },
-            centerStarContainer: {
-                width: "75%",
-                height: "75%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-        }
-
-        // Rainbow gradient for wild card star
-        const wildStarStyle = {
-            background: "linear-gradient(45deg, #F42C04, #FFB30F, #3E8914, #1789FC)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            fontSize: "1.5rem",
-        }
-
-        // Smaller stars for corners
-        const cornerStarStyle = {
-            ...wildStarStyle,
-            fontSize: "1rem",
-        }
-
-        return (
-            <button
-                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-                onClick={onClick}
-                disabled={disabled}
-                type="button"
-                style={cardStyles.button}
-            >
-                {/* Card background */}
-                <div className="absolute inset-0 bg-black rounded-lg" style={cardStyles.outerBorder}>
-                    <div
-                        className="absolute inset-[4px] bg-[#fffffb] rounded-md flex flex-col items-center justify-center"
-                        style={cardStyles.innerCard}
-                    >
-                        {/* Star in top left */}
-                        <div style={cardStyles.topLeftStar}>
-                            <StarIcon style={cornerStarStyle} />
-                        </div>
-
-                        {/* Star in bottom right */}
-                        <div style={cardStyles.bottomRightStar}>
-                            <StarIcon style={cornerStarStyle} />
-                        </div>
-
-                        {/* Center oval with wild star */}
-                        <div
-                            className="border-[3px] sm:border-[4px] border-black rounded-[50%] flex items-center justify-center"
-                            style={cardStyles.centerOval}
-                        >
-                            <div style={cardStyles.centerStarContainer}>
-                                <StarIcon style={wildStarStyle} fontSize="large" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </button>
-        )
-    }
-
-    function CardBack({ className, isDark = false, onClick }) {
-        const bgColor = isDark ? "bg-black" : "bg-[#fffffb]"
-        const starColor = isDark ? "#FFFFFF" : "#000000"
-
-        // Add white border class only for dark mode cards
-        const borderClass = isDark ? "border-[2px] border-white" : ""
-
-        // Card styles
-        const cardStyles = {
-            button: {
-                position: "relative",
-                borderRadius: "0.5rem",
-                overflow: "hidden",
-                boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                transition: "transform 0.2s",
-                cursor: "pointer",
-                width: className?.includes("w-20") ? "5rem" : className?.includes("w-8") ? "2rem" : "5rem",
-                height: className?.includes("h-28") ? "7rem" : className?.includes("h-12") ? "3rem" : "7rem",
-            },
-            outerBorder: {
-                position: "absolute",
-                inset: "0",
-                backgroundColor: "black",
-                borderRadius: "0.5rem",
-            },
-            innerCard: {
-                position: "absolute",
-                inset: "4px",
-                backgroundColor: isDark ? "black" : "#fffffb",
-                borderRadius: "0.375rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: isDark ? "2px solid white" : "none",
-            },
-            starContainer: {
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-            },
-        }
-
-        return (
-            <button
-                className={`relative rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 ${className || ""}`}
-                onClick={onClick}
-                type="button"
-                style={cardStyles.button}
-            >
-                {/* Card background */}
-                <div className="absolute inset-0 bg-black rounded-lg" style={cardStyles.outerBorder}>
-                    <div
-                        className={`absolute inset-[4px] ${bgColor} ${borderClass} rounded-md flex items-center justify-center`}
-                        style={cardStyles.innerCard}
-                    >
-                        {/* Center star */}
-                        <div style={cardStyles.starContainer}>
-                            <StarIcon style={{ color: starColor, fontSize: "2rem" }} />
-                        </div>
-                    </div>
-                </div>
-            </button>
-        )
-    }
-
-    function ColorPicker({ onSelectColor, onClose }) {
-        const colors = ["red", "blue", "green", "yellow"]
-        const colorHexMap = {
-            red: "#F42C04",
-            blue: "#1789FC",
-            yellow: "#FFB30F",
-            green: "#3E8914",
-        }
-
-        // Handle color selection and close
-        const handleColorSelect = (color) => {
-            onSelectColor(color)
-            if (onClose) onClose()
-        }
-
-        return (
-            <div
-                className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
-                style={styles.colorPickerOverlay}
-            >
-                <div
-                    className="bg-black bg-opacity-90 rounded-xl p-6 shadow-2xl border-2 border-white max-w-xs w-full"
-                    style={styles.colorPickerContainer}
-                >
-                    <div className="flex justify-between items-center mb-4" style={styles.colorPickerHeader}>
-                        <h3 className="text-white text-xl font-bold" style={styles.colorPickerTitle}>
-                            Choose a color
-                        </h3>
-                        {onClose && (
-                            <button
-                                onClick={onClose}
-                                className="text-white hover:text-gray-300"
-                                aria-label="Close color picker"
-                                style={styles.closeButton}
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    style={{ width: "1.5rem", height: "1.5rem" }}
-                                >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4" style={styles.colorGrid}>
-                        {colors.map((color) => (
-                            <button
-                                key={color}
-                                onClick={() => handleColorSelect(color)}
-                                className="w-full h-20 rounded-xl shadow-lg transform transition-transform hover:scale-105 border-4 border-white flex items-center justify-center"
-                                style={{
-                                    ...styles.colorButton,
-                                    backgroundColor: colorHexMap[color],
-                                }}
-                                aria-label={`Select ${color}`}
-                            >
-                <span
-                    className={`font-bold text-lg ${color === "yellow" ? "text-black" : "text-white"}`}
-                    style={{
-                        ...styles.colorButtonText,
-                        color: color === "yellow" ? "black" : "white",
-                    }}
-                >
-                  {color.toUpperCase()}
-                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
     // Render the top card from the played pile
     const renderTopCard = () => {
         if (playedPile.length === 0) return null
 
         const topCard = playedPile[0]
         const cardDetails = getCardDetails(topCard)
+        const cardSize = isMobile ? "w-16 h-24" : "w-20 h-28 sm:w-24 sm:h-36"
 
         if (cardDetails.type === "wild") {
-            return <WildCard className="w-20 h-28 sm:w-24 sm:h-36" disabled={true} />
+            return currentColor ? (
+                <ColoredWildCard color={currentColor} className={cardSize} disabled={true} onClick={() => {}} />
+            ) : (
+                <WildCard className={cardSize} disabled={true} onClick={() => {}} />
+            )
+        } else if (cardDetails.type === "plus5") {
+            return currentColor ? (
+                <ColoredPlusFiveCard color={currentColor} className={cardSize} disabled={true} onClick={() => {}} />
+            ) : (
+                <PlusFiveCard className={cardSize} disabled={true} onClick={() => {}} />
+            )
+        } else if (cardDetails.type === "reverse") {
+            return <ReverseCard color={cardDetails.color} className={cardSize} disabled={true} onClick={() => {}} />
+        } else if (cardDetails.type === "skip") {
+            return <SkipCard color={cardDetails.color} className={cardSize} disabled={true} onClick={() => {}} />
+        } else {
+            return <UnoCard color={cardDetails.color} number={cardDetails.number} className={cardSize} disabled={true} onClick={() => {}} />
+        }
+    }
+
+    // Render player card
+    const renderPlayerCard = (card, index) => {
+        const cardDetails = getCardDetails(card)
+        const isDisabled = currentPlayer !== 0 || gameOver || lastPlayedWild
+        const cardSize = isMobile ? "w-14 h-20" : "w-16 h-24 sm:w-20 sm:h-28"
+
+        if (cardDetails.type === "wild") {
+            return <WildCard key={index} className={cardSize} onClick={() => playCard(index)} disabled={isDisabled} />
+        } else if (cardDetails.type === "plus5") {
+            return <PlusFiveCard key={index} className={cardSize} onClick={() => playCard(index)} disabled={isDisabled} />
+        } else if (cardDetails.type === "reverse") {
+            return (
+                <ReverseCard
+                    key={index}
+                    color={cardDetails.color}
+                    className={cardSize}
+                    onClick={() => playCard(index)}
+                    disabled={isDisabled}
+                />
+            )
+        } else if (cardDetails.type === "skip") {
+            return (
+                <SkipCard
+                    key={index}
+                    color={cardDetails.color}
+                    className={cardSize}
+                    onClick={() => playCard(index)}
+                    disabled={isDisabled}
+                />
+            )
         } else {
             return (
                 <UnoCard
+                    key={index}
                     color={cardDetails.color}
                     number={cardDetails.number}
-                    className="w-20 h-28 sm:w-24 sm:h-36"
-                    disabled={true}
+                    className={cardSize}
+                    onClick={() => playCard(index)}
+                    disabled={isDisabled}
                 />
             )
         }
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white p-4" style={styles.container}>
-            <h1 className="text-3xl font-bold text-center mb-6" style={styles.title}>
+        <div className="min-h-screen bg-[#0a5c36] text-white p-2 sm:p-4 font-sans">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-6 text-yellow-300 drop-shadow-md">
                 UNO Game
             </h1>
 
             {gameOver ? (
-                <div className="flex flex-col items-center justify-center space-y-6" style={styles.winnerContainer}>
-                    <h2 className="text-4xl font-bold text-yellow-400" style={styles.winnerText}>
-                        {winner} won!
-                    </h2>
+                <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-yellow-300 drop-shadow-lg">{winner} won!</h2>
                     <button
                         onClick={restartGame}
-                        className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg transition-colors"
-                        style={styles.playAgainButton}
+                        className="px-4 py-2 sm:px-6 sm:py-3 bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800 rounded-lg font-bold text-base sm:text-lg transition-colors shadow-lg"
                     >
                         Play Again
                     </button>
                 </div>
             ) : (
-                <div className="flex flex-col items-center" style={styles.gameContainer}>
-                    <div className="w-full max-w-4xl" style={styles.gameContent}>
+                <div className="flex flex-col items-center">
+                    <div className="w-full max-w-4xl">
                         {/* Game status */}
-                        <div className="bg-gray-800 rounded-lg p-3 mb-4 text-center" style={styles.statusBar}>
-                            <h2 className="text-xl font-semibold" style={styles.statusText}>
+                        <div className="bg-[#074428] rounded-lg p-2 sm:p-3 mb-3 sm:mb-4 text-center shadow-md">
+                            <h2 className="text-lg sm:text-xl font-semibold">
                                 {gameMessage}
-                                {currentPlayer > 0 && (
-                                    <span className="ml-2 text-yellow-400" style={styles.botTurnText}>
-                    (Bot {currentPlayer}'s turn)
-                  </span>
-                                )}
+                                {currentPlayer > 0 && <span className="ml-2 text-yellow-300">(Bot {currentPlayer}'s turn)</span>}
                             </h2>
-                            <p className="text-sm text-gray-400" style={styles.colorText}>
+                            <p className="text-xs sm:text-sm text-gray-300">
                                 Current color:{" "}
                                 <span
                                     className="font-bold"
                                     style={{
-                                        color:
-                                            currentColor === "red"
-                                                ? "#F42C04"
-                                                : currentColor === "blue"
-                                                    ? "#1789FC"
-                                                    : currentColor === "yellow"
-                                                        ? "#FFB30F"
-                                                        : "#3E8914",
+                                        color: colorHexMap[currentColor],
                                         fontWeight: "bold",
                                     }}
                                 >
@@ -1063,87 +775,49 @@ export default function UnoGame() {
                         </div>
 
                         {/* Bot cards */}
-                        <div className="grid grid-cols-3 gap-4 mb-6" style={styles.botGrid}>
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
                             {botDecks.map((deck, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-gray-800 rounded-lg p-3 flex flex-col items-center"
-                                    style={styles.botCard}
-                                >
-                                    <h3 className="text-lg font-semibold mb-2" style={styles.botTitle}>
-                                        Bot {index + 1}
-                                    </h3>
-                                    <div className="flex flex-wrap justify-center gap-1" style={styles.botCardContainer}>
-                                        {Array(Math.min(deck.length, 5))
+                                <div key={index} className="bg-[#074428] rounded-lg p-2 sm:p-3 flex flex-col items-center shadow-md">
+                                    <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Bot {index + 1}</h3>
+                                    <div className="flex flex-wrap justify-center gap-1">
+                                        {Array(Math.min(deck.length, isMobile ? 3 : 5))
                                             .fill(0)
                                             .map((_, i) => (
-                                                <CardBack key={i} isDark={true} className="w-8 h-12 sm:w-10 sm:h-14" />
+                                                <CardBack key={i} isDark={true} className="w-6 h-9 sm:w-10 sm:h-14" isPile={false} onClick={() => {}} />
                                             ))}
                                     </div>
-                                    <p className="mt-2 text-sm" style={styles.cardCount}>
-                                        {deck.length} cards
-                                    </p>
+                                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm">{deck.length} cards</p>
                                 </div>
                             ))}
                         </div>
 
                         {/* Play area */}
-                        <div className="flex justify-center items-center gap-8 mb-8" style={styles.playArea}>
+                        <div className="flex justify-center items-center gap-4 sm:gap-8 mb-4 sm:mb-8">
                             {/* Draw pile */}
-                            <div className="flex flex-col items-center" style={styles.drawPileContainer}>
-                                <CardBack isDark={true} className="w-20 h-28 sm:w-24 sm:h-36 mb-2" onClick={drawCard} />
-                                <p className="text-sm" style={styles.cardCount}>
-                                    {drawCardPile.length} cards
-                                </p>
+                            <div className="flex flex-col items-center">
+                                <CardBack isDark={true} isPile={true} className="w-16 h-24 sm:w-20 sm:h-28 mb-1 sm:mb-2" onClick={drawCard} />
+                                <p className="text-xs sm:text-sm">{drawCardPile.length} cards</p>
                                 <button
                                     onClick={drawCard}
                                     disabled={currentPlayer !== 0 || gameOver || lastPlayedWild}
-                                    className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{
-                                        ...styles.drawButton,
-                                        ...(currentPlayer !== 0 || gameOver || lastPlayedWild ? styles.disabledButton : {}),
-                                    }}
+                                    className="mt-1 sm:mt-2 px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-md text-sm sm:text-base"
                                 >
                                     Draw
                                 </button>
                             </div>
 
                             {/* Played pile */}
-                            <div className="flex flex-col items-center" style={styles.playedPileContainer}>
+                            <div className="flex flex-col items-center">
                                 <div className="relative">{renderTopCard()}</div>
-                                <p className="text-sm mt-2" style={styles.cardCount}>
-                                    Played pile
-                                </p>
+                                <p className="text-xs sm:text-sm mt-1 sm:mt-2">Played pile</p>
                             </div>
                         </div>
 
                         {/* Player's hand */}
-                        <div className="bg-gray-800 rounded-lg p-4" style={styles.playerHandContainer}>
-                            <h3 className="text-lg font-semibold mb-3" style={styles.playerHandTitle}>
-                                Your Cards ({playerDeck.length})
-                            </h3>
-                            <div className="flex flex-wrap justify-center gap-2" style={styles.playerCards}>
-                                {playerDeck.map((card, index) => {
-                                    const cardDetails = getCardDetails(card)
-
-                                    return cardDetails.type === "wild" ? (
-                                        <WildCard
-                                            key={index}
-                                            className="w-16 h-24 sm:w-20 sm:h-28"
-                                            onClick={() => playCard(index)}
-                                            disabled={currentPlayer !== 0 || gameOver || lastPlayedWild}
-                                        />
-                                    ) : (
-                                        <UnoCard
-                                            key={index}
-                                            color={cardDetails.color}
-                                            number={cardDetails.number}
-                                            className="w-16 h-24 sm:w-20 sm:h-28"
-                                            onClick={() => playCard(index)}
-                                            disabled={currentPlayer !== 0 || gameOver || lastPlayedWild}
-                                        />
-                                    )
-                                })}
+                        <div className="bg-[#074428] rounded-lg p-3 sm:p-4 shadow-lg">
+                            <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Your Cards ({playerDeck.length})</h3>
+                            <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
+                                {playerDeck.map((card, index) => renderPlayerCard(card, index))}
                             </div>
                         </div>
                     </div>
@@ -1155,4 +829,3 @@ export default function UnoGame() {
         </div>
     )
 }
-

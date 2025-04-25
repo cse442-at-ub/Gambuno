@@ -18,7 +18,7 @@ const WaitingRoomHost = () => {
       const initializeAuth = async () => {
         try {
           setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
           const cookieResult = await cookieResponse.json();
           
           if (cookieResult.status) {
@@ -26,7 +26,7 @@ const WaitingRoomHost = () => {
             setCookie(cookieResult.cookie);
             
             // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
             const metaResult = await metaResponse.json();
             
             if (metaResult.status) {
@@ -53,7 +53,7 @@ const WaitingRoomHost = () => {
   const fetchPlayers = async () => {
     try {
       const response = await fetch(
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php",
+        "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/POST.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -94,7 +94,7 @@ const WaitingRoomHost = () => {
     if (!username) return;
     try {
         // Get user metadata with the cookie
-        const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getStatus&gameID=${gameID}`);
+        const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/bet.php?action=getStatus&gameID=${gameID}`);
         const data = await response.json();
         
         if (data.success ) {

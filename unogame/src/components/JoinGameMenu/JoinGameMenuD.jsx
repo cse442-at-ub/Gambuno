@@ -18,7 +18,7 @@ const JoinGameMenu = () => {
       const initializeAuth = async () => {
         try {
           setIsLoading(true);
-          const cookieResponse = await fetch("https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
+          const cookieResponse = await fetch("https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=cookie");
           const cookieResult = await cookieResponse.json();
           
           if (cookieResult.status) {
@@ -26,7 +26,7 @@ const JoinGameMenu = () => {
             setCookie(cookieResult.cookie);
             
             // Get user metadata with the cookie
-            const metaResponse = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
+            const metaResponse = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getAuthDetails.php?action=getAuth&auth=${cookieResult.cookie}`);
             const metaResult = await metaResponse.json();
             
             if (metaResult.status) {
@@ -54,7 +54,7 @@ const JoinGameMenu = () => {
     setError("");
     try {
       const requestURL =
-        "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getWaitingLobbies.php?action=getWaitingLobbies";
+        "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/getWaitingLobbies.php?action=getWaitingLobbies";
       const response = await fetch(requestURL);
       const responseText = await response.text();
 
@@ -80,7 +80,7 @@ const JoinGameMenu = () => {
   // Join a lobby using POST.php
   const joinLobby = async (gameID, username) => {
     try {
-      const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php`, {
+      const response = await fetch(`https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

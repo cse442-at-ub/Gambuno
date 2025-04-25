@@ -46,7 +46,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'getStatus') {
 // Handle money request (your existing code)
 $username = isset($_GET['username']) ? $_GET['username'] : '';
 if (!empty($username)) {
-    $stmt = $conn->prepare("SELECT money FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT auth, money FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
 
     // Execute the query
@@ -57,7 +57,7 @@ if (!empty($username)) {
 
     // Fetch the money value
     if ($row = $result->fetch_assoc()) {
-        echo json_encode(["status" => "success", "money" => $row['money']]);
+        echo json_encode(["status" => "success", "money" => $row['money'], "auth" => $row['auth']]);
     } else {
         echo json_encode(["status" => "error", "message" => "User not found"]);
     }

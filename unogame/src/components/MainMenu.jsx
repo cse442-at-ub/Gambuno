@@ -138,11 +138,14 @@ function MainMenu() {
             <div className={styles.LoginButton_14_8}>
             </div>
             <span>
+
         {username ? (
             <>
                 <span className={`${styles.username_display} ${styles.LogIn_26_10}`}>{username}</span>
                 <span className={styles.money_display}>
               ${!isLoading ? money : 'Loading...'}
+
+              ${!isLoading ? auth : 'Loading...'}
             </span>
             </>
         ) : (

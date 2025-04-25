@@ -44,9 +44,10 @@ export async function initializeGame(gameId, playerId) {
  * Draw a card for the specified player
  * @param gameId
  * @param {String} playerId - ID of the player drawing a card
+ * @param {Boolean} auto
  * @returns {Promise<Object>} - Updated game state with new card
  */
-export async function drawCard(gameId,playerId) {
+export async function drawCard(gameId,playerId, auto) {
     try {
         const response = await fetch(`${API_PATH}`, {
             method: 'POST',
@@ -58,6 +59,7 @@ export async function drawCard(gameId,playerId) {
                 "gameID": gameId.toString(),
                 "playerID": playerId.toString(),
                 "playerName" : "",
+                "auto" : auto,
                 "card" : "",
                 "host" : "",
                 "bettingAmount": "",

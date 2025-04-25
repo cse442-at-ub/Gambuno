@@ -78,7 +78,7 @@ const JoinGameMenu = () => {
   };
 
   // Join a lobby using POST.php
-  const joinLobby = async (gameID) => {
+  const joinLobby = async (gameID, username) => {
     try {
       const response = await fetch(`https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/gameLogic.php`, {
         method: 'POST',
@@ -103,6 +103,11 @@ const JoinGameMenu = () => {
         navigate(`/waiting-host/${gameID}`);
         console.log("Joined game successfully:", result);
       }
+      else if (result.success === false && result.message === "Game already in progress or finished") {
+        // Try to get current game state to decide where to redirect
+        const val = username;
+        navigate(`/game-board/${gameID}/${val}`);
+      }
       else {
         alert("Error: " + result.error);
       }
@@ -118,7 +123,7 @@ const JoinGameMenu = () => {
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-orange-500 to-yellow-500 flex flex-col items-center justify-center relative px-6 overflow-hidden">
       {/* Back Button */}
-      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/play")}>
+      <button className="absolute top-4 left-4 p-2" aria-label="Back" onClick={() => navigate("/select-game")}>
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368">
           <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
         </svg>
@@ -150,7 +155,7 @@ const JoinGameMenu = () => {
               alert("Game code must be 6 characters.");
               return;
             }
-            joinLobby(manualCode);
+            joinLobby(manualCode, username);
           }}
           className="mt-2 px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
         >
@@ -185,7 +190,7 @@ const JoinGameMenu = () => {
                     <p>Bet Amount - ${betAmount}</p>
                   </div>
                   <button
-                    onClick={() => joinLobby(lobby.gameID)}
+                    onClick={() => joinLobby(lobby.gameID, username)}
                     className="px-4 py-2 bg-white text-black text-lg font-bold shadow-md rounded-xl border-2 border-gray-400 hover:scale-105 transition"
                   >
                     Join

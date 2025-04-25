@@ -15,6 +15,7 @@ import Tutorial from './Tutorial';
 function MainMenu() {
     const navigate = useNavigate();
 
+
     const goToPlayPage = () => {
         navigate("/play");
 

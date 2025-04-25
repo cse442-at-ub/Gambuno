@@ -17,7 +17,12 @@ function MainMenu() {
   const navigate = useNavigate();
 
   const goToPlayPage = () => {
-    navigate("/play");
+    navigate("/select-game");
+
+  }
+
+  const goToLeaderboard = () => {
+    navigate("/leaderboard");
 
   }
 
@@ -101,7 +106,7 @@ useEffect(() => {
         </nav>
 
         <footer className="footer">
-          <button className="icon-button">...</button>
+          <button className="icon-button" onClick={goToLeaderboard} >...</button>
           <img 
           className="help-icon" 
           src={tutorialCircle} 

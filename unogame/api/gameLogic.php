@@ -257,9 +257,9 @@ function getNextPlayer($gameID) {
 
 // Move to the next player's turn
 function moveToNextPlayer($gameID) {
+
     $s = json_encode(getCurrentPlayer($gameID));
     $currentPlayer = json_decode($s, true)["currentPlayer"];
-
 
     // Find current player index
     $b = json_encode(getGameOrder($gameID));
@@ -287,7 +287,7 @@ function moveToNextPlayer($gameID) {
 }
 
 // Handle player drawing a card
-function drawCard($gameID, $playerID) {
+function drawCard($gameID, $playerID, $auto) {
     // Check if it's player's turn
     if (!isPlayerTurn($gameID, $playerID)) {
         return json_encode(['success' => false, 'message' => 'Not your turn']);
@@ -321,7 +321,8 @@ function drawCard($gameID, $playerID) {
     $currentCard = json_decode($h, true)["curCard"];
 
     // Check if card is valid to play
-    if(!isValidCardPlay($currentCard, $newCard)){
+
+    if(!isValidCardPlay($currentCard, $newCard) || $auto){
         moveToNextPlayer($gameID);
     }
     
@@ -658,7 +659,9 @@ if ($requestMethod === 'POST') {
             }
             $playerID = htmlspecialchars($playerID, ENT_QUOTES, 'UTF-8');
             $gameID = htmlspecialchars($gameID, ENT_QUOTES, 'UTF-8');
-            echo drawCard($gameID, $playerID);
+            $auto = $data["auto"];
+            $auto = htmlspecialchars($auto, ENT_QUOTES, 'UTF-8');
+            echo drawCard($gameID, $playerID, $auto);
             break;
 
         case 'get_game_state':

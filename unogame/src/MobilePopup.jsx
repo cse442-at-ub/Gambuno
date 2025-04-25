@@ -160,17 +160,17 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                         <h2 className="text-3xl font-bold text-black text-center mb-6">Color Placing</h2>
 
                         <div className="flex items-center justify-center gap-4">
-                            <UnoCard color="yellow" number="1" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="yellow" number="1" className="w-24 h-36" />
                             <div className="text-2xl">←</div>
-                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" />
                         </div>
 
                         <h2 className="text-3xl font-bold text-black text-center my-4">Number Placing</h2>
 
                         <div className="flex items-center justify-center gap-4">
-                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" />
                             <div className="text-2xl">←</div>
-                            <UnoCard color="blue" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="blue" number="3" className="w-24 h-36" />
                         </div>
                     </>
                 ) : page === 2 ? (
@@ -179,13 +179,13 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
 
                         <div className="flex items-center justify-center gap-2">
                             <div className="relative">
-                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" onClick={() => {}} disabled={false} />
-                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -left-4" onClick={() => {}} disabled={false} />
+                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" />
+                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -left-4" />
                             </div>
 
                             <div className="text-2xl">→</div>
 
-                            <UnoCard color="yellow" number="3" className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <UnoCard color="yellow" number="3" className="w-24 h-36" />
                         </div>
                     </>
                 ) : page === 3 ? (
@@ -193,11 +193,11 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                         <h2 className="text-3xl font-bold text-black text-center mb-6">If Don&apos;t have card to play</h2>
 
                         <div className="flex items-center justify-center gap-6">
-                            <WildCard className="w-24 h-36" onClick={() => {}} disabled={false} />
+                            <WildCard className="w-24 h-36" />
                             <div className="text-2xl">→</div>
                             <div className="relative">
-                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" onClick={() => {}} disabled={false} />
-                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -right-4" onClick={() => {}} disabled={false} />
+                                <UnoCard color="blue" number="3" className="w-24 h-36 relative z-10" />
+                                <UnoCard color="yellow" number="3" className="w-24 h-36 absolute -bottom-4 -right-4" />
                             </div>
                         </div>
                     </>
@@ -208,29 +208,29 @@ function HowToScreen({ page, nextPage, prevPage, totalPages }) {
                         <div className="flex flex-col gap-6">
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center">
-                                    <SkipCard color="red" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <SkipCard color="red" className="w-16 h-24 mb-1" />
                                     <span className="text-xs font-medium text-center">Skip Next Player</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <PlusFiveCard className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <PlusFiveCard className="w-16 h-24 mb-1" />
                                     <span className="text-xs font-medium text-center">Next Player draws 5</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <WildCard className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <WildCard className="w-16 h-24 mb-1" />
                                     <span className="text-xs font-medium text-center">Swap Current Color</span>
                                 </div>
                             </div>
 
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center">
-                                    <ReverseCard color="green" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <ReverseCard color="green" className="w-16 h-24 mb-1" />
                                     <span className="text-xs font-medium text-center">Flip game&apos;s order</span>
                                 </div>
 
                                 <div className="flex flex-col items-center">
-                                    <ColoredWildCard color="blue" className="w-16 h-24 mb-1" onClick={() => {}} disabled={false} />
+                                    <ColoredWildCard color="blue" className="w-16 h-24 mb-1" />
                                     <span className="text-xs font-medium text-center">Wild card + color</span>
                                 </div>
                             </div>

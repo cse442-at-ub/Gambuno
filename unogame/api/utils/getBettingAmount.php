@@ -47,7 +47,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getBettingAmount') {
     // Output the result if a record is found, or return 0 otherwise
     if ($result && $result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        echo json_encode($row['betting_amt']);
+        echo json_encode(["success" => true, "betting" => (float) $row['betting_amt']]);
     } else {
         echo json_encode(0);
     }

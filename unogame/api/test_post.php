@@ -5,7 +5,7 @@ function testingFuntion1()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-    updateSkipStatus($conn, "bardonia1", 1)
+    updateSkipStatus($conn, "bardonia1", 1);
 }
 
 function testingFuntion2()
@@ -14,7 +14,7 @@ function testingFuntion2()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-    updateGameOrder($conn, "12", ["hellouser123","wecooked","u8u8u8u8","kurianvadakara","Unoplayer3"])
+    updateGameOrder($conn, "JIQ9N9", ["u8u8u8u8","56"]);
 }
 
 
@@ -24,7 +24,7 @@ function testingFuntion3()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-    updateCurrentCard($conn, "SK482P", "blue_4")
+    updateCurrentCard($conn, "SK482P", "blue_9");
 }
 
 function testingFuntion4()
@@ -33,16 +33,9 @@ function testingFuntion4()
     if (!$conn) {
         return "Failed to connect to the database.";
     }
-    updateCurrentPlayer($conn, "SK482P", "SleepDeprived")
+    updateCurrentPlayer($conn, "SK482P", "SleepDeprived");
 }
 
-function testingFuntion5()
-{
-    $conn = getDatabaseConnection();
-    if (!$conn) {
-        return "Failed to connect to the database.";
-    }
-    updateCardEffect($conn, "SK482P", "Skip")
-}
+
 
 ?>

@@ -79,8 +79,6 @@ function verifyUser($conn, $username, $password) {
     if ($stmt->num_rows > 0) {
         $stmt->bind_result($id, $username, $hashedPassword);
         if ($stmt->fetch() && password_verify($password, $hashedPassword)) {
-            list($hashedPassword, $authToken, $hashedAuthToken) = genAuth($password);
-            setcookie("auth_token", $authToken, time() + 3600, "/", "cse.buffalo.edu", true, true);
             echo json_encode(["status" => "success", "message" => "User verified", "token" => $authToken]);
         } else {
             echo json_encode(["status" => "error", "message" => "Invalid credentials"]);

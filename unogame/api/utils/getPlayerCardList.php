@@ -22,7 +22,7 @@ if ($conn->connect_error) {
 // Validate request
 if (isset($_GET['action']) && $_GET['action'] === 'getPlayerCardList') {
     $playerID = isset($_GET['playerID']) ? trim($_GET['playerID']) : '';
-
+    $gameID = isset($_GET['gameID']) ? trim($_GET['gameID']) : '';
     // Ensure playerID is provided
     if (empty($playerID)) {
         echo json_encode(["status" => "error", "message" => "Missing playerID"]);
@@ -30,13 +30,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'getPlayerCardList') {
     }
 
     // Prepare statement (assuming playerName corresponds to playerID)
-    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerName = ?");
+    $stmt = $conn->prepare("SELECT cardList FROM players WHERE playerName = ? AND gameID = ?");
     if (!$stmt) {
         echo json_encode(["status" => "error", "message" => "Statement preparation failed: " . $conn->error]);
         exit();
     }
     
-    $stmt->bind_param("s", $playerID);
+    $stmt->bind_param("ss", $playerID, $gameID);
     $stmt->execute();
 
     // Fetch results

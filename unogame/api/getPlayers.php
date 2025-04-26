@@ -30,7 +30,7 @@ $user = "kurianva";
 $pass = "50554678";
 $dbname = "cse442_2025_spring_team_c_db";
 
-$conn = new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($host, $user, $password, $database);
 if ($conn->connect_error) {
     echo json_encode(["status" => "error", "message" => "Database connection failed"]);
     exit;

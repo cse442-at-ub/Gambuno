@@ -1,4 +1,6 @@
 import React from 'react';
+
+
                       import { HashRouter as Router, Route, Routes } from 'react-router-dom';
                       import MainMenu from './components/MainMenu';
                       import PlayGame from './components/PlayGameMenu';
@@ -18,9 +20,13 @@ import React from 'react';
                       import WaitingRoomD from './components/WaitingRoom/WaitingRoomHostD';
                       import SettingsPopup from "./components/SettingsPopup";
                       import HostGameLobby from './components/HostGameLobby/HostGameLobbyD';
-                      // import Leaderboard from './components/Leaderboard';
+                      import Leaderboard from './components/leaderboard';
                       import UnoGame from './components/uno-game'; // Import UnoGame if needed
                       import MainMenuMobile from './components/MainMenuM';
+                      import UnoGameBoard from "./components/gameLayout/game-board";
+                      import UnoGameBoard2 from "./components/gameLayout/game-boardM";
+                      import WinningScreen from "./components/gameLayout/WinningScreen";
+
 
                       function App() {
                         const { isMobile } = useDeviceDetect();
@@ -37,9 +43,11 @@ import React from 'react';
                               <Route path="/join-game-menu" element={isMobile ? <JoinGameM /> : <JoinGameD />} />
                               <Route path="/host-game" element={isMobile ? <HostGameM /> : <HostGameD />} />
                               <Route path="/waiting-host/:gameID" element={isMobile ? <WaitingRoomM /> : <WaitingRoomD />} />
-                              <Route path="/host-game-lobby/:gameCode" element={<HostGameLobby />} />
-                              {/*<Route path="/leaderboard" element={<Leaderboard />} />*/}
+                              <Route path="/host-game-lobby/:gameID" element={<HostGameLobby />} />
+                              <Route path="/leaderboard" element={<Leaderboard />} />
+                              <Route path="/game-board/:gameID/:playerID" element={isMobile ? <UnoGameBoard2 /> : <UnoGameBoard/>} />,
                               <Route path="/uno-game" element={<UnoGame />} /> {/* Added UnoGame path */}
+                              <Route path="/winning-screen/:gameID" element={<WinningScreen />} />
                             </Routes>
                           </Router>
                         );

@@ -10,4 +10,4 @@ function testingFuntion()
 }
 
 
-//curl -v "https://se-dev.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=testingFuntion"
+//curl -v "https://se-prod.cse.buffalo.edu/CSE442/2025-Spring/cse-442c/api/util.php?action=testingFuntion"

@@ -22,24 +22,26 @@ if ($conn->connect_error) {
 // Handle getPlayerName action
 if (isset($_GET['action']) && $_GET['action'] === 'getPlayerName') {
     // Retrieve and sanitize the playerID parameter
+    $gameID = isset($_GET['gameID']) ? trim($_GET['gameID']) : '';
+
     $playerID = isset($_GET['playerID']) ? trim($_GET['playerID']) : '';
 
     // Check if playerID is provided
-    if (empty($playerID)) {
-        echo json_encode(["status" => "error", "message" => "playerID not provided"]);
+    if (empty($playerID) || empty($gameID)) {
+        echo json_encode(["status" => "error", "message" => "playerID not provided OR gameID not provided"]);
         $conn->close();
         exit;
     }
 
     // Prepare the SQL statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT playerName FROM players WHERE playerID = ?");
+    $stmt = $conn->prepare("SELECT playerName FROM players WHERE gameID = ? AND playerID = ?");
     if (!$stmt) {
         echo json_encode(["status" => "error", "message" => "Failed to prepare statement"]);
         $conn->close();
         exit;
     }
 
-    $stmt->bind_param("s", $playerID);
+    $stmt->bind_param("ss", $gameID, $playerID);
     $stmt->execute();
     $result = $stmt->get_result();
 

@@ -20,7 +20,7 @@ if ($conn->connect_error) {
 }
 
 if (isset($_GET['action']) && $_GET['action'] === 'getCurrentPlayer') {
-    $lobbyID = $_GET['lobbyID'];
+    $gameID = $_GET['gameID'];
 
     // Prepare and execute the query to get the current player
     $stmt = $conn->prepare("SELECT curPlayer FROM lobby WHERE gameID = ?");
@@ -28,7 +28,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getCurrentPlayer') {
         die(json_encode(["status" => "error", "message" => "Prepare failed: " . $conn->error]));
     }
 
-    $stmt->bind_param("s", $lobbyID);
+    $stmt->bind_param("s", $gameID);
     $stmt->execute();
     $result = $stmt->get_result();
 

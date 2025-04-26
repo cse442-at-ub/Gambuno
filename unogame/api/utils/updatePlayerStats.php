@@ -33,10 +33,9 @@ if (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'applica
 if (isset($postData['action']) && $postData['action'] === 'updatePlayerStats') {
     // Retrieve and sanitize the playerID and gameID parameters
     $playerID = isset($postData['playerID']) ? trim($postData['playerID']) : '';
-    $gameID   = isset($postData['gameID']) ? trim($postData['gameID']) : '';
 
     // Validate required parameters
-    if (empty($playerID) || empty($gameID)) {
+    if (empty($playerID)) {
         echo json_encode([
             "status"  => "error",
             "message" => "Required parameters (playerID, gameID) are missing."
@@ -46,7 +45,7 @@ if (isset($postData['action']) && $postData['action'] === 'updatePlayerStats') {
     }
 
     // Prepare the SQL statement to update wins for the given player and game
-    $stmt = $conn->prepare("UPDATE players SET total_games = total_games + 1 WHERE playerID = ? AND gameID = ?");
+    $stmt = $conn->prepare("UPDATE users SET total_games = total_games + 1 WHERE username = ?");
     if (!$stmt) {
         echo json_encode([
             "status"  => "error",
@@ -56,7 +55,7 @@ if (isset($postData['action']) && $postData['action'] === 'updatePlayerStats') {
         exit;
     }
 
-    $stmt->bind_param("ss", $playerID, $gameID);
+    $stmt->bind_param("s", $playerID);
 
     // Execute the statement and return a JSON response
     if ($stmt->execute()) {

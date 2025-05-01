@@ -1,4 +1,4 @@
-# sp25-repo-next-gen-uno
+# Gambuno
 
 Product Manager:
 Birwasal: birwasal@buffalo.edu
